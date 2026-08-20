@@ -35,3 +35,16 @@ export function cellsInColumn(col) {
 export function cellsInRegion(region) {
   return allCells.filter(index => regionAt(index) === region);
 }
+
+export function validatePuzzleDefinition(definition = regions, size = N) {
+  const errors = [];
+  if (!Array.isArray(definition) || definition.length !== size) errors.push(`regions musi mieć ${size} wierszy`);
+  const rows = Array.isArray(definition) ? definition : [];
+  if (rows.some(row => !Array.isArray(row) || row.length !== size)) errors.push(`każdy wiersz regions musi mieć ${size} pól`);
+
+  const values = rows.flat();
+  const unique = new Set(values);
+  if (unique.size !== size) errors.push(`puzzle musi mieć dokładnie ${size} regionów`);
+
+  return {valid: errors.length === 0, errors};
+}
