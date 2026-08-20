@@ -65,6 +65,32 @@ function cellStateLabel(index, xs) {
   return 'puste';
 }
 
+function renderHintText(hint) {
+  hintText.innerHTML = '';
+  const reason = document.createElement('div');
+  reason.className = 'hint-section';
+  reason.innerHTML = '<span class="hint-label">Dlaczego</span>';
+  const reasonCopy = document.createElement('p');
+  reasonCopy.className = 'hint-copy';
+  reasonCopy.textContent = hint.text;
+  reason.appendChild(reasonCopy);
+  hintText.appendChild(reason);
+
+  const hasAction = (hint.cells?.length || 0) + (hint.eliminate?.length || 0) > 0;
+  if (!hasAction) return;
+
+  const action = document.createElement('div');
+  action.className = 'hint-section';
+  action.innerHTML = '<span class="hint-label">Co zrobić</span>';
+  const actionCopy = document.createElement('p');
+  actionCopy.className = 'hint-copy';
+  if (hint.kind === 'error') actionCopy.textContent = 'Popraw zaznaczone pole.';
+  else if (hint.eliminate?.length) actionCopy.textContent = 'Oznacz zaznaczone pola jako wykluczone.';
+  else actionCopy.textContent = 'Wykonaj ruch na zielono zaznaczonym polu.';
+  action.appendChild(actionCopy);
+  hintText.appendChild(action);
+}
+
 function render() {
   const xs = visibleXs(state, autoXEnabled);
   const bad = conflicts(state.crowns);
@@ -102,7 +128,7 @@ function makeMove(index) {
   if (isSolved(state)) {
     finished = true;
     stopTimer();
-    finalTime.textContent = `Czas: ${timer.textContent}`;
+    finalTime.textContent = timer.textContent;
   }
   render();
 }
@@ -112,7 +138,7 @@ function showHint() {
   clearHint();
   const hint = getHint(state, history);
   if (!hint) {
-    hintText.textContent = 'Nie znalazłem teraz prostej, uczciwej dedukcji. Spróbuj oznaczyć kolejne pewne wykluczenia.';
+    hintText.innerHTML = '<div class="hint-section"><span class="hint-label">Dlaczego</span><p class="hint-copy">Nie znalazłem teraz prostej, uczciwej dedukcji. Spróbuj oznaczyć kolejne pewne wykluczenia.</p></div>';
     hintCard.classList.add('show');
     return;
   }
@@ -121,7 +147,7 @@ function showHint() {
   for (const index of hint.focus || []) board.children[index]?.classList.add('hint-focus');
   for (const index of hint.cells || []) board.children[index]?.classList.add(hint.kind === 'error' ? 'hint-error' : 'hint-candidate');
   for (const index of hint.eliminate || []) board.children[index]?.classList.add('hint-eliminate');
-  hintText.textContent = hint.text;
+  renderHintText(hint);
   hintCard.classList.add('show');
 }
 
