@@ -48,3 +48,10 @@ export function validatePuzzleDefinition(definition = regions, size = N) {
 
   return {valid: errors.length === 0, errors};
 }
+
+export function setRegions(nextRegions) {
+  const result = validatePuzzleDefinition(nextRegions, N);
+  if (!result.valid) throw new Error(`Niepoprawna plansza: ${result.errors.join(', ')}`);
+
+  for (let row = 0; row < N; row++) regions[row] = [...nextRegions[row]];
+}

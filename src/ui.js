@@ -1,6 +1,7 @@
-import { N, allCells, rc, regionAt } from './puzzle.js';
+import { N, allCells, rc, regionAt, setRegions } from './puzzle.js';
 import { clearManualXs, conflicts, createGameState, cycleCell, isSolved, snapshot, visibleXs } from './game.js';
 import { getHint } from './hints.js';
+import { generatePuzzle } from './generator.js';
 
 const $ = selector => document.querySelector(selector);
 const board = $('#board');
@@ -12,6 +13,8 @@ const hintText = $('#hintText');
 const autoXInput = $('#autoX');
 const done = $('#done');
 const finalTime = $('#finalTime');
+const nextPuzzleBtn = $('#nextPuzzle');
+const roundLabel = $('#roundLabel');
 
 let state = createGameState();
 let history = [];
@@ -19,6 +22,7 @@ let started = false;
 let start = 0;
 let tick = null;
 let finished = false;
+let practiceNumber = 1;
 let autoXEnabled = localStorage.getItem('figlo-auto-x') === '1';
 autoXInput.checked = autoXEnabled;
 
@@ -120,15 +124,7 @@ function showHint() {
   hintCard.classList.add('show');
 }
 
-undoBtn.addEventListener('click', () => {
-  if (!history.length || finished) return;
-  clearHint();
-  const previous = history.pop();
-  state = createGameState(previous.crowns, previous.manualXs);
-  render();
-});
-
-$('#reset').addEventListener('click', () => {
+function resetRound() {
   state = createGameState();
   history = [];
   finished = false;
@@ -138,7 +134,22 @@ $('#reset').addEventListener('click', () => {
   finalTime.textContent = '';
   clearHint();
   render();
+}
+
+function practiceSeed() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random()}`;
+}
+
+undoBtn.addEventListener('click', () => {
+  if (!history.length || finished) return;
+  clearHint();
+  const previous = history.pop();
+  state = createGameState(previous.crowns, previous.manualXs);
+  render();
 });
+
+$('#reset').addEventListener('click', resetRound);
 
 $('#clearMarks').addEventListener('click', () => {
   if (finished || state.manualXs.size === 0) return;
@@ -151,6 +162,29 @@ $('#clearMarks').addEventListener('click', () => {
 
 hintBtn.addEventListener('click', showHint);
 $('#hintClose').addEventListener('click', clearHint);
+
+nextPuzzleBtn.addEventListener('click', async () => {
+  nextPuzzleBtn.disabled = true;
+  const previousText = nextPuzzleBtn.textContent;
+  nextPuzzleBtn.textContent = 'Generuję…';
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
+  try {
+    const puzzle = generatePuzzle(practiceSeed());
+    setRegions(puzzle.regions);
+    practiceNumber += 1;
+    roundLabel.textContent = `Trening • #${practiceNumber}`;
+    resetRound();
+  } catch (error) {
+    console.error('Nie udało się wygenerować planszy', error);
+    nextPuzzleBtn.textContent = 'Spróbuj ponownie';
+    nextPuzzleBtn.disabled = false;
+    return;
+  }
+
+  nextPuzzleBtn.textContent = previousText;
+  nextPuzzleBtn.disabled = false;
+});
 
 autoXInput.addEventListener('change', () => {
   autoXEnabled = autoXInput.checked;
