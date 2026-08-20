@@ -1,73 +1,13 @@
 <!doctype html>
-<html lang="pl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f4f2ed">
-  <title>Figlo — Korony</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<main class="app">
-  <div class="game-topbar"><a class="home-link" href="index.html" aria-label="Wróć do ekranu głównego Figlo">←</a><div class="brand">figlo</div><span class="topbar-spacer" aria-hidden="true"></span></div>
-
-  <header class="game-header">
-    <div class="game-heading">
-      <span class="game-title">Korony</span>
-      <span class="round" id="roundLabel">Trening • #1</span>
-    </div>
-    <div class="timer" aria-label="Czas gry">◷ <span id="timer">00:00</span></div>
-  </header>
-
-  <div class="board" id="board" aria-label="Plansza Korony 9 na 9"></div>
-
-  <div class="actions">
-    <button class="action action-secondary" id="undo">↶ Cofnij</button>
-    <button class="action action-primary" id="hint">Podpowiedź</button>
-  </div>
-
-  <div class="secondary">
-    <button class="reset-link" id="reset">Zresetuj planszę</button>
-  </div>
-
-  <section class="hint-card" id="hintCard" role="status" aria-live="polite" aria-atomic="true">
-    <div class="hint-head"><span>Podpowiedź</span><button class="hint-close" id="hintClose" aria-label="Zamknij podpowiedź">×</button></div>
-    <div class="hint-text" id="hintText"></div>
-  </section>
-
-  <details class="game-tools">
-    <summary>Zasady i ustawienia</summary>
-    <div class="tools-content">
-      <section class="how">
-        <h2>Jak grać</h2>
-        <ol>
-          <li>Umieść dokładnie jedną koronę w każdym rzędzie, kolumnie i kolorowym regionie.</li>
-          <li>Dotknij raz, aby postawić X, a drugi raz, aby postawić koronę.</li>
-          <li>Dwie korony nie mogą się stykać, nawet po przekątnej.</li>
-        </ol>
-      </section>
-
-      <div class="tool-divider"></div>
-
-      <div class="auto-row">
-        <div><b>Automatyczne X</b><div class="auto-desc">Oznaczaj pola wykluczone przez ustawioną koronę</div></div>
-        <label class="switch"><input type="checkbox" id="autoX" aria-label="Automatyczne X"><span class="slider"></span></label>
-      </div>
-
-      <div class="tool-actions">
-        <button class="clear" id="clearMarks">Wyczyść moje X</button>
-      </div>
-    </div>
-  </details>
-
-  <section class="done" id="done" role="status" aria-live="polite" aria-atomic="true">
-    <div class="done-crown" aria-hidden="true">♛</div>
-    <strong class="done-title">Świetna robota!</strong>
-    <span class="done-subtitle">Dzisiejsze Korony</span>
-    <span class="done-time" id="finalTime"></span>
-    <button class="next-puzzle" id="nextPuzzle" type="button">Następna plansza</button>
-  </section>
-</main>
-<script type="module" src="src/ui.js"></script>
-</body>
-</html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f4f2ed"><title>Figlo — Korony</title><link rel="stylesheet" href="styles.css"></head><body><main class="app">
+<div class="game-topbar"><a class="home-link" href="index.html" aria-label="Wróć do ekranu głównego Figlo">←</a><div class="brand">figlo</div><span class="topbar-spacer" aria-hidden="true"></span></div>
+<header class="game-header"><div class="game-heading"><span class="game-title">Korony</span><span class="round" id="roundLabel">Trening • #1</span></div><div class="timer" aria-label="Czas gry">◷ <span id="timer">00:00</span></div></header>
+<div class="board" id="board" aria-label="Plansza Korony 9 na 9"></div>
+<div class="actions"><button class="action action-secondary" id="undo">↶ Cofnij</button><button class="action action-primary" id="hint">Podpowiedź</button></div>
+<div class="secondary"><button class="reset-link" id="reset">Zresetuj planszę</button></div>
+<section class="hint-card" id="hintCard" role="status" aria-live="polite" aria-atomic="true"><div class="hint-head"><span>Podpowiedź</span><button class="hint-close" id="hintClose" aria-label="Zamknij podpowiedź">×</button></div><div class="hint-text" id="hintText"></div></section>
+<details class="game-tools"><summary>Zasady i ustawienia</summary><div class="tools-content">
+<section class="game-stats" aria-label="Statystyki Koron"><div><strong id="crownsStreak">—</strong><span>seria Koron</span></div><div><strong id="crownsBest">—</strong><span>najlepszy czas</span></div><div><strong id="crownsCount">0</strong><span>ukończone</span></div></section>
+<div class="tool-divider"></div><section class="how"><h2>Jak grać</h2><ol><li>Umieść dokładnie jedną koronę w każdym rzędzie, kolumnie i kolorowym regionie.</li><li>Dotknij raz, aby postawić X, a drugi raz, aby postawić koronę.</li><li>Dwie korony nie mogą się stykać, nawet po przekątnej.</li></ol></section><div class="tool-divider"></div><div class="auto-row"><div><b>Automatyczne X</b><div class="auto-desc">Oznaczaj pola wykluczone przez ustawioną koronę</div></div><label class="switch"><input type="checkbox" id="autoX" aria-label="Automatyczne X"><span class="slider"></span></label></div><div class="tool-actions"><button class="clear" id="clearMarks">Wyczyść moje X</button></div></div></details>
+<section class="done" id="done" role="status" aria-live="polite" aria-atomic="true"><div class="done-crown" aria-hidden="true">♛</div><strong class="done-title">Świetna robota!</strong><span class="done-subtitle">Dzisiejsze Korony</span><span class="done-time" id="finalTime"></span><button class="next-puzzle" id="nextPuzzle" type="button">Następna plansza</button></section>
+</main><script type="module" src="src/ui.js"></script></body></html>
