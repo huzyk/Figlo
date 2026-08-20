@@ -33,6 +33,46 @@ function fmt(ms) {
   return String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
 }
 
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function dateFromKey(key) {
+  if (!key) return null;
+  const [year, month, day] = key.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+}
+
+function dayDistance(fromKey, toKey) {
+  const from = dateFromKey(fromKey);
+  const to = dateFromKey(toKey);
+  if (!from || !to) return null;
+  return Math.round((to - from) / 86400000);
+}
+
+function saveCompletion(elapsedMs) {
+  const today = localDateKey();
+  const best = Number(localStorage.getItem('figlo-crowns-best-ms')) || 0;
+  if (!best || elapsedMs < best) localStorage.setItem('figlo-crowns-best-ms', String(elapsedMs));
+
+  const count = Number(localStorage.getItem('figlo-crowns-completed-count')) || 0;
+  localStorage.setItem('figlo-crowns-completed-count', String(count + 1));
+
+  const lastDate = localStorage.getItem('figlo-last-play-date');
+  let streak = Number(localStorage.getItem('figlo-streak')) || 0;
+  if (lastDate !== today) {
+    const distance = dayDistance(lastDate, today);
+    streak = distance === 1 ? Math.max(1, streak + 1) : 1;
+    localStorage.setItem('figlo-streak', String(streak));
+    localStorage.setItem('figlo-last-play-date', today);
+  }
+  localStorage.setItem('figlo-crowns-completed-date', today);
+}
+
 function startTimer() {
   if (started || finished) return;
   started = true;
@@ -65,32 +105,6 @@ function cellStateLabel(index, xs) {
   return 'puste';
 }
 
-function renderHintText(hint) {
-  hintText.innerHTML = '';
-  const reason = document.createElement('div');
-  reason.className = 'hint-section';
-  reason.innerHTML = '<span class="hint-label">Dlaczego</span>';
-  const reasonCopy = document.createElement('p');
-  reasonCopy.className = 'hint-copy';
-  reasonCopy.textContent = hint.text;
-  reason.appendChild(reasonCopy);
-  hintText.appendChild(reason);
-
-  const hasAction = (hint.cells?.length || 0) + (hint.eliminate?.length || 0) > 0;
-  if (!hasAction) return;
-
-  const action = document.createElement('div');
-  action.className = 'hint-section';
-  action.innerHTML = '<span class="hint-label">Co zrobić</span>';
-  const actionCopy = document.createElement('p');
-  actionCopy.className = 'hint-copy';
-  if (hint.kind === 'error') actionCopy.textContent = 'Popraw zaznaczone pole.';
-  else if (hint.eliminate?.length) actionCopy.textContent = 'Oznacz zaznaczone pola jako wykluczone.';
-  else actionCopy.textContent = 'Wykonaj ruch na zielono zaznaczonym polu.';
-  action.appendChild(actionCopy);
-  hintText.appendChild(action);
-}
-
 function render() {
   const xs = visibleXs(state, autoXEnabled);
   const bad = conflicts(state.crowns);
@@ -106,10 +120,8 @@ function render() {
     cell.setAttribute('aria-label', `Wiersz ${row + 1}, kolumna ${col + 1}, ${cellStateLabel(index, xs)}`);
     regionBorders(index, cell);
     if (bad.has(index)) cell.classList.add('bad');
-
     if (state.crowns.has(index)) cell.innerHTML = crownMarkup;
     else if (xs.has(index)) cell.innerHTML = '<span class="mark x-mark" aria-hidden="true">×</span>';
-
     cell.addEventListener('click', () => makeMove(index));
     board.appendChild(cell);
   }
@@ -127,8 +139,11 @@ function makeMove(index) {
   state = cycleCell(state, index, {autoXEnabled});
   if (isSolved(state)) {
     finished = true;
+    const elapsedMs = Date.now() - start;
+    timer.textContent = fmt(elapsedMs);
     stopTimer();
-    finalTime.textContent = timer.textContent;
+    finalTime.textContent = `Czas: ${timer.textContent}`;
+    saveCompletion(elapsedMs);
   }
   render();
 }
@@ -138,7 +153,7 @@ function showHint() {
   clearHint();
   const hint = getHint(state, history);
   if (!hint) {
-    hintText.innerHTML = '<div class="hint-section"><span class="hint-label">Dlaczego</span><p class="hint-copy">Nie znalazłem teraz prostej, uczciwej dedukcji. Spróbuj oznaczyć kolejne pewne wykluczenia.</p></div>';
+    hintText.textContent = 'Nie znalazłem teraz prostej, uczciwej dedukcji. Spróbuj oznaczyć kolejne pewne wykluczenia.';
     hintCard.classList.add('show');
     return;
   }
@@ -147,7 +162,29 @@ function showHint() {
   for (const index of hint.focus || []) board.children[index]?.classList.add('hint-focus');
   for (const index of hint.cells || []) board.children[index]?.classList.add(hint.kind === 'error' ? 'hint-error' : 'hint-candidate');
   for (const index of hint.eliminate || []) board.children[index]?.classList.add('hint-eliminate');
-  renderHintText(hint);
+
+  hintText.innerHTML = '';
+  const reasonSection = document.createElement('div');
+  reasonSection.className = 'hint-section';
+  const reasonLabel = document.createElement('span');
+  reasonLabel.className = 'hint-label';
+  reasonLabel.textContent = 'Dlaczego';
+  const reasonCopy = document.createElement('p');
+  reasonCopy.className = 'hint-copy';
+  reasonCopy.textContent = hint.reason || hint.text;
+  reasonSection.append(reasonLabel, reasonCopy);
+
+  const actionSection = document.createElement('div');
+  actionSection.className = 'hint-section';
+  const actionLabel = document.createElement('span');
+  actionLabel.className = 'hint-label';
+  actionLabel.textContent = 'Co zrobić';
+  const actionCopy = document.createElement('p');
+  actionCopy.className = 'hint-copy';
+  actionCopy.textContent = hint.action || hint.text;
+  actionSection.append(actionLabel, actionCopy);
+
+  hintText.append(reasonSection, actionSection);
   hintCard.classList.add('show');
 }
 
@@ -177,7 +214,6 @@ undoBtn.addEventListener('click', () => {
 });
 
 $('#reset').addEventListener('click', resetRound);
-
 $('#clearMarks').addEventListener('click', () => {
   if (finished || state.manualXs.size === 0) return;
   startTimer();
@@ -195,7 +231,6 @@ nextPuzzleBtn.addEventListener('click', async () => {
   const previousText = nextPuzzleBtn.textContent;
   nextPuzzleBtn.textContent = 'Generuję…';
   await new Promise(resolve => requestAnimationFrame(resolve));
-
   try {
     const puzzle = generatePuzzle(practiceSeed());
     setRegions(puzzle.regions);
@@ -208,7 +243,6 @@ nextPuzzleBtn.addEventListener('click', async () => {
     nextPuzzleBtn.disabled = false;
     return;
   }
-
   nextPuzzleBtn.textContent = previousText;
   nextPuzzleBtn.disabled = false;
 });

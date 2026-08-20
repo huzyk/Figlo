@@ -3,70 +3,93 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Figlo — Korony</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="theme-color" content="#f5f2ec">
+  <title>Figlo — codzienne łamigłówki</title>
+  <link rel="stylesheet" href="home.css">
 </head>
 <body>
-<main class="app">
-  <div class="brand">figlo</div>
-
-  <header class="game-header">
-    <div class="game-heading">
-      <span class="game-title">Korony</span>
-      <span class="round" id="roundLabel">Trening • #1</span>
+<main class="home">
+  <header class="home-header">
+    <div class="home-brand" aria-label="Figlo">figlo</div>
+    <div class="streak-pill" id="streakPill" aria-label="Brak aktywnej serii">
+      <span aria-hidden="true">🔥</span><span id="streakValue">—</span>
     </div>
-    <div class="timer" aria-label="Czas gry">◷ <span id="timer">00:00</span></div>
   </header>
 
-  <div class="board" id="board" aria-label="Plansza Korony 9 na 9"></div>
-
-  <div class="actions">
-    <button class="action action-secondary" id="undo">↶ Cofnij</button>
-    <button class="action action-primary" id="hint">Podpowiedź</button>
-  </div>
-
-  <div class="secondary">
-    <button class="reset-link" id="reset">Zresetuj planszę</button>
-  </div>
-
-  <section class="hint-card" id="hintCard" role="status" aria-live="polite" aria-atomic="true">
-    <div class="hint-head"><span>Podpowiedź</span><button class="hint-close" id="hintClose" aria-label="Zamknij podpowiedź">×</button></div>
-    <div class="hint-text" id="hintText"></div>
+  <section class="home-intro" aria-labelledby="todayTitle">
+    <h1 class="home-title" id="todayTitle">Dzisiaj</h1>
+    <p class="home-subtitle">Zagraj w codzienną łamigłówkę</p>
   </section>
 
-  <details class="game-tools">
-    <summary>Zasady i ustawienia</summary>
-    <div class="tools-content">
-      <section class="how">
-        <h2>Jak grać</h2>
-        <ol>
-          <li>Umieść dokładnie jedną koronę w każdym rzędzie, kolumnie i kolorowym regionie.</li>
-          <li>Dotknij raz, aby postawić X, a drugi raz, aby postawić koronę.</li>
-          <li>Dwie korony nie mogą się stykać, nawet po przekątnej.</li>
-        </ol>
-      </section>
-
-      <div class="tool-divider"></div>
-
-      <div class="auto-row">
-        <div><b>Automatyczne X</b><div class="auto-desc">Oznaczaj pola wykluczone przez ustawioną koronę</div></div>
-        <label class="switch"><input type="checkbox" id="autoX" aria-label="Automatyczne X"><span class="slider"></span></label>
+  <section aria-label="Dzisiejsza gra">
+    <article class="featured-game" id="crownsCard">
+      <div class="featured-meta">
+        <span class="game-kicker">Dzisiejsza gra</span>
+        <span class="today-badge" id="crownsStatus">Dziś</span>
       </div>
 
-      <div class="tool-actions">
-        <button class="clear" id="clearMarks">Wyczyść moje X</button>
+      <div class="featured-content">
+        <div class="game-icon game-icon--crowns" aria-hidden="true">
+          <svg viewBox="0 0 64 64" focusable="false">
+            <path class="icon-grid" d="M13 13h38v38H13zM25.7 13v38M38.3 13v38M13 25.7h38M13 38.3h38"/>
+            <path class="icon-crown" d="M20 38h24l-2 7H22l-2-7Zm1-16 7 7 4-12 4 12 7-7-3 13H24l-3-13Z"/>
+          </svg>
+        </div>
+        <div class="featured-copy">
+          <h2>Korony</h2>
+          <p>Umieść po jednej koronie w każdym wierszu, kolumnie i regionie.</p>
+        </div>
+      </div>
+
+      <div class="featured-result" id="featuredResult" hidden>
+        <span>Twój najlepszy czas</span>
+        <strong id="featuredBest">—</strong>
+      </div>
+
+      <a class="play-button" id="playCrowns" href="korony.html" aria-label="Zagraj teraz w Korony">Graj teraz</a>
+    </article>
+  </section>
+
+  <section class="home-section" aria-labelledby="dayTitle">
+    <h2 class="section-title" id="dayTitle">Twój dzień</h2>
+    <div class="daily-progress">
+      <div class="progress-card">
+        <strong class="progress-value" id="todayProgress">0 / 1</strong>
+        <span class="progress-label">ukończone dzisiaj</span>
+      </div>
+      <div class="progress-card">
+        <strong class="progress-value" id="streakCard">🔥 —</strong>
+        <span class="progress-label" id="streakLabel">Zagraj dziś</span>
       </div>
     </div>
-  </details>
+  </section>
 
-  <section class="done" id="done" role="status" aria-live="polite" aria-atomic="true">
-    <div class="done-crown" aria-hidden="true">♛</div>
-    <strong class="done-title">Świetna robota!</strong>
-    <span class="done-subtitle">Dzisiejsze Korony</span>
-    <span class="done-time" id="finalTime"></span>
-    <button class="next-puzzle" id="nextPuzzle" type="button">Następna plansza</button>
+  <section class="home-section" aria-labelledby="moreTitle">
+    <h2 class="section-title" id="moreTitle">Więcej gier</h2>
+    <div class="game-list">
+      <article class="game-row game-row--coming-soon">
+        <div class="game-icon game-icon--small game-icon--tango" aria-hidden="true">
+          <span class="tango-mark">●</span><span class="tango-mark tango-mark--light">○</span>
+        </div>
+        <div class="game-row-copy"><strong>Tango</strong><span>Logiczna układanka</span></div>
+        <span class="game-status">Wkrótce</span>
+      </article>
+      <article class="game-row game-row--coming-soon">
+        <div class="game-icon game-icon--small game-icon--sudoku" aria-hidden="true">9</div>
+        <div class="game-row-copy"><strong>Sudoku</strong><span>Klasyczna łamigłówka</span></div>
+        <span class="game-status">Wkrótce</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="home-section" aria-labelledby="statsTitle">
+    <h2 class="section-title" id="statsTitle">Twoje statystyki</h2>
+    <div class="stats-card">
+      <div class="stat-row"><span>Najlepszy czas</span><strong id="bestTime">—</strong></div>
+      <div class="stat-row"><span>Ukończone plansze</span><strong id="completedGames">0</strong></div>
+    </div>
   </section>
 </main>
-<script type="module" src="src/ui.js"></script>
+<script type="module" src="home.js"></script>
 </body>
 </html>
