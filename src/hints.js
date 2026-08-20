@@ -1,5 +1,5 @@
 import { N, allCells, cellsInColumn, cellsInRegion, cellsInRow, rc, regionAt } from './puzzle.js';
-import { cloneState, conflicts, isBlockedByCrowns, restore } from './game.js';
+import { cloneState, conflicts, createGameState, isBlockedByCrowns, restore } from './game.js';
 import { hasSolution } from './solver.js';
 
 export function isCandidate(state, index) {
@@ -39,26 +39,36 @@ export function getUnits(state) {
   return units;
 }
 
-function moveThatBrokePuzzle(previous, next) {
-  const addedCrown = [...next.crowns].find(index => !previous.crowns.has(index));
-  if (addedCrown != null) {
-    return {
-      kind:'error',
-      cells:[addedCrown],
-      text:'Ta korona jest pierwszym ruchem, po którym plansza przestała mieć rozwiązanie.'
-    };
+function moveRecency(history, state, type, index) {
+  const key = type === 'crown' ? 'crowns' : 'manualXs';
+  const states = history.map(restore);
+  states.push(state);
+  let recency = -1;
+
+  for (let i = 1; i < states.length; i++) {
+    if (states[i][key].has(index) && !states[i - 1][key].has(index)) recency = i;
   }
 
-  const addedX = [...next.manualXs].find(index => !previous.manualXs.has(index));
-  if (addedX != null) {
-    return {
-      kind:'error',
-      cells:[addedX],
-      text:'To X jest pierwszym ruchem, po którym plansza przestała mieć rozwiązanie.'
-    };
+  return recency;
+}
+
+function activeMistakes(state, history) {
+  const mistakes = [];
+
+  for (const index of state.crowns) {
+    if (!hasSolution(createGameState([index], []))) {
+      mistakes.push({type:'crown', index, recency:moveRecency(history, state, 'crown', index)});
+    }
   }
 
-  return null;
+  for (const index of state.manualXs) {
+    if (!hasSolution(createGameState([], [index]))) {
+      mistakes.push({type:'x', index, recency:moveRecency(history, state, 'x', index)});
+    }
+  }
+
+  mistakes.sort((a, b) => b.recency - a.recency || b.index - a.index);
+  return mistakes;
 }
 
 export function findMistake(state, history = []) {
@@ -66,25 +76,28 @@ export function findMistake(state, history = []) {
   if (direct.length) return {kind:'error', cells:direct, text:'Te korony łamią jedną z zasad.'};
   if (hasSolution(state)) return null;
 
-  const states = history.map(restore);
-  states.push(state);
-
-  for (let i = states.length - 1; i > 0; i--) {
-    const previous = states[i - 1];
-    const next = states[i];
-    if (hasSolution(previous) && !hasSolution(next)) {
-      return moveThatBrokePuzzle(previous, next) || {
+  const mistakes = activeMistakes(state, history);
+  if (mistakes.length) {
+    const mistake = mistakes[0];
+    if (mistake.type === 'x') {
+      return {
         kind:'error',
-        cells:[],
-        text:'Ten ruch sprawił, że plansza przestała mieć rozwiązanie.'
+        cells:[mistake.index],
+        text:'To X wyklucza pole potrzebne do rozwiązania.'
       };
     }
+
+    return {
+      kind:'error',
+      cells:[mistake.index],
+      text:'Ta korona stoi w miejscu, które uniemożliwia poprawne rozwiązanie planszy.'
+    };
   }
 
   return {
     kind:'error',
     cells:[],
-    text:'Obecny układ nie ma rozwiązania, ale nie udało się wskazać pojedynczego ruchu w historii.'
+    text:'Kilka aktualnych oznaczeń razem uniemożliwia rozwiązanie. Cofnij ostatnie ruchy.'
   };
 }
 
