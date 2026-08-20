@@ -1,3 +1,4 @@
+import { validateHumanSolvable } from './human-solver.js';
 const DEFAULT_SIZE = 9;
 const GENERATOR_VERSION = 1;
 const DIRECTIONS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
@@ -35,23 +36,13 @@ function addFrontier(grid, frontier, row, col, size) {
   for (const [dr, dc] of DIRECTIONS) {
     const nextRow = row + dr;
     const nextCol = col + dc;
-    if (
-      nextRow >= 0 && nextRow < size &&
-      nextCol >= 0 && nextCol < size &&
-      grid[nextRow][nextCol] === -1
-    ) {
-      frontier.add(nextRow * size + nextCol);
-    }
+    if (nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size && grid[nextRow][nextCol] === -1) frontier.add(nextRow * size + nextCol);
   }
 }
 
 function createRegionLayout(size, random) {
   const cellCount = size * size;
-  const seedCells = shuffle(
-    Array.from({ length: cellCount }, (_, index) => index),
-    random
-  ).slice(0, size);
-
+  const seedCells = shuffle(Array.from({ length: cellCount }, (_, index) => index), random).slice(0, size);
   const grid = Array.from({ length: size }, () => Array(size).fill(-1));
   const regionSizes = Array(size).fill(0);
   const frontier = new Set();
@@ -63,21 +54,15 @@ function createRegionLayout(size, random) {
     grid[row][col] = region;
     regionSizes[region] = 1;
   }
-
-  for (const cell of seedCells) {
-    addFrontier(grid, frontier, Math.floor(cell / size), cell % size, size);
-  }
+  for (const cell of seedCells) addFrontier(grid, frontier, Math.floor(cell / size), cell % size, size);
 
   let remaining = cellCount - size;
-
   while (remaining > 0) {
     const options = [];
-
     for (const cell of frontier) {
       const row = Math.floor(cell / size);
       const col = cell % size;
       if (grid[row][col] !== -1) continue;
-
       const neighboringRegions = new Set();
       for (const [dr, dc] of DIRECTIONS) {
         const nextRow = row + dr;
@@ -86,10 +71,8 @@ function createRegionLayout(size, random) {
         const region = grid[nextRow][nextCol];
         if (region >= 0) neighboringRegions.add(region);
       }
-
       for (const region of neighboringRegions) options.push({ cell, region });
     }
-
     if (!options.length) throw new Error('Generator regionów utknął bez dostępnego pola.');
 
     const weights = [];
@@ -104,19 +87,12 @@ function createRegionLayout(size, random) {
     let chosen = options[options.length - 1];
     for (let index = 0; index < options.length; index++) {
       roll -= weights[index];
-      if (roll <= 0) {
-        chosen = options[index];
-        break;
-      }
+      if (roll <= 0) { chosen = options[index]; break; }
     }
 
     const row = Math.floor(chosen.cell / size);
     const col = chosen.cell % size;
-    if (grid[row][col] !== -1) {
-      frontier.delete(chosen.cell);
-      continue;
-    }
-
+    if (grid[row][col] !== -1) { frontier.delete(chosen.cell); continue; }
     grid[row][col] = chosen.region;
     regionSizes[chosen.region] += 1;
     frontier.delete(chosen.cell);
@@ -139,29 +115,23 @@ export function countRegionSolutions(regions, limit = 2) {
     if (count >= limit) return;
     if (row === size) {
       count += 1;
-      if (!firstSolution) {
-        firstSolution = Array.from(columns, (col, solutionRow) => solutionRow * size + col);
-      }
+      if (!firstSolution) firstSolution = Array.from(columns, (col, solutionRow) => solutionRow * size + col);
       return;
     }
-
     for (let col = 0; col < size; col++) {
       if (usedColumns[col]) continue;
       const region = regions[row][col];
       if (region < 0 || region >= size || usedRegions[region]) continue;
       if (row > 0 && Math.abs(col - columns[row - 1]) <= 1) continue;
-
       usedColumns[col] = 1;
       usedRegions[region] = 1;
       columns[row] = col;
       search(row + 1);
       usedColumns[col] = 0;
       usedRegions[region] = 0;
-
       if (count >= limit) return;
     }
   }
-
   search(0);
   return { count, solution: firstSolution };
 }
@@ -170,7 +140,6 @@ export function validateGeneratedRegions(regions) {
   const size = regions.length;
   if (!Number.isInteger(size) || size < 1) return false;
   if (regions.some(row => !Array.isArray(row) || row.length !== size)) return false;
-
   const counts = Array(size).fill(0);
   for (const row of regions) {
     for (const region of row) {
@@ -184,13 +153,9 @@ export function validateGeneratedRegions(regions) {
     let start = null;
     for (let row = 0; row < size && !start; row++) {
       for (let col = 0; col < size; col++) {
-        if (regions[row][col] === region) {
-          start = [row, col];
-          break;
-        }
+        if (regions[row][col] === region) { start = [row, col]; break; }
       }
     }
-
     const seen = new Set([start[0] * size + start[1]]);
     const queue = [start];
     while (queue.length) {
@@ -206,18 +171,12 @@ export function validateGeneratedRegions(regions) {
         queue.push([nextRow, nextCol]);
       }
     }
-
     if (seen.size !== counts[region]) return false;
   }
-
   return true;
 }
 
-export function generatePuzzle(seed, {
-  size = DEFAULT_SIZE,
-  maxAttempts = 10000,
-  minRegionSize = 2
-} = {}) {
+export function generatePuzzle(seed, { size = DEFAULT_SIZE, maxAttempts = 10000, minRegionSize = 2 } = {}) {
   if (!Number.isInteger(size) || size < 4) throw new Error('Rozmiar planszy musi być liczbą całkowitą >= 4.');
   if (!Number.isInteger(maxAttempts) || maxAttempts < 1) throw new Error('maxAttempts musi być dodatnią liczbą całkowitą.');
 
@@ -227,9 +186,11 @@ export function generatePuzzle(seed, {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const { regions, regionSizes } = createRegionLayout(size, random);
     if (Math.min(...regionSizes) < minRegionSize) continue;
-
     const solved = countRegionSolutions(regions, 2);
     if (solved.count !== 1) continue;
+
+    const human = validateHumanSolvable(regions, {allowLookahead:false});
+    if (!human.solvable) continue;
 
     return {
       id: `practice-${GENERATOR_VERSION}-${normalizedSeed}`,
@@ -238,7 +199,9 @@ export function generatePuzzle(seed, {
       size,
       regions,
       solution: solved.solution,
-      attempts: attempt
+      attempts: attempt,
+      deductionCount: human.deductions.length,
+      deductionRules: human.deductions.map(step => step.rule)
     };
   }
 
