@@ -101,6 +101,7 @@ function showHint() {
     return;
   }
 
+  for (const index of hint.area || []) board.children[index]?.classList.add('hint-area');
   for (const index of hint.cells || []) board.children[index]?.classList.add(hint.kind === 'error' ? 'hint-error' : 'hint-candidate');
   for (const index of hint.eliminate || []) board.children[index]?.classList.add('hint-eliminate');
   hintText.textContent = hint.text;
