@@ -22,7 +22,7 @@ let finished = false;
 let autoXEnabled = localStorage.getItem('figlo-auto-x') === '1';
 autoXInput.checked = autoXEnabled;
 
-const crownMarkup = '<span class="mark crown"><svg viewBox="0 0 32 32"><path d="M4 24h24l-2 5H6l-2-5Zm1-15 7 6 4-10 4 10 7-6-2 12H7L5 9Z"/></svg></span>';
+const crownMarkup = '<span class="mark crown" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path d="M4 24h24l-2 5H6l-2-5Zm1-15 7 6 4-10 4 10 7-6-2 12H7L5 9Z"/></svg></span>';
 
 function fmt(ms) {
   const seconds = Math.floor(ms / 1000);
@@ -55,6 +55,12 @@ function regionBorders(index, element) {
   if (col === 0 || regionAt(index - 1) !== region) element.classList.add('rl');
 }
 
+function cellStateLabel(index, xs) {
+  if (state.crowns.has(index)) return 'korona';
+  if (xs.has(index)) return 'X';
+  return 'puste';
+}
+
 function render() {
   const xs = visibleXs(state, autoXEnabled);
   const bad = conflicts(state.crowns);
@@ -62,13 +68,15 @@ function render() {
 
   for (const index of allCells) {
     const cell = document.createElement('button');
+    const [row, col] = rc(index);
     cell.type = 'button';
     cell.className = `cell r${regionAt(index)}`;
+    cell.setAttribute('aria-label', `Wiersz ${row + 1}, kolumna ${col + 1}, ${cellStateLabel(index, xs)}`);
     regionBorders(index, cell);
     if (bad.has(index)) cell.classList.add('bad');
 
     if (state.crowns.has(index)) cell.innerHTML = crownMarkup;
-    else if (xs.has(index)) cell.innerHTML = '<span class="mark x-mark">×</span>';
+    else if (xs.has(index)) cell.innerHTML = '<span class="mark x-mark" aria-hidden="true">×</span>';
 
     cell.addEventListener('click', () => makeMove(index));
     board.appendChild(cell);
