@@ -1,5 +1,5 @@
 import { N, allCells, cellsInColumn, cellsInRegion, cellsInRow, rc, regionAt } from './puzzle.js';
-import { cloneState, conflicts, isBlockedByCrowns } from './game.js';
+import { cloneState, conflicts, isBlockedByCrowns, restore } from './game.js';
 import { hasSolution } from './solver.js';
 
 export function isCandidate(state, index) {
@@ -39,18 +39,26 @@ export function getUnits(state) {
   return units;
 }
 
-function moveRecency(history, state, type, index) {
-  const key = type === 'crown' ? 'crowns' : 'manualXs';
-  const states = history.map(snapshotValue => ({
-    crowns: new Set(snapshotValue.crowns),
-    manualXs: new Set(snapshotValue.manualXs)
-  }));
-  states.push(state);
-
-  for (let i = states.length - 1; i > 0; i--) {
-    if (states[i][key].has(index) && !states[i - 1][key].has(index)) return i;
+function moveThatBrokePuzzle(previous, next) {
+  const addedCrown = [...next.crowns].find(index => !previous.crowns.has(index));
+  if (addedCrown != null) {
+    return {
+      kind:'error',
+      cells:[addedCrown],
+      text:'Ta korona jest pierwszym ruchem, po którym plansza przestała mieć rozwiązanie.'
+    };
   }
-  return -1;
+
+  const addedX = [...next.manualXs].find(index => !previous.manualXs.has(index));
+  if (addedX != null) {
+    return {
+      kind:'error',
+      cells:[addedX],
+      text:'To X jest pierwszym ruchem, po którym plansza przestała mieć rozwiązanie.'
+    };
+  }
+
+  return null;
 }
 
 export function findMistake(state, history = []) {
@@ -58,28 +66,26 @@ export function findMistake(state, history = []) {
   if (direct.length) return {kind:'error', cells:direct, text:'Te korony łamią jedną z zasad.'};
   if (hasSolution(state)) return null;
 
-  const mistakes = [];
+  const states = history.map(restore);
+  states.push(state);
 
-  for (const index of state.manualXs) {
-    const test = cloneState(state);
-    test.manualXs.delete(index);
-    if (hasSolution(test)) mistakes.push({type:'x', index, recency:moveRecency(history, state, 'x', index)});
+  for (let i = states.length - 1; i > 0; i--) {
+    const previous = states[i - 1];
+    const next = states[i];
+    if (hasSolution(previous) && !hasSolution(next)) {
+      return moveThatBrokePuzzle(previous, next) || {
+        kind:'error',
+        cells:[],
+        text:'Ten ruch sprawił, że plansza przestała mieć rozwiązanie.'
+      };
+    }
   }
 
-  for (const index of state.crowns) {
-    const test = cloneState(state);
-    test.crowns.delete(index);
-    if (hasSolution(test)) mistakes.push({type:'crown', index, recency:moveRecency(history, state, 'crown', index)});
-  }
-
-  if (mistakes.length) {
-    mistakes.sort((a, b) => b.recency - a.recency || b.index - a.index);
-    const mistake = mistakes[0];
-    if (mistake.type === 'x') return {kind:'error', cells:[mistake.index], text:'To X wyklucza pole potrzebne do rozwiązania.'};
-    return {kind:'error', cells:[mistake.index], text:'Ta korona sprawia, że planszy nie da się już poprawnie rozwiązać.'};
-  }
-
-  return {kind:'error', cells:[], text:'Kilka wcześniejszych ruchów razem uniemożliwia rozwiązanie. Cofnij ostatnie ruchy.'};
+  return {
+    kind:'error',
+    cells:[],
+    text:'Obecny układ nie ma rozwiązania, ale nie udało się wskazać pojedynczego ruchu w historii.'
+  };
 }
 
 function crownKeepsSolution(state, index) {
