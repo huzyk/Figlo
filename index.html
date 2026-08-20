@@ -9,14 +9,41 @@
 <body>
 <main class="app">
   <div class="brand">figlo</div>
-  <div><div class="game-title">Korony</div><div class="round">#1 · codzienna łamigłówka</div></div>
-  <div class="meta"><div class="timer">◷ <span id="timer">00:00</span></div><button class="reset-top" id="reset">Zresetuj</button></div>
+
+  <header class="game-header">
+    <div class="game-heading"><span class="game-title">Korony</span><span class="round">#1</span></div>
+    <div class="timer">◷ <span id="timer">00:00</span></div>
+  </header>
+
   <div class="board" id="board" aria-label="Plansza Korony 9 na 9"></div>
-  <div class="actions"><button class="action" id="undo">Cofnij</button><button class="action" id="hint">Podpowiedz</button></div>
-  <section class="hint-card" id="hintCard"><div class="hint-head"><span>Podpowiedź</span><button class="hint-close" id="hintClose" aria-label="Zamknij">×</button></div><div class="hint-text" id="hintText"></div></section>
-  <div class="settings"><div class="auto-row"><div><b>Automatyczne X</b><div class="auto-desc">Oznaczaj pola wykluczone przez ustawioną koronę</div></div><label class="switch"><input type="checkbox" id="autoX"><span class="slider"></span></label></div></div>
-  <details class="how" open><summary>Jak grać</summary><ol><li>Umieść dokładnie jedną koronę w każdym rzędzie, kolumnie i kolorowym regionie.</li><li>Dotknij raz, aby postawić X, a drugi raz, aby postawić koronę.</li><li>Dwie korony nie mogą się stykać, nawet po przekątnej.</li></ol></details>
-  <div class="secondary"><button class="clear" id="clearMarks">Wyczyść moje X</button></div>
+
+  <div class="actions">
+    <button class="action action-secondary" id="undo">↶ Cofnij</button>
+    <button class="action action-primary" id="hint">Podpowiedź</button>
+  </div>
+
+  <section class="hint-card" id="hintCard">
+    <div class="hint-head"><span>Podpowiedź</span><button class="hint-close" id="hintClose" aria-label="Zamknij">×</button></div>
+    <div class="hint-text" id="hintText"></div>
+  </section>
+
+  <div class="utility-row">
+    <details class="how">
+      <summary>? Jak grać</summary>
+      <ol><li>Umieść dokładnie jedną koronę w każdym rzędzie, kolumnie i kolorowym regionie.</li><li>Dotknij raz, aby postawić X, a drugi raz, aby postawić koronę.</li><li>Dwie korony nie mogą się stykać, nawet po przekątnej.</li></ol>
+    </details>
+    <button class="reset-link" id="reset">Zresetuj</button>
+  </div>
+
+  <section class="settings">
+    <div class="settings-title" id="settingsTitle">⚙ Ustawienia</div>
+    <div class="auto-row">
+      <div><b>Automatyczne X</b><div class="auto-desc">Oznaczaj pola wykluczone przez ustawioną koronę</div></div>
+      <label class="switch"><input type="checkbox" id="autoX"><span class="slider"></span></label>
+    </div>
+    <div class="secondary"><button class="clear" id="clearMarks">Wyczyść moje X</button></div>
+  </section>
+
   <section class="done" id="done">Gotowe! 👑<br><strong id="finalTime"></strong></section>
 </main>
 <script type="module" src="src/ui.js"></script>

@@ -22,6 +22,8 @@ let finished = false;
 let autoXEnabled = localStorage.getItem('figlo-auto-x') === '1';
 autoXInput.checked = autoXEnabled;
 
+const crownMarkup = '<span class="mark crown"><svg viewBox="0 0 32 32"><path d="M4 24h24l-2 5H6l-2-5Zm1-15 7 6 4-10 4 10 7-6-2 12H7L5 9Z"/></svg></span>';
+
 function fmt(ms) {
   const seconds = Math.floor(ms / 1000);
   return String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
@@ -65,8 +67,8 @@ function render() {
     regionBorders(index, cell);
     if (bad.has(index)) cell.classList.add('bad');
 
-    if (state.crowns.has(index)) cell.innerHTML = '<span class="mark crown">♛</span>';
-    else if (xs.has(index)) cell.innerHTML = '<span class="mark">×</span>';
+    if (state.crowns.has(index)) cell.innerHTML = crownMarkup;
+    else if (xs.has(index)) cell.innerHTML = '<span class="mark x-mark">×</span>';
 
     cell.addEventListener('click', () => makeMove(index));
     board.appendChild(cell);
@@ -96,7 +98,7 @@ function showHint() {
   clearHint();
   const hint = getHint(state, history);
   if (!hint) {
-    hintText.textContent = 'Nie znalazłem teraz prostej dedukcji. Spróbuj oznaczyć kolejne pewne wykluczenia.';
+    hintText.textContent = 'Nie znalazłem teraz prostej, uczciwej dedukcji. Spróbuj oznaczyć kolejne pewne wykluczenia.';
     hintCard.classList.add('show');
     return;
   }
