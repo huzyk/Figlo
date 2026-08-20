@@ -9,7 +9,7 @@
 </head>
 <body>
 <header class="site-header">
-  <div class="nav-wrap">
+  <div class="nav-wrap shell">
     <a class="logo" href="index.html">FIGLO<span>♛</span></a>
     <nav aria-label="Główna nawigacja"><a href="#gry">Gry</a><a href="#statystyki">Statystyki</a><a href="#jak">Jak grać?</a></nav>
     <div class="streak-pill">🔥 <span id="streakValue">0 dni</span></div>
@@ -19,55 +19,55 @@
 <main>
   <section class="hero shell">
     <div class="hero-copy">
-      <div class="eyebrow">CODZIENNA PORCJA DLA GŁOWY</div>
+      <span class="eyebrow">CODZIENNA PORCJA DLA GŁOWY</span>
       <h1>Codzienna porcja łamigłówek.<span>Twój rytuał. Twój wynik.</span></h1>
-      <p>Krótko, codziennie i bez przekombinowania. Zagraj w dzisiejsze Figlo, utrzymaj serię i wróć jutro po kolejny zestaw.</p>
-      <div class="hero-actions"><a class="btn primary" href="#gry">⚡ Zagraj dzisiaj</a><a class="btn secondary" href="#jak">Jak to działa?</a></div>
+      <p>Figlo to krótkie gry logiczne na każdy dzień. Wchodzisz, grasz kilka minut, zaliczasz dzisiejszy zestaw i wracasz jutro.</p>
+      <div class="hero-actions"><a class="btn primary" href="#gry">⚡ Zagraj dzisiejsze gry</a><a class="btn secondary" href="#jak">Jak to działa?</a></div>
+      <div class="hero-note"><span>2–10 min</span><span>Nowe codziennie</span><span>Seria za ukończenie dnia</span></div>
     </div>
-    <div class="hero-panel">
-      <div class="mascot-wrap" aria-label="Maskotka Figlo">
-        <div class="mascot"><span class="mascot-eye left"></span><span class="mascot-eye right"></span><span class="mascot-smile"></span><span class="mascot-hand"></span></div>
+
+    <article class="day-card" aria-label="Twój dzień">
+      <div class="day-card-head"><div><strong>✨ Twój dzień</strong><small id="todayDate"></small></div><span class="day-badge">dzisiaj</span></div>
+      <div class="progress-block">
+        <div class="ring"><div><strong id="progressRing">0/1</strong><span>ukończonych</span></div></div>
+        <div class="progress-copy"><small>DZISIEJSZY ZESTAW</small><strong>Korony czekają</strong><span>Ukończ aktywną grę, żeby zaliczyć dzisiejszy dzień.</span></div>
       </div>
-      <article class="day-card">
-        <div class="day-card-head"><div><strong>✨ Twój dzień</strong><small id="todayDate"></small></div><span class="day-badge">dzisiaj</span></div>
-        <div class="progress-row"><div class="ring"><div><strong id="progressRing">0/1</strong><span>ukończonych</span></div></div><div class="progress-copy"><strong>Dzisiejszy zestaw</strong><span>Ukończ Korony, żeby zaliczyć dzień.</span></div></div>
-        <div class="week" aria-label="Tydzień"><span>P</span><span>W</span><span>Ś</span><span>C</span><span>P</span><span>S</span><span>N</span></div>
-        <div class="day-streak"><span class="fire">🔥</span><div><strong id="cardStreak">0 dni</strong><small>Twoja aktualna seria</small></div></div>
-        <a href="#statystyki">Zobacz statystyki →</a>
-      </article>
-    </div>
+      <div class="week" aria-label="Tydzień"><span>P</span><span>W</span><span>Ś</span><span>C</span><span>P</span><span>S</span><span>N</span></div>
+      <div class="day-card-footer"><div class="day-streak"><span class="fire">🔥</span><div><strong id="cardStreak">0 dni</strong><small>Twoja aktualna seria</small></div></div><a href="#statystyki">Statystyki →</a></div>
+    </article>
   </section>
 
   <section class="benefits shell" id="jak">
-    <article><span class="benefit-icon">◴</span><div><strong>Krótko i konkretnie</strong><p>2–10 minut skupienia.</p></div></article>
-    <article><span class="benefit-icon">▣</span><div><strong>Nowe każdego dnia</strong><p>Codziennie świeża plansza.</p></div></article>
-    <article><span class="benefit-icon">🔥</span><div><strong>Buduj swoją serię</strong><p>Wracaj i bij własne rekordy.</p></div></article>
+    <article><span class="benefit-icon">◴</span><div><strong>Krótko i konkretnie</strong><p>Każda gra to kilka minut skupienia.</p></div></article>
+    <article><span class="benefit-icon">▣</span><div><strong>Nowe każdego dnia</strong><p>Codziennie świeży zestaw łamigłówek.</p></div></article>
+    <article><span class="benefit-icon">🔥</span><div><strong>Buduj swoją serię</strong><p>Ukończ dzień i wróć jutro po kolejny.</p></div></article>
   </section>
 
   <section class="section shell" id="gry">
-    <div class="section-head"><div><span class="section-kicker">NA DZIŚ</span><h2>Dzisiejszy zestaw</h2><p>Jedna aktywna gra. Reszta dołączy bez zmiany codziennego rytuału.</p></div></div>
+    <div class="section-head"><div><span class="section-kicker">NA DZIŚ</span><h2>Dzisiejszy zestaw</h2><p>Aktywna gra jest pierwsza. Kolejne dołączą do tego samego codziennego rytuału.</p></div></div>
     <div class="games">
       <a class="game-card active" id="crownsCard" href="korony.html">
         <div class="game-top"><div class="game-art crown-art">♛</div><span class="badge">Nowe</span></div>
-        <h3>Korony</h3><p>Umieść po jednej koronie w każdym wierszu, kolumnie i regionie.</p><span class="play" id="crownsStatus">Graj</span>
+        <div class="game-copy"><h3>Korony</h3><p>Umieść po jednej koronie w każdym wierszu, kolumnie i regionie.</p></div>
+        <span class="play" id="crownsStatus">Graj</span>
       </a>
-      <article class="game-card muted"><div class="game-art tango">● ○</div><h3>Tango</h3><p>Logiczna układanka symboli.</p><span class="soon">Wkrótce</span></article>
-      <article class="game-card muted"><div class="game-art sudoku">9</div><h3>Sudoku</h3><p>Klasyczna łamigłówka liczbowa.</p><span class="soon">Wkrótce</span></article>
-      <article class="game-card muted"><div class="game-art word">A</div><h3>Słowo</h3><p>Codzienne zgadywanie słowa.</p><span class="soon">Wkrótce</span></article>
-      <article class="game-card muted"><div class="game-art path">↗</div><h3>Ścieżka</h3><p>Połącz pola we właściwej kolejności.</p><span class="soon">Wkrótce</span></article>
+      <article class="game-card muted"><div class="game-art tango">● ○</div><div class="game-copy"><h3>Tango</h3><p>Logiczna układanka symboli.</p></div><span class="soon">Wkrótce</span></article>
+      <article class="game-card muted"><div class="game-art sudoku">9</div><div class="game-copy"><h3>Sudoku</h3><p>Klasyczna łamigłówka liczbowa.</p></div><span class="soon">Wkrótce</span></article>
+      <article class="game-card muted"><div class="game-art word">A</div><div class="game-copy"><h3>Słowo</h3><p>Codzienne zgadywanie słowa.</p></div><span class="soon">Wkrótce</span></article>
+      <article class="game-card muted"><div class="game-art path">↗</div><div class="game-copy"><h3>Ścieżka</h3><p>Połącz pola we właściwej kolejności.</p></div><span class="soon">Wkrótce</span></article>
     </div>
-    <div class="daily-cta"><div><strong>Jedno Figlo dziennie. Tyle wystarczy.</strong><span>Ukończ Korony i zachowaj serię.</span></div><a class="btn white" href="korony.html">Zagraj teraz →</a></div>
+    <div class="daily-cta"><div><span class="daily-kicker">DZISIEJSZY CEL</span><strong>Ukończ Korony i zachowaj serię.</strong><span>Jedna gra dziennie. Na ten moment dokładnie tyle trzeba.</span></div><a class="btn white" href="korony.html">Zagraj teraz →</a></div>
   </section>
 
   <section class="section shell" id="statystyki">
-    <div class="section-head"><div><span class="section-kicker">TWÓJ POSTĘP</span><h2>Statystyki</h2><p>Najważniejsze liczby w jednym miejscu.</p></div></div>
+    <div class="section-head"><div><span class="section-kicker">TWÓJ POSTĘP</span><h2>Statystyki</h2><p>Najważniejsze liczby bez przeładowanego dashboardu.</p></div></div>
     <div class="stats">
       <article><b>🔥 <span id="statStreak">0</span></b><strong>Aktualna seria</strong><small id="bestStreak">Najlepsza: 0</small></article>
       <article><b>⭐ <span id="activeDays">0</span></b><strong>Ukończone dni</strong><small>Łącznie</small></article>
       <article><b>🏆 <span id="totalCompleted">0</span></b><strong>Gier ukończonych</strong><small>Wszystkie gry</small></article>
       <article><b>⏱ <span id="averageTime">—</span></b><strong>Najlepszy czas</strong><small>Korony</small></article>
     </div>
-    <div class="motivation"><div><strong>Regularność robi wynik.</strong><span>Jutro czeka następna plansza.</span></div><div class="mini-character">●ᴗ●</div></div>
+    <div class="motivation"><div><span>JUTRO</span><strong>Nowa plansza. Ta sama seria.</strong><p>Figlo ma być małym codziennym rytuałem, nie kolejną aplikacją do ogarniania.</p></div><div class="motivation-mark">F</div></div>
   </section>
 </main>
 <footer><div class="footer-inner shell"><div><a class="logo footer-logo" href="#">FIGLO<span>♛</span></a><p>Codzienne łamigłówki, które wciągają.</p></div><div><b>Nawigacja</b><a href="#gry">Gry</a><a href="#statystyki">Statystyki</a><a href="#jak">Jak grać?</a></div><div><b>Figlo</b><span>Codziennie kilka minut dla głowy.</span></div></div></footer>
