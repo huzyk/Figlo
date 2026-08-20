@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { N, regions, validatePuzzleDefinition } from '../src/puzzle.js';
 import { calculateAutoXs, conflicts, createGameState, cycleCell, isSolved, restore, snapshot, visibleXs } from '../src/game.js';
 import { countSolutions, hasSolution } from '../src/solver.js';
-import { deductionHint, findMistake, getHint, isCandidate, solverBackedElimination } from '../src/hints.js';
+import { deductionHint, findMistake, forcedUnitHint, getHint, isCandidate, solverBackedElimination, solverBackedForcedCrown, subsetElimination } from '../src/hints.js';
 
 const solution = [5,10,22,29,43,45,62,66,78];
 
@@ -109,10 +109,12 @@ test('sprzeczność po kolejnych ruchach wskazuje ruch, który faktycznie ją sp
 
 test('forced-cell hint wskazuje dokładnie jednego poprawnego kandydata', () => {
   const state = createGameState([], Array.from({length:N - 1}, (_, col) => col));
-  const hint = deductionHint(state);
+  const hint = forcedUnitHint(state) || deductionHint(state);
   assert.equal(hint.kind, 'candidate');
   assert.equal(hint.cells.length, 1);
   assert.equal(isCandidate(state, hint.cells[0]), true);
+  const hypothetical = createGameState([hint.cells[0]], [...state.manualXs]);
+  assert.equal(hasSolution(hypothetical), true);
 });
 
 test('hint eliminacji nie eliminuje pola z poprawnego rozwiązania', () => {
@@ -130,6 +132,40 @@ test('solver-backed elimination rzeczywiście prowadziłaby do 0 rozwiązań', (
   const hypothetical = createGameState([hint.eliminate[0]], []);
   assert.equal(countSolutions(hypothetical, 1), 0);
   assert.equal(solution.includes(hint.eliminate[0]), false);
+});
+
+test('subset elimination nigdy nie wyklucza pola, na którym może stać korona', () => {
+  const state = createGameState();
+  const hint = subsetElimination(state);
+  if (!hint) return;
+  for (const cell of hint.eliminate) {
+    assert.equal(hasSolution(createGameState([cell], [])), false, `subset wykluczył możliwe pole ${cell}`);
+  }
+});
+
+test('solver-backed forced crown wskazuje pole, którego nie wolno wykluczyć', () => {
+  const state = createGameState();
+  const hint = solverBackedForcedCrown(state);
+  if (!hint) return;
+  const cell = hint.cells[0];
+  assert.equal(hasSolution(createGameState([], [cell])), false);
+  assert.equal(hasSolution(createGameState([cell], [])), true);
+});
+
+test('każda pewna podpowiedź jest potwierdzona przez solver', () => {
+  const state = createGameState();
+  const hint = deductionHint(state);
+  assert.ok(hint);
+
+  for (const cell of hint.eliminate || []) {
+    assert.equal(hasSolution(createGameState([cell], [])), false, `fałszywe X na ${cell}`);
+  }
+
+  if (hint.kind === 'candidate') {
+    for (const cell of hint.cells || []) {
+      assert.equal(hasSolution(createGameState([cell], [])), true, `fałszywa korona na ${cell}`);
+    }
+  }
 });
 
 test('solver zwraca 0 dla jawnie sprzecznego stanu', () => {
