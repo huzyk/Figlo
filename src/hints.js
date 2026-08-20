@@ -113,6 +113,25 @@ function combinations(values, size, start = 0, prefix = [], out = []) {
   return out;
 }
 
+function formatNumberList(values) {
+  const numbers = values.map(value => String(value + 1));
+  if (numbers.length <= 1) return numbers[0] || '';
+  if (numbers.length === 2) return `${numbers[0]} i ${numbers[1]}`;
+  return `${numbers.slice(0, -1).join(', ')} i ${numbers[numbers.length - 1]}`;
+}
+
+function subsetDescription(mode, subsetValues) {
+  const numbers = formatNumberList(subsetValues);
+  if (mode === 'row') {
+    return subsetValues.length === 1
+      ? {where:`w ${numbers}. wierszu`, outside:`poza tym wierszem`}
+      : {where:`w wierszach ${numbers}`, outside:'poza tymi wierszami'};
+  }
+  return subsetValues.length === 1
+    ? {where:`w ${numbers}. kolumnie`, outside:'poza tą kolumną'}
+    : {where:`w kolumnach ${numbers}`, outside:'poza tymi kolumnami'};
+}
+
 export function forcedUnitHint(state) {
   const forced = getUnits(state)
     .filter(unit => unit.cells.length === 1)
@@ -160,15 +179,23 @@ export function subsetElimination(state) {
 
         if (!eliminate.length) continue;
 
-        const axisWord = mode === 'row'
-          ? (size === 1 ? 'wierszu' : 'wierszach')
-          : (size === 1 ? 'kolumnie' : 'kolumnach');
+        const area = allCells.filter(index => {
+          const [row, col] = rc(index);
+          return subset.has(mode === 'row' ? row : col);
+        });
+        const cells = area.filter(index => isCandidate(state, index) && regions.has(regionAt(index)));
+        const description = subsetDescription(mode, subsetValues);
+
+        const text = size === 1
+          ? `Wszystkie możliwe pola ${description.where} należą do jednego regionu. Korona tego regionu musi więc znaleźć się ${description.where}. Pozostałe pola tego regionu ${description.outside} możesz oznaczyć X.`
+          : `Możliwe pola ${description.where} należą tylko do ${size} regionów. Korony tych regionów muszą więc znaleźć się ${description.where}. Pozostałe pola tych regionów ${description.outside} możesz oznaczyć X.`;
 
         return {
           kind:'eliminate',
-          cells:[],
+          area,
+          cells,
           eliminate,
-          text:`${size === 1 ? 'Ten region' : `Te ${size} regiony`} musi${size === 1 ? '' : 'zą'} wykorzystać ${size === 1 ? 'ten' : 'te'} ${axisWord}. Pola tych regionów poza nimi można wykluczyć.`
+          text
         };
       }
     }
