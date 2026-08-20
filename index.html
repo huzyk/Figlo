@@ -11,7 +11,6 @@
 <main class="home">
   <header class="home-header">
     <div class="home-brand" aria-label="Figlo">figlo</div>
-    <div class="streak-pill" id="streakPill" aria-label="Brak aktywnej serii Figlo"><span aria-hidden="true">🔥</span><span id="streakValue">—</span></div>
   </header>
 
   <section class="home-intro" aria-labelledby="todayTitle">
@@ -51,10 +50,10 @@
   <section class="home-section" aria-labelledby="dayTitle">
     <div class="section-heading-row">
       <h2 class="section-title" id="dayTitle">Twój dzień</h2>
-      <strong class="day-count" id="todayProgress">0 / 1</strong>
+      <div class="day-streak" id="streakPill" aria-label="Brak aktywnej serii Figlo"><span aria-hidden="true">🔥</span><span id="streakValue">—</span></div>
     </div>
     <div class="day-progress" aria-label="Postęp dzisiejszych gier"><span id="todayProgressBar"></span></div>
-    <p class="section-note" id="todayProgressLabel">0 z 1 dostępnych gier ukończonych</p>
+    <p class="section-note"><strong id="todayProgress">0 / 1</strong> · <span id="todayProgressLabel">0 z 1 dostępnych gier ukończonych</span></p>
   </section>
 
   <section class="home-section" aria-labelledby="statsTitle">
