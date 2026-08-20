@@ -65,6 +65,8 @@ function render() {
   const xs = visibleXs(state, autoXEnabled);
   const bad = conflicts(state.crowns);
   board.innerHTML = '';
+  board.classList.toggle('board--solved', finished);
+  board.setAttribute('aria-label', finished ? 'Plansza Korony 9 na 9 — rozwiązana' : 'Plansza Korony 9 na 9');
 
   for (const index of allCells) {
     const cell = document.createElement('button');
