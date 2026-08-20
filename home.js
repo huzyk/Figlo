@@ -10,15 +10,16 @@ const figloStreak = number('figlo-streak');
 const activeDays = number('figlo-active-days', figloStreak);
 const totalCompleted = number('figlo-total-completed', number('figlo-crowns-completed-count'));
 
-$('#todayProgress').textContent = `${completedToday} / ${availableToday}`;
-$('#todayProgressLabel').textContent = `${completedToday} z ${availableToday} dostępnych gier ukończonych`;
+$('#todayProgress').textContent = `${completedToday} / ${availableToday} ukończonych`;
 $('#todayProgressBar').style.width = `${(completedToday / availableToday) * 100}%`;
 $('#activeDays').textContent = String(activeDays);
 $('#totalCompleted').textContent = String(totalCompleted);
 
 if (figloStreak > 0) {
-  $('#streakValue').textContent = String(figloStreak);
-  $('#streakPill').setAttribute('aria-label', `Seria Figlo: ${figloStreak} dni`);
+  const streakPill = $('#streakPill');
+  streakPill.hidden = false;
+  $('#streakValue').textContent = `${figloStreak} ${figloStreak === 1 ? 'dzień' : 'dni'}`;
+  streakPill.setAttribute('aria-label', `Seria Figlo: ${figloStreak} ${figloStreak === 1 ? 'dzień' : 'dni'}`);
 }
 
 if (crownsDone) {

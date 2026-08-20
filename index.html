@@ -50,10 +50,12 @@
   <section class="home-section" aria-labelledby="dayTitle">
     <div class="section-heading-row">
       <h2 class="section-title" id="dayTitle">Twój dzień</h2>
-      <div class="day-streak" id="streakPill" aria-label="Brak aktywnej serii Figlo"><span aria-hidden="true">🔥</span><span id="streakValue">—</span></div>
+      <div class="day-streak" id="streakPill" hidden>
+        <span aria-hidden="true">🔥</span><span id="streakValue"></span>
+      </div>
     </div>
+    <p class="day-summary" id="todayProgress">0 / 1 ukończonych</p>
     <div class="day-progress" aria-label="Postęp dzisiejszych gier"><span id="todayProgressBar"></span></div>
-    <p class="section-note"><strong id="todayProgress">0 / 1</strong> · <span id="todayProgressLabel">0 z 1 dostępnych gier ukończonych</span></p>
   </section>
 
   <section class="home-section" aria-labelledby="statsTitle">
