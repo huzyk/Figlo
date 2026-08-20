@@ -82,7 +82,7 @@ function makeMove(index) {
   startTimer();
   clearHint();
   history.push(snapshot(state));
-  state = cycleCell(state, index);
+  state = cycleCell(state, index, {autoXEnabled});
   if (isSolved(state)) {
     finished = true;
     stopTimer();

@@ -62,7 +62,8 @@ export function visibleXs(state, autoXEnabled) {
   return result;
 }
 
-export function cycleCell(state, index) {
+export function cycleCell(state, index, options = {}) {
+  const { autoXEnabled = false } = options;
   const next = cloneState(state);
   if (next.crowns.has(index)) {
     next.crowns.delete(index);
@@ -70,6 +71,10 @@ export function cycleCell(state, index) {
   }
   if (next.manualXs.has(index)) {
     next.manualXs.delete(index);
+    next.crowns.add(index);
+    return next;
+  }
+  if (autoXEnabled && calculateAutoXs(next.crowns).has(index)) {
     next.crowns.add(index);
     return next;
   }
