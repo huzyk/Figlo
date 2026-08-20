@@ -46,7 +46,7 @@ function stopTimer() {
 }
 
 function clearHint() {
-  [...board.children].forEach(cell => cell.classList.remove('hint-candidate','hint-error','hint-eliminate','hint-area'));
+  [...board.children].forEach(cell => cell.classList.remove('hint-candidate','hint-error','hint-eliminate','hint-area','hint-focus'));
   hintCard.classList.remove('show');
 }
 
@@ -118,6 +118,7 @@ function showHint() {
   }
 
   for (const index of hint.area || []) board.children[index]?.classList.add('hint-area');
+  for (const index of hint.focus || []) board.children[index]?.classList.add('hint-focus');
   for (const index of hint.cells || []) board.children[index]?.classList.add(hint.kind === 'error' ? 'hint-error' : 'hint-candidate');
   for (const index of hint.eliminate || []) board.children[index]?.classList.add('hint-eliminate');
   hintText.textContent = hint.text;
