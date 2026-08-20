@@ -1,4 +1,4 @@
-import { N, allCells, cellsInColumn, cellsInRegion, cellsInRow, rc } from './puzzle.js';
+import { N, allCells, cellsInColumn, cellsInRegion, cellsInRow, rc, regionAt } from './puzzle.js';
 import { cloneState, conflicts, isBlockedByCrowns } from './game.js';
 import { hasSolution } from './solver.js';
 
@@ -63,50 +63,146 @@ export function findMistake(state, history = []) {
   for (const index of state.manualXs) {
     const test = cloneState(state);
     test.manualXs.delete(index);
-    if (hasSolution(test)) {
-      mistakes.push({
-        type:'x',
-        index,
-        recency:moveRecency(history, state, 'x', index)
-      });
-    }
+    if (hasSolution(test)) mistakes.push({type:'x', index, recency:moveRecency(history, state, 'x', index)});
   }
 
   for (const index of state.crowns) {
     const test = cloneState(state);
     test.crowns.delete(index);
-    if (hasSolution(test)) {
-      mistakes.push({
-        type:'crown',
-        index,
-        recency:moveRecency(history, state, 'crown', index)
-      });
-    }
+    if (hasSolution(test)) mistakes.push({type:'crown', index, recency:moveRecency(history, state, 'crown', index)});
   }
 
   if (mistakes.length) {
     mistakes.sort((a, b) => b.recency - a.recency || b.index - a.index);
     const mistake = mistakes[0];
-    if (mistake.type === 'x') {
-      return {kind:'error', cells:[mistake.index], text:'To X wyklucza pole potrzebne do rozwiązania.'};
-    }
+    if (mistake.type === 'x') return {kind:'error', cells:[mistake.index], text:'To X wyklucza pole potrzebne do rozwiązania.'};
     return {kind:'error', cells:[mistake.index], text:'Ta korona sprawia, że planszy nie da się już poprawnie rozwiązać.'};
   }
 
   return {kind:'error', cells:[], text:'Kilka wcześniejszych ruchów razem uniemożliwia rozwiązanie. Cofnij ostatnie ruchy.'};
 }
 
+function crownKeepsSolution(state, index) {
+  const hypothetical = cloneState(state);
+  hypothetical.manualXs.delete(index);
+  hypothetical.crowns.add(index);
+  return hasSolution(hypothetical);
+}
+
+function crownIsImpossible(state, index) {
+  return !crownKeepsSolution(state, index);
+}
+
+function crossoutKeepsSolution(state, index) {
+  const hypothetical = cloneState(state);
+  hypothetical.crowns.delete(index);
+  hypothetical.manualXs.add(index);
+  return hasSolution(hypothetical);
+}
+
+function combinations(values, size, start = 0, prefix = [], out = []) {
+  if (prefix.length === size) {
+    out.push([...prefix]);
+    return out;
+  }
+  for (let i = start; i <= values.length - (size - prefix.length); i++) {
+    prefix.push(values[i]);
+    combinations(values, size, i + 1, prefix, out);
+    prefix.pop();
+  }
+  return out;
+}
+
+export function forcedUnitHint(state) {
+  const forced = getUnits(state)
+    .filter(unit => unit.cells.length === 1)
+    .sort((a, b) => a.scope.length - b.scope.length)[0];
+
+  if (!forced) return null;
+  const index = forced.cells[0];
+  if (!crownKeepsSolution(state, index)) return null;
+
+  return {
+    kind:'candidate',
+    cells:[index],
+    area:forced.scope,
+    text:`W ${forced.label} została tylko jedna możliwość. Korona musi stanąć na wyróżnionym polu.`
+  };
+}
+
+// Pigeonhole/subset deduction: if k available rows (or columns) can use only
+// k regions, those regions must place their crowns inside that subset.
+export function subsetElimination(state) {
+  for (const mode of ['row', 'col']) {
+    const occupied = new Set([...state.crowns].map(index => rc(index)[mode === 'row' ? 0 : 1]));
+    const available = Array.from({length:N}, (_, index) => index).filter(index => !occupied.has(index));
+    const maxSize = Math.min(4, available.length);
+
+    for (let size = 1; size <= maxSize; size++) {
+      for (const subsetValues of combinations(available, size)) {
+        const subset = new Set(subsetValues);
+        const regions = new Set();
+
+        for (const index of allCells) {
+          const [row, col] = rc(index);
+          const axis = mode === 'row' ? row : col;
+          if (subset.has(axis) && isCandidate(state, index)) regions.add(regionAt(index));
+        }
+
+        if (regions.size !== size) continue;
+
+        const eliminate = allCells.filter(index => {
+          if (!isCandidate(state, index) || !regions.has(regionAt(index))) return false;
+          const [row, col] = rc(index);
+          const axis = mode === 'row' ? row : col;
+          return !subset.has(axis) && crownIsImpossible(state, index);
+        });
+
+        if (!eliminate.length) continue;
+
+        const axisWord = mode === 'row'
+          ? (size === 1 ? 'wierszu' : 'wierszach')
+          : (size === 1 ? 'kolumnie' : 'kolumnach');
+
+        return {
+          kind:'eliminate',
+          cells:[],
+          eliminate,
+          text:`${size === 1 ? 'Ten region' : `Te ${size} regiony`} musi${size === 1 ? '' : 'zą'} wykorzystać ${size === 1 ? 'ten' : 'te'} ${axisWord}. Pola tych regionów poza nimi można wykluczyć.`
+        };
+      }
+    }
+  }
+  return null;
+}
+
+// One-level contradiction: assume a crown here. If the solver finds no full
+// solution, the cell is safe to cross out.
 export function solverBackedElimination(state) {
   for (const index of allCells) {
     if (!isCandidate(state, index)) continue;
-    const hypothetical = cloneState(state);
-    hypothetical.crowns.add(index);
-    if (!hasSolution(hypothetical)) {
+    if (crownIsImpossible(state, index)) {
       return {
         kind:'eliminate',
         cells:[],
         eliminate:[index],
-        text:'Korona na tym polu prowadzi do sprzeczności, więc to pole można wykluczyć.'
+        text:'Gdyby stanęła tu korona, plansza nie miałaby rozwiązania. To pole można oznaczyć X.'
+      };
+    }
+  }
+  return null;
+}
+
+// Dual contradiction: assume this cell is crossed out. If that removes every
+// solution, the crown is forced here.
+export function solverBackedForcedCrown(state) {
+  for (const index of allCells) {
+    if (!isCandidate(state, index)) continue;
+    if (!crossoutKeepsSolution(state, index) && crownKeepsSolution(state, index)) {
+      return {
+        kind:'candidate',
+        cells:[index],
+        text:'Gdyby wykluczyć to pole, plansza nie miałaby rozwiązania. Korona musi stanąć tutaj.'
       };
     }
   }
@@ -118,30 +214,10 @@ export function deductionHint(state) {
   const impossible = units.find(unit => unit.cells.length === 0);
   if (impossible) return {kind:'error', cells:[], area:impossible.scope, text:`W ${impossible.label} nie zostało żadne możliwe pole dla korony.`};
 
-  const forced = units.filter(unit => unit.cells.length === 1).sort((a,b) => a.scope.length - b.scope.length)[0];
-  if (forced) return {kind:'candidate', cells:forced.cells, text:`W ${forced.label} korona może stanąć już tylko na wyróżnionym polu.`};
-
-  for (const unit of units.filter(unit => unit.type === 'region' && unit.cells.length >= 2 && unit.cells.length <= 4)) {
-    const rows = new Set(unit.cells.map(index => rc(index)[0]));
-    const cols = new Set(unit.cells.map(index => rc(index)[1]));
-
-    if (rows.size === 1) {
-      const row = [...rows][0];
-      const eliminate = cellsInRow(row).filter(index => !unit.scope.includes(index) && isCandidate(state, index));
-      if (eliminate.length) return {kind:'eliminate', cells:unit.cells, eliminate, text:'W tym regionie korona musi znaleźć się w tym rzędzie, więc pozostałe wyróżnione pola tego rzędu można wykluczyć.'};
-    }
-
-    if (cols.size === 1) {
-      const col = [...cols][0];
-      const eliminate = cellsInColumn(col).filter(index => !unit.scope.includes(index) && isCandidate(state, index));
-      if (eliminate.length) return {kind:'eliminate', cells:unit.cells, eliminate, text:'W tym regionie korona musi znaleźć się w tej kolumnie, więc pozostałe wyróżnione pola tej kolumny można wykluczyć.'};
-    }
-  }
-
-  const shortUnit = units.filter(unit => unit.cells.length >= 2 && unit.cells.length <= 4).sort((a,b) => a.cells.length - b.cells.length)[0];
-  if (shortUnit) return {kind:'candidate', cells:shortUnit.cells, text:`W ${shortUnit.label} korona może znajdować się tylko na wyróżnionych polach.`};
-
-  return solverBackedElimination(state);
+  return forcedUnitHint(state)
+    || subsetElimination(state)
+    || solverBackedElimination(state)
+    || solverBackedForcedCrown(state);
 }
 
 export function getHint(state, history = []) {
