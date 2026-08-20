@@ -16,7 +16,7 @@
 
   <section class="home-intro" aria-labelledby="todayTitle">
     <h1 class="home-title" id="todayTitle">Dzisiejsze gry</h1>
-    <p class="home-subtitle">Wybierz łamigłówkę i zacznij grać.</p>
+    <p class="home-subtitle">Wybierz coś na dziś</p>
   </section>
 
   <section class="today-games" aria-label="Dzisiejsze gry">
@@ -31,19 +31,16 @@
       <div class="game-copy"><strong>Tango</strong><span>Logiczna układanka symboli.</span></div>
       <span class="game-status">Wkrótce</span>
     </div>
-
     <div class="game-card game-card--coming-soon">
       <div class="game-icon game-icon--sudoku" aria-hidden="true">9</div>
       <div class="game-copy"><strong>Sudoku</strong><span>Klasyczna łamigłówka liczbowa.</span></div>
       <span class="game-status">Wkrótce</span>
     </div>
-
     <div class="game-card game-card--coming-soon">
       <div class="game-icon game-icon--word" aria-hidden="true">A</div>
       <div class="game-copy"><strong>Słowo</strong><span>Codzienne zgadywanie słowa.</span></div>
       <span class="game-status">Wkrótce</span>
     </div>
-
     <div class="game-card game-card--coming-soon">
       <div class="game-icon game-icon--zip" aria-hidden="true">↗</div>
       <div class="game-copy"><strong>Ścieżka</strong><span>Połącz pola we właściwej kolejności.</span></div>
@@ -52,15 +49,16 @@
   </section>
 
   <section class="home-section" aria-labelledby="dayTitle">
-    <h2 class="section-title" id="dayTitle">Twój dzień</h2>
-    <div class="daily-progress">
-      <div class="progress-card"><strong class="progress-value" id="todayProgress">0 / 1</strong><span class="progress-label">ukończone dzisiaj</span></div>
-      <div class="progress-card"><strong class="progress-value" id="streakCard">🔥 —</strong><span class="progress-label" id="streakLabel">Zagraj dziś</span></div>
+    <div class="section-heading-row">
+      <h2 class="section-title" id="dayTitle">Twój dzień</h2>
+      <strong class="day-count" id="todayProgress">0 / 1</strong>
     </div>
+    <div class="day-progress" aria-label="Postęp dzisiejszych gier"><span id="todayProgressBar"></span></div>
+    <p class="section-note" id="todayProgressLabel">0 z 1 dostępnych gier ukończonych</p>
   </section>
 
   <section class="home-section" aria-labelledby="statsTitle">
-    <h2 class="section-title" id="statsTitle">Figlo w liczbach</h2>
+    <h2 class="section-title" id="statsTitle">Figlo</h2>
     <div class="stats-card">
       <div class="stat-row"><span>Dni aktywności</span><strong id="activeDays">0</strong></div>
       <div class="stat-row"><span>Ukończone gry</span><strong id="totalCompleted">0</strong></div>

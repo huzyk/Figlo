@@ -1,20 +1,26 @@
 const $ = selector => document.querySelector(selector);
 const number = (key, fallback = 0) => { const value = Number(localStorage.getItem(key)); return Number.isFinite(value) ? value : fallback; };
 function localDateKey(date = new Date()) { const y=date.getFullYear(); const m=String(date.getMonth()+1).padStart(2,'0'); const d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+
 const today = localDateKey();
+const availableToday = 1;
 const crownsDone = localStorage.getItem('figlo-crowns-completed-date') === today;
+const completedToday = crownsDone ? 1 : 0;
 const figloStreak = number('figlo-streak');
 const activeDays = number('figlo-active-days', figloStreak);
 const totalCompleted = number('figlo-total-completed', number('figlo-crowns-completed-count'));
-$('#todayProgress').textContent = `${crownsDone ? 1 : 0} / 1`;
+
+$('#todayProgress').textContent = `${completedToday} / ${availableToday}`;
+$('#todayProgressLabel').textContent = `${completedToday} z ${availableToday} dostępnych gier ukończonych`;
+$('#todayProgressBar').style.width = `${(completedToday / availableToday) * 100}%`;
 $('#activeDays').textContent = String(activeDays);
 $('#totalCompleted').textContent = String(totalCompleted);
+
 if (figloStreak > 0) {
   $('#streakValue').textContent = String(figloStreak);
   $('#streakPill').setAttribute('aria-label', `Seria Figlo: ${figloStreak} dni`);
-  $('#streakCard').textContent = `🔥 ${figloStreak} ${figloStreak === 1 ? 'dzień' : 'dni'}`;
-  $('#streakLabel').textContent = 'seria Figlo';
 }
+
 if (crownsDone) {
   $('#crownsStatus').textContent = '✓ Ukończone';
   $('#crownsCard').classList.add('game-card--done');
