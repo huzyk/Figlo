@@ -1,0 +1,43 @@
+name: Refresh Duet today
+
+on:
+  push:
+    branches: [preview]
+    paths:
+      - 'src/duet/**'
+      - 'scripts/generate-duet-daily.mjs'
+      - '.github/workflows/refresh-duet-today.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: preview
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate today Duet
+        run: node scripts/generate-duet-daily.mjs --start 2026-08-24 --days 1
+
+      - name: Commit refreshed daily
+        run: |
+          if git diff --quiet -- data/duet/2026-08-24.json; then
+            echo "No daily changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/duet/2026-08-24.json
+          git commit -m "chore: refresh Duet daily 2026-08-24"
+          git push origin preview
