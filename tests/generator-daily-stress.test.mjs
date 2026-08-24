@@ -8,8 +8,8 @@ function dateKeyFromOffset(offset) {
   return date.toISOString().slice(0, 10);
 }
 
-test('30 consecutive daily Crown seeds are deterministic and uniquely solvable', () => {
-  for (let offset = 0; offset < 30; offset++) {
+test('60 consecutive daily Crown seeds are deterministic and uniquely solvable', () => {
+  for (let offset = 0; offset < 60; offset++) {
     const dateKey = dateKeyFromOffset(offset);
     const seed = dailyPuzzleSeed('korony', dateKey);
     const first = generatePuzzle(seed);
