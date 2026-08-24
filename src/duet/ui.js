@@ -45,6 +45,7 @@ function symbolMarkup(value) {
   if (value === B) return '<span class="symbol b" aria-hidden="true"></span>';
   return '';
 }
+function valueKey(value) { return value === A ? 'a' : value === B ? 'b' : 'empty'; }
 function valueName(value) { return value === A ? 'symbol fioletowy' : value === B ? 'symbol złoty' : 'puste'; }
 function relationForCell(index) { return (puzzle.relations || []).filter(r => r.a === index || r.b === index); }
 function conflictCells() {
@@ -73,7 +74,7 @@ function renderBoard({focusIndex=null,hintIndex=null}={}) {
   session.board.forEach((value,index)=>{
     const row=Math.floor(index/SIZE), col=index%SIZE;
     const cell=document.createElement('button');
-    cell.type='button'; cell.className='duet-cell'; cell.dataset.index=String(index); cell.setAttribute('role','gridcell');
+    cell.type='button'; cell.className='duet-cell'; cell.dataset.index=String(index); cell.dataset.value=valueKey(value); cell.setAttribute('role','gridcell');
     if(givens.has(index)){cell.classList.add('given');cell.setAttribute('aria-readonly','true');}
     if(bad.has(index)) cell.classList.add('conflict');
     if(hintIndex===index) cell.classList.add('hint');
