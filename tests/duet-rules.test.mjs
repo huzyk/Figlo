@@ -25,11 +25,11 @@ test('same and different relations are validated', () => {
 test('known complete board is solved', () => {
   const board = [
     A,A,B,A,B,B,
-    A,B,A,B,A,B,
-    B,A,A,B,B,A,
+    A,B,A,B,B,A,
+    B,A,A,B,A,B,
     A,B,B,A,B,A,
-    B,A,B,B,A,A,
-    B,B,A,A,A,B
+    B,B,A,B,A,A,
+    B,A,B,A,A,B
   ];
   assert.equal(isSolved(board, { relations: [] }), true);
 });
