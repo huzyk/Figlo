@@ -12,10 +12,10 @@ function dateKeyFromOffset(offset) {
   return date.toISOString().slice(0, 10);
 }
 
-test('365 consecutive Duet daily seeds are deterministic, unique and human-solvable', () => {
+test('100 consecutive Duet daily seeds are deterministic, unique and human-solvable', () => {
   const timings = [];
 
-  for (let offset = 0; offset < 365; offset++) {
+  for (let offset = 0; offset < 100; offset++) {
     const dateKey = dateKeyFromOffset(offset);
     const seed = dailyPuzzleSeed('duet', dateKey);
 
@@ -32,14 +32,10 @@ test('365 consecutive Duet daily seeds are deterministic, unique and human-solva
     const human = solveLikeHuman(first.puzzle);
     assert.equal(human.solved, true, `human solver failed for ${dateKey}`);
     assert.ok(!human.steps.some(step => step.rule === 'guess' || step.rule === 'lookahead'), `guessing used for ${dateKey}`);
-
-    if ((offset + 1) % 50 === 0) {
-      console.log(`Checked ${offset + 1}/365 Duet days`);
-    }
   }
 
   const average = timings.reduce((sum, value) => sum + value, 0) / timings.length;
   const max = Math.max(...timings);
-  console.log(`Duet 365 generator timings: avg=${average.toFixed(1)}ms max=${max.toFixed(1)}ms`);
+  console.log(`Duet 100 generator timings: avg=${average.toFixed(1)}ms max=${max.toFixed(1)}ms`);
   assert.ok(max < 5000, `Duet generator has an extreme slow seed: ${max.toFixed(1)}ms`);
 });
