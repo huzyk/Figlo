@@ -1,0 +1,25 @@
+{
+  "date": "2026-08-24",
+  "game": "duet",
+  "version": 1,
+  "seed": "figlo:duet:2026-08-24:v1",
+  "puzzle": {
+    "size": 6,
+    "givens": [
+      {"index":0,"value":1},{"index":2,"value":2},{"index":3,"value":1},{"index":5,"value":2},
+      {"index":7,"value":2},{"index":8,"value":1},{"index":10,"value":2},{"index":11,"value":1},
+      {"index":12,"value":2},{"index":13,"value":1},{"index":15,"value":2},{"index":16,"value":1},
+      {"index":18,"value":1},{"index":20,"value":2},{"index":21,"value":1},{"index":23,"value":1},
+      {"index":24,"value":2},{"index":26,"value":1},{"index":27,"value":2},{"index":29,"value":1},
+      {"index":30,"value":2},{"index":32,"value":2},{"index":33,"value":1},{"index":35,"value":2}
+    ],
+    "relations": [
+      {"a":1,"b":2,"type":"different"},{"a":4,"b":5,"type":"same"},{"a":6,"b":12,"type":"different"},
+      {"a":9,"b":10,"type":"same"},{"a":14,"b":15,"type":"different"},{"a":17,"b":23,"type":"different"},
+      {"a":19,"b":20,"type":"same"},{"a":22,"b":28,"type":"different"},{"a":25,"b":26,"type":"different"},
+      {"a":31,"b":32,"type":"different"}
+    ]
+  },
+  "solution": [1,1,2,1,2,2,1,2,1,2,2,1,2,1,1,2,1,2,1,2,2,1,2,1,2,2,1,2,1,1,2,1,2,1,1,2],
+  "difficulty": {"label":"easy","score":12,"steps":12}
+}
