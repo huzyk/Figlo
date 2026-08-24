@@ -3,7 +3,14 @@ import { clearManualXs, conflicts, createGameState, cycleCell, isSolved, snapsho
 import { getHint } from './hints.js';
 import { generatePuzzle } from './generator.js';
 import { dailyPuzzleSeed, localDateKey } from './daily.js';
-import { completeDailyGame, loadFigloState, updateFigloSettings } from './storage.js';
+import {
+  completeDailyGame,
+  getCrownSession,
+  loadFigloState,
+  saveCrownSession,
+  clearCrownSession,
+  updateFigloSettings
+} from './storage.js';
 
 const $ = selector => document.querySelector(selector);
 const board = $('#board');
@@ -21,16 +28,18 @@ const feedback = $('#feedback');
 const mobileAutoX = $('#mobileAutoX');
 
 const today = localDateKey();
+const dailySeed = dailyPuzzleSeed('korony', today);
 let productState = loadFigloState(today);
 let state = createGameState();
 let history = [];
 let started = false;
-let start = 0;
 let tick = null;
 let finished = false;
 let gameMode = 'daily';
 let practiceNumber = 0;
 let autoXEnabled = Boolean(productState.settings.autoX);
+let elapsedMs = 0;
+let runningSince = null;
 
 autoXInput.checked = autoXEnabled;
 mobileAutoX.setAttribute('aria-pressed', String(autoXEnabled));
@@ -38,22 +47,58 @@ mobileAutoX.setAttribute('aria-pressed', String(autoXEnabled));
 const crownMarkup = '<span class="mark crown" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 24h24l-2 5H6l-2-5Zm1-15 7 6 4-10 4 10 7-6-2 12H7L5 9Z"/></svg></span>';
 
 function fmt(ms) {
-  const seconds = Math.floor(ms / 1000);
+  const seconds = Math.floor(Math.max(0, ms) / 1000);
   return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
+function currentElapsed(now = Date.now()) {
+  return elapsedMs + (runningSince ? Math.max(0, now - runningSince) : 0);
+}
+
+function refreshTimer() {
+  timer.textContent = fmt(currentElapsed());
+}
+
 function startTimer() {
-  if (started || finished) return;
-  started = true;
-  start = Date.now();
-  tick = setInterval(() => {
-    timer.textContent = fmt(Date.now() - start);
-  }, 250);
+  if (finished) return;
+  if (!started) started = true;
+  if (!runningSince) runningSince = Date.now();
+  if (!tick) tick = setInterval(refreshTimer, 250);
+}
+
+function pauseTimer(now = Date.now()) {
+  if (runningSince) {
+    elapsedMs += Math.max(0, now - runningSince);
+    runningSince = null;
+  }
+  if (tick) clearInterval(tick);
+  tick = null;
+  refreshTimer();
 }
 
 function stopTimer() {
-  if (tick) clearInterval(tick);
-  tick = null;
+  pauseTimer();
+}
+
+function serializeHistory() {
+  return history.map(item => ({
+    crowns: [...(item.crowns || [])],
+    manualXs: [...(item.manualXs || [])]
+  }));
+}
+
+function persistSession() {
+  if (gameMode !== 'daily') return;
+  saveCrownSession({
+    date: today,
+    seed: dailySeed,
+    crowns: [...state.crowns],
+    manualXs: [...state.manualXs],
+    history: serializeHistory(),
+    elapsedMs,
+    runningSince,
+    finished
+  }, today);
 }
 
 function clearHint() {
@@ -98,7 +143,9 @@ function updateFeedback(bad) {
   if (finished) {
     feedback.textContent = gameMode === 'daily'
       ? 'Dzisiejsze Korony ukończone. Świetna robota.'
-      : 'Plansza treningowa ukończona. Świetna robota.';
+      : gameMode === 'replay'
+        ? 'Replay ukończony. Wynik dnia nie został naliczony ponownie.'
+        : 'Plansza treningowa ukończona. Świetna robota.';
     feedback.classList.add('success');
     return;
   }
@@ -116,6 +163,9 @@ function updateFeedback(bad) {
 }
 
 function render() {
+  const focusedIndex = board.contains(document.activeElement)
+    ? Number(document.activeElement?.dataset?.index)
+    : null;
   const xs = visibleXs(state, autoXEnabled);
   const bad = conflicts(state.crowns);
   board.innerHTML = '';
@@ -137,10 +187,12 @@ function render() {
     board.appendChild(cell);
   }
 
+  if (Number.isInteger(focusedIndex) && focusedIndex >= 0) board.children[focusedIndex]?.focus();
   $('#crownCounter').textContent = `${state.crowns.size}/${N}`;
   updateControls();
   updateFeedback(bad);
   done.classList.toggle('show', finished);
+  if (finished) requestAnimationFrame(() => nextPuzzleBtn.focus());
 }
 
 function handleCellKeys(event) {
@@ -151,6 +203,11 @@ function handleCellKeys(event) {
   if (event.key === 'ArrowDown' && row < N - 1) next = index + N;
   if (event.key === 'ArrowLeft' && column > 0) next = index - 1;
   if (event.key === 'ArrowRight' && column < N - 1) next = index + 1;
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    makeMove(index);
+    return;
+  }
   if (next !== null) {
     event.preventDefault();
     board.children[next]?.focus();
@@ -159,11 +216,13 @@ function handleCellKeys(event) {
 
 function finishGame(ms) {
   finished = true;
+  pauseTimer();
+  elapsedMs = ms;
+  runningSince = null;
   timer.textContent = fmt(ms);
-  stopTimer();
   finalTime.textContent = `Czas ${timer.textContent}`;
 
-  if (gameMode === 'daily') {
+  if (gameMode === 'daily' || gameMode === 'replay') {
     const previousBest = productState.games.korony.bestTimeMs;
     const result = completeDailyGame('korony', { timeMs: ms, today });
     productState = result.state;
@@ -174,6 +233,9 @@ function finishGame(ms) {
     $('#recordBadge').hidden = true;
   }
 
+  if (gameMode === 'daily') {
+    persistSession();
+  }
   refreshStats();
 }
 
@@ -183,7 +245,8 @@ function makeMove(index) {
   clearHint();
   history.push(snapshot(state));
   state = cycleCell(state, index, { autoXEnabled });
-  if (isSolved(state)) finishGame(Date.now() - start);
+  persistSession();
+  if (isSolved(state)) finishGame(currentElapsed());
   render();
 }
 
@@ -207,16 +270,19 @@ function showHint() {
   hintCard.classList.add('show');
 }
 
-function resetRound() {
+function resetRound({ persist = true } = {}) {
   state = createGameState();
   history = [];
   finished = false;
   started = false;
-  stopTimer();
+  pauseTimer();
+  elapsedMs = 0;
+  runningSince = null;
   timer.textContent = '00:00';
   finalTime.textContent = '';
   $('#recordBadge').hidden = true;
   clearHint();
+  if (persist) persistSession();
   render();
 }
 
@@ -229,6 +295,7 @@ function undo() {
   clearHint();
   const previous = history.pop();
   state = createGameState(previous.crowns, previous.manualXs);
+  persistSession();
   render();
 }
 
@@ -237,6 +304,7 @@ function setAutoX(value) {
   autoXInput.checked = value;
   productState = updateFigloSettings({ autoX: value });
   clearHint();
+  persistSession();
   render();
 }
 
@@ -246,33 +314,69 @@ function toggleRules(forceOpen = null) {
   if (rules.open) rules.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function restoreSession(session) {
+  state = createGameState(session.crowns, session.manualXs);
+  history = (session.history || []).map(item => ({
+    crowns: new Set(item.crowns || []),
+    manualXs: new Set(item.manualXs || [])
+  }));
+  elapsedMs = Number(session.elapsedMs) || 0;
+  runningSince = Number(session.runningSince) || null;
+  started = elapsedMs > 0 || Boolean(runningSince) || state.crowns.size > 0 || state.manualXs.size > 0;
+  finished = false;
+  if (started && !runningSince) runningSince = Date.now();
+  if (started) tick = setInterval(refreshTimer, 250);
+  refreshTimer();
+}
+
 function loadDailyPuzzle() {
-  const puzzle = generatePuzzle(dailyPuzzleSeed('korony', today));
+  const puzzle = generatePuzzle(dailySeed);
   setRegions(puzzle.regions);
+  const alreadyCompleted = productState.daily.completedGames.includes('korony');
+  const session = getCrownSession({ today, seed: dailySeed });
+
+  if (!alreadyCompleted && session && !session.finished) {
+    gameMode = 'daily';
+    roundLabel.textContent = 'Dzisiaj';
+    restoreSession(session);
+    render();
+    return;
+  }
+
+  if (alreadyCompleted) {
+    gameMode = 'replay';
+    roundLabel.textContent = 'Replay';
+    clearCrownSession(today);
+    resetRound({ persist: false });
+    return;
+  }
+
   gameMode = 'daily';
   roundLabel.textContent = 'Dzisiaj';
-  resetRound();
+  resetRound({ persist: true });
 }
 
 function loadPracticePuzzle() {
+  pauseTimer();
   const puzzle = generatePuzzle(practiceSeed());
   setRegions(puzzle.regions);
   gameMode = 'practice';
   practiceNumber += 1;
   roundLabel.textContent = `Trening #${practiceNumber}`;
-  resetRound();
+  resetRound({ persist: false });
 }
 
 undoBtn.addEventListener('click', undo);
 $('#mobileUndo').addEventListener('click', undo);
-$('#reset').addEventListener('click', resetRound);
-$('#mobileReset').addEventListener('click', resetRound);
+$('#reset').addEventListener('click', () => resetRound({ persist: gameMode === 'daily' }));
+$('#mobileReset').addEventListener('click', () => resetRound({ persist: gameMode === 'daily' }));
 $('#clearMarks').addEventListener('click', () => {
   if (finished || !state.manualXs.size) return;
   startTimer();
   clearHint();
   history.push(snapshot(state));
   state = clearManualXs(state);
+  persistSession();
   render();
 });
 hintBtn.addEventListener('click', showHint);
@@ -294,6 +398,25 @@ nextPuzzleBtn.addEventListener('click', async () => {
     nextPuzzleBtn.textContent = 'Spróbuj ponownie';
   }
   nextPuzzleBtn.disabled = false;
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (gameMode !== 'daily' || finished || !started) return;
+  if (document.hidden) {
+    pauseTimer();
+    persistSession();
+  } else {
+    runningSince = Date.now();
+    if (!tick) tick = setInterval(refreshTimer, 250);
+    persistSession();
+  }
+});
+
+window.addEventListener('pagehide', () => {
+  if (gameMode === 'daily' && !finished) {
+    pauseTimer();
+    persistSession();
+  }
 });
 
 refreshStats();
