@@ -3,6 +3,19 @@ import { dayDifference, localDateKey } from './daily.js';
 export const STORAGE_KEY = 'figlo_user_state_v2';
 const DEFAULT_REQUIRED_GAMES = ['korony'];
 
+function defaultSession() {
+  return {
+    date: null,
+    seed: null,
+    crowns: [],
+    manualXs: [],
+    history: [],
+    elapsedMs: 0,
+    runningSince: null,
+    finished: false
+  };
+}
+
 function defaultState(today = localDateKey()) {
   return {
     version: 2,
@@ -28,26 +41,22 @@ function defaultState(today = localDateKey()) {
         lastCompletedDate: null
       }
     },
-    settings: {
-      autoX: false
-    }
+    settings: { autoX: false },
+    sessions: { korony: defaultSession() }
   };
 }
 
-function safeNumber(value, fallback = 0) {
+const safeNumber = (value, fallback = 0) => {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
-}
+};
 
 function migrateLegacyState(today) {
   const state = defaultState(today);
   const legacyStreak = safeNumber(localStorage.getItem('figlo-streak'));
   const legacyBestStreak = safeNumber(localStorage.getItem('figlo-best-streak'), legacyStreak);
   const legacyActiveDays = safeNumber(localStorage.getItem('figlo-active-days'), legacyStreak);
-  const legacyCompleted = safeNumber(
-    localStorage.getItem('figlo-total-completed'),
-    safeNumber(localStorage.getItem('figlo-crowns-completed-count'))
-  );
+  const legacyCompleted = safeNumber(localStorage.getItem('figlo-total-completed'), safeNumber(localStorage.getItem('figlo-crowns-completed-count')));
   const legacyBestMs = safeNumber(localStorage.getItem('figlo-crowns-best-ms'));
   const legacyLastDay = localStorage.getItem('figlo-last-play-date') || localStorage.getItem('figlo-crowns-completed-date') || null;
   const crownsCompletedToday = localStorage.getItem('figlo-crowns-completed-date') === today;
@@ -65,7 +74,6 @@ function migrateLegacyState(today) {
   state.games.korony.timedCompletions = state.games.korony.totalTimeMs > 0 ? Math.max(1, state.games.korony.completedCount) : 0;
   state.games.korony.lastCompletedDate = localStorage.getItem('figlo-crowns-completed-date') || null;
   state.settings.autoX = localStorage.getItem('figlo-auto-x') === '1';
-
   if (crownsCompletedToday) state.daily.completedGames = ['korony'];
   return state;
 }
@@ -73,7 +81,6 @@ function migrateLegacyState(today) {
 function normalizeState(raw, today) {
   const fallback = defaultState(today);
   if (!raw || raw.version !== 2) return fallback;
-
   const legacyHistoryDates = Array.isArray(raw.history?.completedDates) ? raw.history.completedDates : [];
   const state = {
     ...fallback,
@@ -81,39 +88,34 @@ function normalizeState(raw, today) {
     user: {
       ...fallback.user,
       ...(raw.user || {}),
-      completedDates: Array.isArray(raw.user?.completedDates)
-        ? raw.user.completedDates
-        : legacyHistoryDates
+      completedDates: Array.isArray(raw.user?.completedDates) ? raw.user.completedDates : legacyHistoryDates
     },
-    daily: {
-      ...fallback.daily,
-      ...(raw.daily || {})
-    },
+    daily: { ...fallback.daily, ...(raw.daily || {}) },
     games: {
       ...fallback.games,
       ...(raw.games || {}),
-      korony: {
-        ...fallback.games.korony,
-        ...(raw.games?.korony || {})
-      }
+      korony: { ...fallback.games.korony, ...(raw.games?.korony || {}) }
     },
-    settings: {
-      ...fallback.settings,
-      ...(raw.settings || {})
+    settings: { ...fallback.settings, ...(raw.settings || {}) },
+    sessions: {
+      ...fallback.sessions,
+      ...(raw.sessions || {}),
+      korony: { ...fallback.sessions.korony, ...(raw.sessions?.korony || {}) }
     }
   };
 
   if (!Array.isArray(state.daily.requiredGames)) state.daily.requiredGames = [...DEFAULT_REQUIRED_GAMES];
   if (!Array.isArray(state.daily.completedGames)) state.daily.completedGames = [];
   if (!Array.isArray(state.user.completedDates)) state.user.completedDates = [];
-
+  if (!Array.isArray(state.sessions.korony.crowns)) state.sessions.korony.crowns = [];
+  if (!Array.isArray(state.sessions.korony.manualXs)) state.sessions.korony.manualXs = [];
+  if (!Array.isArray(state.sessions.korony.history)) state.sessions.korony.history = [];
+  state.sessions.korony.elapsedMs = safeNumber(state.sessions.korony.elapsedMs);
+  state.sessions.korony.runningSince = Number.isFinite(Number(state.sessions.korony.runningSince)) ? Number(state.sessions.korony.runningSince) : null;
   state.games.korony.completedCount = safeNumber(state.games.korony.completedCount);
   state.games.korony.totalTimeMs = safeNumber(state.games.korony.totalTimeMs);
   state.games.korony.timedCompletions = safeNumber(state.games.korony.timedCompletions);
-  if (!state.games.korony.timedCompletions && state.games.korony.totalTimeMs > 0) {
-    state.games.korony.timedCompletions = Math.max(1, state.games.korony.completedCount);
-  }
-
+  if (!state.games.korony.timedCompletions && state.games.korony.totalTimeMs > 0) state.games.korony.timedCompletions = Math.max(1, state.games.korony.completedCount);
   delete state.history;
   return state;
 }
@@ -122,11 +124,8 @@ function rollDailyState(state, today) {
   if (state.daily.date === today) return state;
   return {
     ...state,
-    daily: {
-      date: today,
-      requiredGames: [...DEFAULT_REQUIRED_GAMES],
-      completedGames: []
-    }
+    daily: { date: today, requiredGames: [...DEFAULT_REQUIRED_GAMES], completedGames: [] },
+    sessions: { ...state.sessions, korony: defaultSession() }
   };
 }
 
@@ -144,14 +143,19 @@ export function loadFigloState(today = localDateKey()) {
     console.error('Nie udało się odczytać stanu Figlo:', error);
     state = defaultState(today);
   }
-
   const rolled = rollDailyState(state, today);
   saveFigloState(rolled);
   return rolled;
 }
 
 export function saveFigloState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return true;
+  } catch (error) {
+    console.error('Nie udało się zapisać stanu Figlo:', error);
+    return false;
+  }
 }
 
 export function isTodayComplete(state) {
@@ -162,10 +166,7 @@ export function completeDailyGame(gameId, { timeMs = null, today = localDateKey(
   const state = loadFigloState(today);
   const gameState = state.games[gameId];
   if (!gameState) throw new Error(`Nieznana gra: ${gameId}`);
-
-  if (Number.isFinite(timeMs) && timeMs > 0 && (!gameState.bestTimeMs || timeMs < gameState.bestTimeMs)) {
-    gameState.bestTimeMs = timeMs;
-  }
+  if (Number.isFinite(timeMs) && timeMs > 0 && (!gameState.bestTimeMs || timeMs < gameState.bestTimeMs)) gameState.bestTimeMs = timeMs;
 
   const alreadyCompletedToday = state.daily.completedGames.includes(gameId);
   if (alreadyCompletedToday) {
@@ -177,16 +178,14 @@ export function completeDailyGame(gameId, { timeMs = null, today = localDateKey(
   state.daily.completedGames.push(gameId);
   gameState.completedCount += 1;
   gameState.lastCompletedDate = today;
-
   if (Number.isFinite(timeMs) && timeMs > 0) {
     gameState.totalTimeMs += timeMs;
     gameState.timedCompletions += 1;
   }
-
   state.user.completedGames += 1;
+
   const dayIsNowComplete = isTodayComplete(state);
   let firstDayCompletionToday = false;
-
   if (!wasDayComplete && dayIsNowComplete) {
     firstDayCompletionToday = true;
     const difference = dayDifference(state.user.lastCompletedDate, today);
@@ -194,7 +193,6 @@ export function completeDailyGame(gameId, { timeMs = null, today = localDateKey(
     state.user.bestStreak = Math.max(state.user.bestStreak, state.user.streak);
     state.user.completedDays += 1;
     state.user.lastCompletedDate = today;
-
     if (!state.user.completedDates.includes(today)) {
       state.user.completedDates.push(today);
       state.user.completedDates = state.user.completedDates.slice(-120);
@@ -216,4 +214,34 @@ export function getGameAverageTime(state, gameId) {
   const game = state.games[gameId];
   if (!game || !game.timedCompletions) return null;
   return Math.round(game.totalTimeMs / game.timedCompletions);
+}
+
+export function getCrownSession({ today = localDateKey(), seed } = {}) {
+  const state = loadFigloState(today);
+  const session = state.sessions.korony || defaultSession();
+  if (session.date !== today || session.seed !== seed) return null;
+  return session;
+}
+
+export function saveCrownSession(session, today = localDateKey()) {
+  const state = loadFigloState(today);
+  state.sessions.korony = {
+    ...defaultSession(),
+    ...session,
+    date: session.date || today,
+    crowns: [...(session.crowns || [])],
+    manualXs: [...(session.manualXs || [])],
+    history: (session.history || []).map(item => ({
+      crowns: [...(item.crowns || [])],
+      manualXs: [...(item.manualXs || [])]
+    }))
+  };
+  saveFigloState(state);
+  return state.sessions.korony;
+}
+
+export function clearCrownSession(today = localDateKey()) {
+  const state = loadFigloState(today);
+  state.sessions.korony = defaultSession();
+  saveFigloState(state);
 }
