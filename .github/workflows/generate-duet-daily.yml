@@ -1,0 +1,46 @@
+name: Generate Duet daily
+
+on:
+  schedule:
+    - cron: '15 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate 45-day Duet buffer
+        shell: bash
+        run: |
+          START=$(TZ=Europe/Warsaw date +%F)
+          npm run generate:duet -- --start "$START" --days 45
+
+      - name: Commit generated daily assets
+        shell: bash
+        run: |
+          if git diff --quiet -- data/duet; then
+            echo "No new Duet daily assets."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/duet
+          git commit -m "duet: refresh pre-generated daily buffer"
+          git push
