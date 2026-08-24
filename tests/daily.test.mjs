@@ -1,7 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dailyPuzzleSeed, dayDifference, getWeekDateKeys } from '../src/daily.js';
+import {
+  FIGLO_TIME_ZONE,
+  dailyPuzzleSeed,
+  dayDifference,
+  figloDateKey,
+  getWeekDateKeys
+} from '../src/daily.js';
 import { generatePuzzle } from '../src/generator.js';
+
+test('Figlo uses Europe/Warsaw as the official daily timezone', () => {
+  assert.equal(FIGLO_TIME_ZONE, 'Europe/Warsaw');
+});
+
+test('Warsaw midnight controls the daily date in summer', () => {
+  assert.equal(figloDateKey(new Date('2026-08-24T21:59:59Z')), '2026-08-24');
+  assert.equal(figloDateKey(new Date('2026-08-24T22:00:00Z')), '2026-08-25');
+});
+
+test('Warsaw midnight controls the daily date in winter', () => {
+  assert.equal(figloDateKey(new Date('2026-12-14T22:59:59Z')), '2026-12-14');
+  assert.equal(figloDateKey(new Date('2026-12-14T23:00:00Z')), '2026-12-15');
+});
 
 test('daily seed is stable for the same game and date', () => {
   assert.equal(
