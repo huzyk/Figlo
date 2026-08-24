@@ -28,6 +28,10 @@ async function solveDaily(page) {
   await expect(page.locator('#done')).toHaveClass(/show/);
 }
 
+function isMobile(testInfo) {
+  return testInfo.project.name === 'mobile-chromium';
+}
+
 test('fresh user sees incomplete daily set', async ({ page }) => {
   await fresh(page);
   await expect(page.locator('#progressRing')).toHaveText('0/1');
@@ -35,7 +39,7 @@ test('fresh user sees incomplete daily set', async ({ page }) => {
   await expect(page.locator('#statStreak')).toHaveText('0');
 });
 
-test('move and undo history survive reload', async ({ page }) => {
+test('move and undo history survive reload', async ({ page }, testInfo) => {
   await fresh(page, `/korony.html?date=${DATE_A}`);
   const cells = page.locator('#board .cell');
   await cells.nth(0).click();
@@ -43,16 +47,29 @@ test('move and undo history survive reload', async ({ page }) => {
   await page.reload();
   await expect(page.locator('#board .cell').nth(0)).toHaveAttribute('aria-label', /X/);
   await expect(page.locator('#board .cell').nth(1)).toHaveAttribute('aria-label', /X/);
-  await page.locator('#undo').click();
+
+  const undo = isMobile(testInfo) ? page.locator('#mobileUndo') : page.locator('#undo');
+  await undo.click();
+
   await expect(page.locator('#board .cell').nth(0)).toHaveAttribute('aria-label', /X/);
   await expect(page.locator('#board .cell').nth(1)).toHaveAttribute('aria-label', /puste/);
 });
 
-test('Auto-X persists after reload', async ({ page }) => {
+test('Auto-X persists after reload', async ({ page }, testInfo) => {
   await fresh(page, `/korony.html?date=${DATE_A}`);
-  await page.locator('#autoX').check();
-  await page.reload();
-  await expect(page.locator('#autoX')).toBeChecked();
+
+  if (isMobile(testInfo)) {
+    const mobileAutoX = page.locator('#mobileAutoX');
+    await expect(mobileAutoX).toHaveAttribute('aria-pressed', 'false');
+    await mobileAutoX.click();
+    await expect(mobileAutoX).toHaveAttribute('aria-pressed', 'true');
+    await page.reload();
+    await expect(page.locator('#mobileAutoX')).toHaveAttribute('aria-pressed', 'true');
+  } else {
+    await page.locator('#autoX').check();
+    await page.reload();
+    await expect(page.locator('#autoX')).toBeChecked();
+  }
 });
 
 test('timer does not reset after reload', async ({ page }) => {
@@ -133,7 +150,7 @@ test('game board stays inside viewport and correct controls are exposed', async 
   const viewport = page.viewportSize();
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
-  if (testInfo.project.name === 'mobile-chromium') {
+  if (isMobile(testInfo)) {
     await expect(page.locator('.mobile-controls')).toBeVisible();
   } else {
     await expect(page.locator('.controls')).toBeVisible();
