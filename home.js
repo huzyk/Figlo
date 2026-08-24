@@ -1,8 +1,9 @@
-import { getWeekDateKeys, localDateKey } from './src/daily.js';
+import { currentDateKey, dateFromKey, getWeekDateKeys } from './src/daily.js';
 import { getGameAverageTime, isTodayComplete, loadFigloState } from './src/storage.js';
 
 const $ = selector => document.querySelector(selector);
-const today = localDateKey();
+const today = currentDateKey();
+const todayDate = dateFromKey(today) || new Date();
 const state = loadFigloState(today);
 const dailyDone = isTodayComplete(state);
 const completedCount = state.daily.completedGames.length;
@@ -25,7 +26,7 @@ function renderDate() {
     weekday: 'long',
     day: 'numeric',
     month: 'long'
-  }).format(new Date());
+  }).format(todayDate);
   $('#todayDate').textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
@@ -60,7 +61,7 @@ function renderStats() {
 function renderWeek() {
   const root = $('#weekStrip');
   const labels = ['P', 'W', 'Ś', 'C', 'P', 'S', 'N'];
-  const dates = getWeekDateKeys();
+  const dates = getWeekDateKeys(todayDate);
   root.innerHTML = '';
 
   dates.forEach((dateKey, index) => {
