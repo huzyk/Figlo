@@ -88,10 +88,12 @@ function createRelations(solution, random, count = 8) {
 }
 
 function createInitialPuzzle(solution, random) {
+  // Start from a deliberately generous clue set. Minimisation removes clues
+  // afterwards, but the starting puzzle must be human-solvable for every seed.
   const givens = shuffle(Array.from({ length: solution.length }, (_, index) => index), random)
-    .slice(0, 14)
+    .slice(0, 20)
     .map(index => ({ index, value: solution[index] }));
-  return { size: SIZE, givens, relations: createRelations(solution, random, 8) };
+  return { size: SIZE, givens, relations: createRelations(solution, random, 10) };
 }
 
 function acceptable(puzzle) {
@@ -103,21 +105,21 @@ function acceptable(puzzle) {
 
 function minimizePuzzle(puzzle, random) {
   let current = { size: SIZE, givens: [...puzzle.givens], relations: [...puzzle.relations] };
+  // Store clue objects rather than mutable array indices. Once an earlier clue is
+  // removed, later numeric indices no longer point at the original clue.
   const clues = shuffle([
-    ...current.givens.map((_, index) => ({ kind: 'given', index })),
-    ...current.relations.map((_, index) => ({ kind: 'relation', index }))
+    ...current.givens.map(item => ({ kind: 'given', item })),
+    ...current.relations.map(item => ({ kind: 'relation', item }))
   ], random);
 
   for (const clue of clues) {
     const candidate = { size: SIZE, givens: [...current.givens], relations: [...current.relations] };
     if (clue.kind === 'given') {
-      const target = current.givens[clue.index];
-      if (!target) continue;
-      candidate.givens = candidate.givens.filter(item => item !== target);
+      if (!current.givens.includes(clue.item)) continue;
+      candidate.givens = candidate.givens.filter(item => item !== clue.item);
     } else {
-      const target = current.relations[clue.index];
-      if (!target) continue;
-      candidate.relations = candidate.relations.filter(item => item !== target);
+      if (!current.relations.includes(clue.item)) continue;
+      candidate.relations = candidate.relations.filter(item => item !== clue.item);
     }
     if (acceptable(candidate)) current = candidate;
   }
@@ -126,6 +128,8 @@ function minimizePuzzle(puzzle, random) {
 
 export function generateDuetPuzzle(seed, { maxAttempts = 40 } = {}) {
   const normalizedSeed = String(seed);
+  let best = null;
+
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const attemptSeed = `${normalizedSeed}:${attempt}`;
     const random = seededRandom(hashSeed(`figlo:duet:${DUET_GENERATOR_VERSION}:${attemptSeed}`));
@@ -135,8 +139,7 @@ export function generateDuetPuzzle(seed, { maxAttempts = 40 } = {}) {
     const human = acceptable(puzzle);
     if (!human) continue;
     const difficulty = gradeDifficulty(human);
-    if (difficulty.label === 'hard') continue;
-    return {
+    const candidate = {
       seed: normalizedSeed,
       resolvedSeed: attemptSeed,
       generatorVersion: DUET_GENERATOR_VERSION,
@@ -144,6 +147,13 @@ export function generateDuetPuzzle(seed, { maxAttempts = 40 } = {}) {
       solution,
       difficulty
     };
+
+    // Prefer easy/medium daily boards, but never fail generation merely because
+    // a valid, unique, human-solvable board crossed an arbitrary score threshold.
+    if (difficulty.label !== 'hard') return candidate;
+    if (!best || difficulty.score < best.difficulty.score) best = candidate;
   }
+
+  if (best) return best;
   throw new Error(`Nie udało się wygenerować Duetu po ${maxAttempts} próbach.`);
 }
