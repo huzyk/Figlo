@@ -5,7 +5,30 @@ export function localDateKey(date = new Date()) {
   return `${y}-${m}-${d}`;
 }
 
-export function dailyPuzzleSeed(gameId, dateKey = localDateKey()) {
+export function dateFromKey(dateKey) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || ''))) return null;
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) return null;
+  return date;
+}
+
+export function currentDateKey() {
+  if (typeof location !== 'undefined') {
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (isLocal) {
+      const debugDate = new URLSearchParams(location.search).get('date');
+      if (dateFromKey(debugDate)) return debugDate;
+    }
+  }
+  return localDateKey();
+}
+
+export function dailyPuzzleSeed(gameId, dateKey = currentDateKey()) {
   return `figlo:${gameId}:${dateKey}:v1`;
 }
 
