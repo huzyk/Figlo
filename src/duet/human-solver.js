@@ -38,6 +38,25 @@ function relationStep(puzzle, board) {
   return null;
 }
 
+// Constraint propagation: if one of the two possible symbols would immediately
+// violate an explicit game rule, the other symbol is forced. This is deduction,
+// not lookahead/backtracking, and lets sparse boards use relations much better.
+function forcedCandidateStep(puzzle, board) {
+  for (let index = 0; index < board.length; index++) {
+    if (board[index] !== EMPTY) continue;
+    const withA = cloneBoard(board);
+    const withB = cloneBoard(board);
+    withA[index] = A;
+    withB[index] = B;
+    const aValid = isPartialBoardValid(withA, puzzle);
+    const bValid = isPartialBoardValid(withB, puzzle);
+    if (aValid === bValid) continue;
+    const value = aValid ? A : B;
+    return step(index, value, 'constraint-propagation', 'Tylko jeden z dwóch symboli może tu stać bez złamania zasad planszy.', [index]);
+  }
+  return null;
+}
+
 export function getNextHumanStep(puzzle, board) {
   if (!isPartialBoardValid(board, puzzle)) return null;
 
@@ -52,7 +71,7 @@ export function getNextHumanStep(puzzle, board) {
     if (found && board[found.index] === EMPTY) return found;
   }
 
-  return relationStep(puzzle, board);
+  return relationStep(puzzle, board) || forcedCandidateStep(puzzle, board);
 }
 
 export function solveLikeHuman(puzzle, board = null, maxSteps = 200) {
@@ -77,7 +96,8 @@ export function scoreHumanSteps(steps) {
     'row-balance': 1,
     'column-balance': 1,
     'relation-same': 1,
-    'relation-different': 1
+    'relation-different': 1,
+    'constraint-propagation': 2
   };
   return steps.reduce((sum, item) => sum + (weights[item.rule] || 2), 0);
 }
