@@ -1,8 +1,27 @@
+export const FIGLO_TIME_ZONE = 'Europe/Warsaw';
+
 export function localDateKey(date = new Date()) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
+}
+
+export function figloDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: FIGLO_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(
+    parts
+      .filter(part => part.type !== 'literal')
+      .map(part => [part.type, part.value])
+  );
+
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 export function dateFromKey(dateKey) {
@@ -17,7 +36,7 @@ export function dateFromKey(dateKey) {
   return date;
 }
 
-export function currentDateKey() {
+export function currentDateKey(date = new Date()) {
   if (typeof location !== 'undefined') {
     const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     if (isLocal) {
@@ -25,7 +44,7 @@ export function currentDateKey() {
       if (dateFromKey(debugDate)) return debugDate;
     }
   }
-  return localDateKey();
+  return figloDateKey(date);
 }
 
 export function dailyPuzzleSeed(gameId, dateKey = currentDateKey()) {
