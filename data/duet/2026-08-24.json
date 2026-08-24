@@ -2,6 +2,7 @@
   "date": "2026-08-24",
   "game": "duet",
   "version": 1,
+  "puzzleId": "duet:2026-08-24:v1",
   "seed": "figlo:duet:2026-08-24:v1",
   "puzzle": {
     "size": 6,
