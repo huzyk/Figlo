@@ -106,6 +106,14 @@ function normalizeState(raw, today) {
   if (!Array.isArray(state.daily.requiredGames)) state.daily.requiredGames = [...DEFAULT_REQUIRED_GAMES];
   if (!Array.isArray(state.daily.completedGames)) state.daily.completedGames = [];
   if (!Array.isArray(state.user.completedDates)) state.user.completedDates = [];
+
+  state.games.korony.completedCount = safeNumber(state.games.korony.completedCount);
+  state.games.korony.totalTimeMs = safeNumber(state.games.korony.totalTimeMs);
+  state.games.korony.timedCompletions = safeNumber(state.games.korony.timedCompletions);
+  if (!state.games.korony.timedCompletions && state.games.korony.totalTimeMs > 0) {
+    state.games.korony.timedCompletions = Math.max(1, state.games.korony.completedCount);
+  }
+
   delete state.history;
   return state;
 }
