@@ -6,11 +6,11 @@ import { getNextHumanStep, solveLikeHuman } from '../src/duet/human-solver.js';
 
 const solution = [
   A,A,B,A,B,B,
-  A,B,A,B,A,B,
-  B,A,A,B,B,A,
+  A,B,A,B,B,A,
+  B,A,A,B,A,B,
   A,B,B,A,B,A,
-  B,A,B,B,A,A,
-  B,B,A,A,A,B
+  B,B,A,B,A,A,
+  B,A,B,A,A,B
 ];
 
 const fullPuzzle = {
