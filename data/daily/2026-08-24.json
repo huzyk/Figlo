@@ -1,0 +1,7 @@
+{
+  "date": "2026-08-24",
+  "games": [
+    {"id":"korony","puzzleId":"korony:2026-08-24:v1","available":true},
+    {"id":"duet","puzzleId":"duet:2026-08-24:v1","available":true}
+  ]
+}
