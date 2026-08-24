@@ -5,8 +5,8 @@ import { countSolutions } from './solver.js';
 import { solveLikeHuman } from './human-solver.js';
 import { gradeDifficulty } from './difficulty.js';
 
-export const DUET_GENERATOR_VERSION = 2;
-export const DAILY_MIN_SCORE = 15;
+export const DUET_GENERATOR_VERSION = 3;
+export const DAILY_MIN_SCORE = 18;
 export const DAILY_TARGET_SCORE = 22;
 export const DAILY_MAX_SCORE = 26;
 
@@ -17,10 +17,31 @@ function validRowPatterns() { const rows = []; for (let mask = 0; mask < 1 << SI
 const ROW_PATTERNS = validRowPatterns();
 function generateSolution(random) { const board = Array(SIZE * SIZE).fill(EMPTY); const rowOrder = shuffle(ROW_PATTERNS, random); function search(row) { if (row === SIZE) return isSolved(board, { givens: [], relations: [] }); for (const pattern of shuffle(rowOrder, random)) { for (let col = 0; col < SIZE; col++) board[indexOf(row, col)] = pattern[col]; if (isPartialBoardValid(board, { relations: [] }) && search(row + 1)) return true; for (let col = 0; col < SIZE; col++) board[indexOf(row, col)] = EMPTY; } return false; } if (!search(0)) throw new Error('Nie udało się zbudować rozwiązania Duetu.'); return [...board]; }
 function allAdjacentPairs() { const pairs = []; for (let row = 0; row < SIZE; row++) for (let col = 0; col < SIZE; col++) { const a = indexOf(row, col); if (col + 1 < SIZE) pairs.push([a, indexOf(row, col + 1)]); if (row + 1 < SIZE) pairs.push([a, indexOf(row + 1, col)]); } return pairs; }
-function createRelations(solution, random, count = 8) { return shuffle(allAdjacentPairs(), random).slice(0, count).map(([a,b]) => ({ a, b, type: solution[a] === solution[b] ? REL_SAME : REL_DIFFERENT })); }
-function createInitialPuzzle(solution, random) { const givens = shuffle(Array.from({ length: solution.length }, (_, index) => index), random).slice(0, 18).map(index => ({ index, value: solution[index] })); return { size: SIZE, givens, relations: createRelations(solution, random, 8) }; }
+function createRelations(solution, random, count = 7) { return shuffle(allAdjacentPairs(), random).slice(0, count).map(([a,b]) => ({ a, b, type: solution[a] === solution[b] ? REL_SAME : REL_DIFFERENT })); }
+function createInitialPuzzle(solution, random) { const givens = shuffle(Array.from({ length: solution.length }, (_, index) => index), random).slice(0, 16).map(index => ({ index, value: solution[index] })); return { size: SIZE, givens, relations: createRelations(solution, random, 7) }; }
 function acceptable(puzzle) { if (countSolutions(puzzle, 2) !== 1) return null; const human = solveLikeHuman(puzzle); return human.solved ? human : null; }
 function minimizePuzzle(puzzle, random) { let current = { size: SIZE, givens: [...puzzle.givens], relations: [...puzzle.relations] }; const clues = shuffle([...current.givens.map(item => ({ kind:'given', item })), ...current.relations.map(item => ({ kind:'relation', item }))], random); for (const clue of clues) { const candidate = { size: SIZE, givens:[...current.givens], relations:[...current.relations] }; if (clue.kind === 'given') { if (!current.givens.includes(clue.item)) continue; candidate.givens = candidate.givens.filter(item => item !== clue.item); } else { if (!current.relations.includes(clue.item)) continue; candidate.relations = candidate.relations.filter(item => item !== clue.item); } if (acceptable(candidate)) current = candidate; } return current; }
 function distanceFromTarget(score) { return Math.abs(score - DAILY_TARGET_SCORE); }
-export function generateDuetPuzzle(seed, { maxAttempts = 60 } = {}) { const normalizedSeed = String(seed); let best = null; for (let attempt = 0; attempt < maxAttempts; attempt++) { const attemptSeed = `${normalizedSeed}:${attempt}`; const random = seededRandom(hashSeed(`figlo:duet:${DUET_GENERATOR_VERSION}:${attemptSeed}`)); const solution = generateSolution(random); const puzzle = minimizePuzzle(createInitialPuzzle(solution, random), random); const human = acceptable(puzzle); if (!human) continue; const difficulty = gradeDifficulty(human); const candidate = { seed:normalizedSeed, resolvedSeed:attemptSeed, generatorVersion:DUET_GENERATOR_VERSION, puzzle, solution, difficulty }; if (difficulty.score >= DAILY_MIN_SCORE && difficulty.score <= DAILY_MAX_SCORE) return candidate; if (!best || distanceFromTarget(difficulty.score) < distanceFromTarget(best.difficulty.score)) best = candidate; }
- if (best) return best; throw new Error(`Nie udało się wygenerować Duetu po ${maxAttempts} próbach.`); }
+function isDailyDifficulty(difficulty) { return difficulty.score >= DAILY_MIN_SCORE && difficulty.score <= DAILY_MAX_SCORE; }
+
+export function generateDuetPuzzle(seed, { maxAttempts = 100 } = {}) {
+  const normalizedSeed = String(seed);
+  let best = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const attemptSeed = `${normalizedSeed}:${attempt}`;
+    const random = seededRandom(hashSeed(`figlo:duet:${DUET_GENERATOR_VERSION}:${attemptSeed}`));
+    const solution = generateSolution(random);
+    const puzzle = minimizePuzzle(createInitialPuzzle(solution, random), random);
+    const human = acceptable(puzzle);
+    if (!human) continue;
+    const difficulty = gradeDifficulty(human);
+    const candidate = { seed:normalizedSeed, resolvedSeed:attemptSeed, generatorVersion:DUET_GENERATOR_VERSION, puzzle, solution, difficulty };
+    if (isDailyDifficulty(difficulty)) {
+      if (!best || distanceFromTarget(difficulty.score) < distanceFromTarget(best.difficulty.score)) best = candidate;
+      if (difficulty.score === DAILY_TARGET_SCORE) return candidate;
+      continue;
+    }
+  }
+  if (best) return best;
+  throw new Error(`Nie udało się wygenerować Duetu o trudności ${DAILY_MIN_SCORE}-${DAILY_MAX_SCORE} po ${maxAttempts} próbach.`);
+}
