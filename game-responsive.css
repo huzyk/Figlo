@@ -1,23 +1,30 @@
 /* Shared responsive desktop layout for Figlo games. Mobile layouts remain owned by each game stylesheet. */
 @media (min-width: 768px) {
+  /* Desktop sizing is intentionally moderate: the board should grow on large screens,
+     but the hint / feedback area must remain comfortably reachable without the game
+     feeling cropped below the fold. */
+
   /* Korony */
   .app {
-    --figlo-board-size: min(calc(100vw - 250px), calc(100vh - 220px), 900px);
-    width: min(100%, 1280px);
-    max-width: 1280px;
-    padding-left: 28px;
-    padding-right: 28px;
+    --figlo-board-size: min(calc(100vw - 330px), 66vh, 760px);
+    width: min(100%, 1180px);
+    max-width: 1180px;
+    padding: 14px 24px 34px;
+  }
+
+  .app .game-topbar {
+    height: 52px;
   }
 
   .app .game-meta {
-    width: min(100%, calc(var(--figlo-board-size) + 158px));
-    margin-left: auto;
-    margin-right: auto;
+    width: min(100%, calc(var(--figlo-board-size) + 154px));
+    height: 64px;
+    margin: 8px auto 14px;
   }
 
   .app .game-layout {
-    grid-template-columns: minmax(0, var(--figlo-board-size)) 132px;
-    gap: 26px;
+    grid-template-columns: minmax(0, var(--figlo-board-size)) 124px;
+    gap: 22px;
     justify-content: center;
   }
 
@@ -27,26 +34,40 @@
   }
 
   .app .controls {
-    width: 132px;
+    width: 124px;
+  }
+
+  .app .controls button,
+  .app .control-toggle {
+    height: 66px;
   }
 
   .app .board-column .feedback,
   .app .board-column .hint-card,
-  .app .board-column .bottom-actions,
   .app .game-tools {
     max-width: var(--figlo-board-size);
   }
 
+  /* These two disabled buttons are legacy controls and add no value to Korony. */
+  .app .bottom-actions {
+    display: none;
+  }
+
+  /* Keep X rendering crisp when the board scales up. */
+  .app .x-mark {
+    text-shadow: none;
+    box-shadow: 0 2px 5px rgba(15,15,20,.24);
+  }
+
   /* Duet + Bloki use the same desktop shell. */
   .game-shell {
-    --figlo-board-size: min(calc(100vw - 400px), calc(100vh - 225px), 820px);
-    width: min(100%, 1320px);
-    max-width: 1320px;
-    grid-template-columns: minmax(0, var(--figlo-board-size)) 280px;
-    gap: clamp(28px, 3vw, 48px);
+    --figlo-board-size: min(calc(100vw - 430px), 62vh, 720px);
+    width: min(100%, 1220px);
+    max-width: 1220px;
+    grid-template-columns: minmax(0, var(--figlo-board-size)) 260px;
+    gap: clamp(24px, 3vw, 40px);
     justify-content: center;
-    padding-left: 28px;
-    padding-right: 28px;
+    padding: 28px 24px 48px;
   }
 
   .game-shell .board-wrap {
@@ -60,15 +81,30 @@
     max-width: var(--figlo-board-size);
   }
 
-  /* On shorter desktop windows prioritize fitting the full board vertically. */
+  .game-shell .side-panel {
+    width: 260px;
+  }
+
+  /* Short desktop windows: fit the board and leave room for feedback / hints below it. */
   @media (max-height: 820px) {
     .app {
-      --figlo-board-size: min(calc(100vw - 250px), calc(100vh - 190px), 760px);
+      --figlo-board-size: min(calc(100vw - 330px), 58vh, 650px);
+      padding-top: 8px;
+    }
+
+    .app .game-topbar {
+      height: 46px;
+    }
+
+    .app .game-meta {
+      height: 56px;
+      margin-bottom: 10px;
     }
 
     .game-shell {
-      --figlo-board-size: min(calc(100vw - 400px), calc(100vh - 195px), 700px);
-      padding-top: 24px;
+      --figlo-board-size: min(calc(100vw - 430px), 56vh, 620px);
+      padding-top: 18px;
+      padding-bottom: 34px;
     }
   }
 }
