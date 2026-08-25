@@ -1,0 +1,39 @@
+/* Korony — stabilne centrowanie znaku X na wszystkich rozmiarach planszy */
+.x-mark{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:44%;
+  height:44%;
+  min-width:22px;
+  min-height:22px;
+  max-width:34px;
+  max-height:34px;
+  border-radius:50%;
+  background:rgba(15,15,20,.58);
+  border:1px solid rgba(255,255,255,.18);
+  color:#B9A5FF;
+  font-family:Arial,sans-serif;
+  font-size:clamp(16px,2vw,26px);
+  font-weight:900;
+  line-height:1;
+  text-shadow:none;
+  box-shadow:0 1px 3px rgba(15,15,20,.18);
+  transform:none!important;
+}
+
+.x-mark::before{
+  content:"×";
+  display:block;
+  line-height:.82;
+  transform:translateY(-1px);
+}
+
+/* Oryginalny tekstowy glif ukrywamy, żeby przeglądarka nie liczyła jego baseline. */
+.x-mark{
+  font-size:0;
+}
+
+.x-mark::before{
+  font-size:clamp(16px,2vw,26px);
+}
