@@ -123,22 +123,26 @@ function rollDailyState(state, today) {
 }
 
 export function loadFigloState(today = currentDateKey()) {
-  let state;
+  let raw = null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      state = migrateLegacyState(today);
-      saveFigloState(state);
-      return state;
+      const migrated = migrateLegacyState(today);
+      saveFigloState(migrated);
+      return migrated;
     }
-    state = normalizeState(JSON.parse(raw), today);
+
+    const parsed = JSON.parse(raw);
+    const rolled = rollDailyState(normalizeState(parsed, today), today);
+    const normalizedRaw = JSON.stringify(rolled);
+    if (normalizedRaw !== raw) saveFigloState(rolled);
+    return rolled;
   } catch (error) {
     console.error('Nie udało się odczytać stanu Figlo:', error);
-    state = defaultState(today);
+    const fallback = defaultState(today);
+    saveFigloState(fallback);
+    return fallback;
   }
-  const rolled = rollDailyState(state, today);
-  saveFigloState(rolled);
-  return rolled;
 }
 
 export function saveFigloState(state) {
