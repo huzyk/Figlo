@@ -1,5 +1,6 @@
 import { currentDateKey } from '../daily.js';
 import { loadFigloState } from '../storage.js';
+import { getGameMode } from './game-mode.js';
 
 const GAME_META = {
   korony: { name: 'Korony', title: 'Korony ukończone!', href: 'korony.html' },
@@ -13,11 +14,6 @@ function gameIdFromPath() {
   if (file.startsWith('duet')) return 'duet';
   if (file.startsWith('bloki')) return 'bloki';
   return null;
-}
-
-function isDailyMode() {
-  const label = document.querySelector('#roundLabel')?.textContent?.trim().toLowerCase() || '';
-  return label === 'daily' || label === 'dzisiaj';
 }
 
 function progressFor(state) {
@@ -103,8 +99,7 @@ export function refreshCompletion(root = document.querySelector('#done')) {
   if (!root || !gameId) return null;
 
   const state = loadFigloState(currentDateKey());
-  const mode = isDailyMode() ? 'daily' : 'training';
-  const view = buildCompletionView({ state, gameId, mode });
+  const view = buildCompletionView({ state, gameId, mode: getGameMode() });
   const elements = elementsFor(root, gameId);
 
   if (elements.eyebrow) elements.eyebrow.textContent = view.eyebrow;
@@ -123,7 +118,6 @@ export function refreshCompletion(root = document.querySelector('#done')) {
     elements.secondary.textContent = view.secondaryLabel;
     elements.secondary.classList.add('completion-secondary');
   }
-
   if (gameId === 'korony' && elements.time) {
     elements.time.textContent = elements.time.textContent.replace(/^Czas\s+/i, '');
   }
@@ -132,54 +126,17 @@ export function refreshCompletion(root = document.querySelector('#done')) {
 }
 
 function modalIsVisible(root) {
-  if (root.hidden) return false;
-  if (root.classList.contains('done')) return root.classList.contains('show');
-  return true;
-}
-
-function clearTrainingParam() {
-  const url = new URL(location.href);
-  url.searchParams.delete('mode');
-  history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
-}
-
-function wireTrainingEntry(root, gameId) {
-  if (new URLSearchParams(location.search).get('mode') !== 'training') return;
-  let launched = false;
-  const launch = () => {
-    if (launched) return;
-    const secondary = root.querySelector(gameId === 'korony' ? '#nextPuzzle' : '#replay');
-    if (!secondary) return;
-
-    if (gameId === 'korony') {
-      const label = document.querySelector('#roundLabel')?.textContent?.trim().toLowerCase();
-      if (label !== 'replay') return;
-    } else if (!modalIsVisible(root)) {
-      return;
-    }
-
-    launched = true;
-    clearTrainingParam();
-    secondary.click();
-  };
-
-  const label = document.querySelector('#roundLabel');
-  const observer = new MutationObserver(() => queueMicrotask(launch));
-  observer.observe(root, { attributes: true, attributeFilter: ['hidden', 'class'] });
-  if (label) observer.observe(label, { childList: true, subtree: true, characterData: true });
-  queueMicrotask(launch);
+  return Boolean(root && !root.hidden);
 }
 
 function init() {
   const root = document.querySelector('#done');
-  const gameId = gameIdFromPath();
-  if (!root || !gameId) return;
+  if (!root) return;
   const observer = new MutationObserver(() => {
     if (modalIsVisible(root)) queueMicrotask(() => refreshCompletion(root));
   });
-  observer.observe(root, { attributes: true, attributeFilter: ['hidden', 'class'] });
+  observer.observe(root, { attributes: true, attributeFilter: ['hidden'] });
   if (modalIsVisible(root)) refreshCompletion(root);
-  wireTrainingEntry(root, gameId);
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
