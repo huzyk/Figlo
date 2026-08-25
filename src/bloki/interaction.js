@@ -18,4 +18,29 @@ export function resizeRectFromDrag(rect,start,end){
 
 export function rectForDrag(drag){return drag.baseRect?resizeRectFromDrag(drag.baseRect,drag.start,drag.end):rectFromPoints(drag.start,drag.end);}
 
-export function applyPlacementReplacingOverlaps(placements,placement){const survivors=placements.filter(p=>p.clueId!==placement.clueId&&!cellsOverlap(p.rect,placement.rect));return[...survivors,{clueId:placement.clueId,rect:{...placement.rect}}];}
+function clonePlacements(placements=[]){return placements.map(p=>({clueId:p.clueId,rect:{...p.rect}}));}
+
+export function overlapsAnotherPlacement(placements,placement){
+  return placements.some(p=>p.clueId!==placement.clueId&&cellsOverlap(p.rect,placement.rect));
+}
+
+export function replacePlacementForClue(placements,placement){
+  return[...placements.filter(p=>p.clueId!==placement.clueId),{clueId:placement.clueId,rect:{...placement.rect}}];
+}
+
+export function stateIsCorrectCheckpoint(placements,isPlacementCorrect){
+  for(let i=0;i<placements.length;i++){
+    if(!isPlacementCorrect(placements[i]))return false;
+    for(let j=i+1;j<placements.length;j++)if(cellsOverlap(placements[i].rect,placements[j].rect))return false;
+  }
+  return true;
+}
+
+export function findLastCorrectCheckpoint(history,isPlacementCorrect){
+  for(let i=history.length-1;i>=0;i--){
+    if(stateIsCorrectCheckpoint(history[i],isPlacementCorrect)){
+      return{placements:clonePlacements(history[i]),history:history.slice(0,i).map(clonePlacements)};
+    }
+  }
+  return{placements:[],history:[]};
+}
