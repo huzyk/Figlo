@@ -1,31 +1,35 @@
 import { loadDuetDaily } from '../duet/daily-loader.js';
+import { loadBlokiDaily } from '../bloki/daily-loader.js';
+import { requiredGamesForDate } from '../daily-games.js';
 import { puzzleIdFor } from '../domain/completion.js';
-
-const FALLBACK_GAMES = ['korony', 'duet'];
 
 export async function getDailyGame(gameId, dateKey) {
   if (gameId === 'duet') {
     const record = await loadDuetDaily(dateKey);
     return { ...record, puzzleId: record.puzzleId || puzzleIdFor('duet', dateKey, record.version || 1) };
   }
-  if (gameId === 'korony') {
-    return { game: 'korony', date: dateKey, version: 1, puzzleId: puzzleIdFor('korony', dateKey, 1) };
+  if (gameId === 'bloki') {
+    const record = await loadBlokiDaily(dateKey);
+    return { ...record, puzzleId: record.puzzleId || puzzleIdFor('bloki', dateKey, record.version || 1) };
   }
+  if (gameId === 'korony') return { game: 'korony', date: dateKey, version: 1, puzzleId: puzzleIdFor('korony', dateKey, 1) };
   throw new Error(`Nieznana gra Daily: ${gameId}`);
 }
 
 export async function getDailyManifest(dateKey, { fetchImpl = globalThis.fetch } = {}) {
+  const activeGames=requiredGamesForDate(dateKey);
   if (typeof fetchImpl === 'function') {
     try {
       const response = await fetchImpl(`data/daily/${dateKey}.json`, { cache: 'no-store' });
       if (response.ok) {
         const data = await response.json();
-        if (data?.date === dateKey && Array.isArray(data.games)) return data;
+        if (data?.date === dateKey && Array.isArray(data.games)) {
+          const games=[...data.games];
+          for(const gameId of activeGames){if(!games.some(game=>game.id===gameId))games.push({id:gameId,puzzleId:puzzleIdFor(gameId,dateKey,1),available:true});}
+          return {...data,games:games.filter(game=>activeGames.includes(game.id))};
+        }
       }
     } catch {}
   }
-  return {
-    date: dateKey,
-    games: FALLBACK_GAMES.map(gameId => ({ id: gameId, puzzleId: puzzleIdFor(gameId, dateKey, gameId === 'duet' ? 1 : 1), available: true }))
-  };
+  return { date: dateKey, games: activeGames.map(gameId => ({ id: gameId, puzzleId: puzzleIdFor(gameId, dateKey, 1), available: true })) };
 }

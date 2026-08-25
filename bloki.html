@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0F0F14">
+  <title>Bloki — Figlo</title>
+  <link rel="stylesheet" href="bloki.css">
+</head>
+<body>
+  <header class="game-topbar">
+    <a class="back" href="index.html" aria-label="Wróć do Figlo">←</a>
+    <div><span class="eyebrow">FIGLO DAILY</span><h1>Bloki</h1></div>
+    <button id="rulesTop" class="icon-btn" type="button" aria-label="Pokaż zasady">?</button>
+  </header>
+  <main class="game-shell">
+    <section class="play-area" aria-labelledby="gameTitle">
+      <div class="game-meta">
+        <div><span>Dzisiaj</span><strong>Daily</strong></div>
+        <div><span>Czas</span><strong id="timer">00:00</strong></div>
+        <div><span>Wypełnione</span><strong id="filledCounter">0/36</strong></div>
+      </div>
+      <div class="board-wrap"><div id="board" class="bloki-board" role="grid" aria-label="Plansza Bloków 6 na 6"></div></div>
+      <div id="feedback" class="feedback" aria-live="polite">Przeciągnij po planszy, żeby zaznaczyć blok.</div>
+      <div id="loadError" class="load-error" hidden>Dzisiejsze Bloki nie są dostępne. Spróbuj ponownie za chwilę.</div>
+      <div class="mobile-controls" aria-label="Sterowanie gry">
+        <button id="mobileUndo" type="button">↶<span>Cofnij</span></button>
+        <button id="mobileHint" type="button">💡<span>Podpowiedź</span></button>
+        <button id="mobileReset" type="button">↻<span>Reset</span></button>
+      </div>
+    </section>
+    <aside class="side-panel">
+      <section class="panel-card"><span class="eyebrow">STEROWANIE</span><button id="undo" type="button">↶ Cofnij</button><button id="hint" type="button">💡 Podpowiedź</button><button id="reset" type="button">↻ Resetuj</button></section>
+      <details id="rules" class="panel-card rules">
+        <summary>Zasady</summary>
+        <ol>
+          <li>Podziel całą planszę na prostokątne bloki.</li>
+          <li>Każdy blok musi zawierać dokładnie jedną wskazówkę.</li>
+          <li>Liczba mówi, z ilu pól składa się blok.</li>
+          <li><b>□</b> oznacza kwadrat, <b>▭</b> szeroki prostokąt, <b>▯</b> wysoki prostokąt, a <b>•</b> dowolny prostokąt.</li>
+          <li>Bloki nie mogą na siebie nachodzić ani zostawiać pustych pól.</li>
+        </ol>
+      </details>
+    </aside>
+  </main>
+  <section id="done" class="completion" role="dialog" aria-modal="true" aria-labelledby="doneTitle" hidden>
+    <div class="completion-card"><span class="success-mark">✓</span><h2 id="doneTitle">Bloki ukończone!</h2><p id="doneCopy">Świetna robota.</p><div class="completion-stats"><div><span>Czas</span><strong id="finalTime">—</strong></div><div><span>Najlepszy</span><strong id="bestTime">—</strong></div></div><a class="primary" id="backToSet" href="index.html#gry">Wróć do dzisiejszego zestawu</a><button id="replay" type="button">Zagraj ponownie</button></div>
+  </section>
+  <script type="module" src="src/bloki/ui.js"></script>
+</body>
+</html>
