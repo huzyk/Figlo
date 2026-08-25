@@ -12,11 +12,14 @@ const $ = s => document.querySelector(s);
 const boardEl = $('#board');
 const today = currentDateKey();
 const identity = getIdentity();
+const CONFLICT_FEEDBACK_DELAY_MS = 320;
 let record = null;
 let puzzle = null;
 let givens = new Set();
 let session = null;
 let timerTick = null;
+let conflictFeedbackVisible = true;
+let conflictFeedbackTimer = null;
 
 function formatMs(ms) {
   const sec = Math.floor(Math.max(0, ms) / 1000);
@@ -39,6 +42,20 @@ function pauseTimer() {
 }
 function renderTimer() { $('#timer').textContent = formatMs(elapsedNow()); }
 function saveSession() { if (session) persistSession('duet', session, today); }
+function delayConflictFeedback(index) {
+  conflictFeedbackVisible = false;
+  if (conflictFeedbackTimer) clearTimeout(conflictFeedbackTimer);
+  conflictFeedbackTimer = setTimeout(() => {
+    conflictFeedbackTimer = null;
+    conflictFeedbackVisible = true;
+    if (session && !session.finished) renderBoard({focusIndex:index});
+  }, CONFLICT_FEEDBACK_DELAY_MS);
+}
+function showConflictFeedbackNow() {
+  if (conflictFeedbackTimer) clearTimeout(conflictFeedbackTimer);
+  conflictFeedbackTimer = null;
+  conflictFeedbackVisible = true;
+}
 
 function symbolMarkup(value) {
   if (value === A) return '<span class="symbol a" aria-hidden="true"></span>';
@@ -65,11 +82,12 @@ function relationMarkup(index) {
   return (puzzle.relations || []).filter(r=>r.a===index).map(rel => {
     const ar=Math.floor(rel.a/SIZE), br=Math.floor(rel.b/SIZE);
     const cls = ar===br ? 'horizontal' : 'vertical';
-    return `<span class="relation ${cls}" aria-hidden="true">${rel.type===REL_SAME ? '=' : '≠'}</span>`;
+    const typeCls = rel.type===REL_SAME ? 'same' : 'different';
+    return `<span class="relation ${cls} ${typeCls}" aria-hidden="true">${rel.type===REL_SAME ? '=' : '≠'}</span>`;
   }).join('');
 }
 function renderBoard({focusIndex=null,hintIndex=null}={}) {
-  const bad=conflictCells();
+  const bad=conflictFeedbackVisible ? conflictCells() : new Set();
   boardEl.innerHTML='';
   session.board.forEach((value,index)=>{
     const row=Math.floor(index/SIZE), col=index%SIZE;
@@ -93,7 +111,8 @@ function pushHistory(){session.history.push([...session.board]); if(session.hist
 function setValue(index,value){
   if(session.finished||givens.has(index)) return;
   ensureTimerStarted(); pushHistory(); session.board[index]=value; saveSession();
-  if(isSolved(session.board,puzzle)) finish(); else renderBoard({focusIndex:index});
+  if(isSolved(session.board,puzzle)) { showConflictFeedbackNow(); finish(); }
+  else { delayConflictFeedback(index); renderBoard({focusIndex:index}); }
 }
 function cycle(index){const v=session.board[index]; setValue(index,v===EMPTY?A:v===A?B:EMPTY);}
 function handleKey(event,index){
@@ -111,13 +130,14 @@ function handleKey(event,index){
 function renderFeedback(){
   const el=$('#feedback'); el.className='feedback';
   if(session.finished){el.textContent='Duet ukończony!';el.classList.add('success');return;}
-  if(!isPartialBoardValid(session.board,puzzle)){el.textContent='Sprawdź zaznaczone pola — jedna z zasad jest naruszona.';el.classList.add('error');return;}
+  if(conflictFeedbackVisible && !isPartialBoardValid(session.board,puzzle)){el.textContent='Sprawdź zaznaczone pola — jedna z zasad jest naruszona.';el.classList.add('error');return;}
   const left=session.board.filter(v=>v===EMPTY).length; el.textContent=left?`Dobrze idzie. Zostało ${left} pól.`:'Sprawdź układ jeszcze raz.';
 }
 function updateButtons(){const disabled=!session.history.length||session.finished; $('#undo').disabled=disabled;$('#mobileUndo').disabled=disabled;$('#hint').disabled=session.finished;$('#mobileHint').disabled=session.finished;}
-function undo(){if(!session.history.length||session.finished)return;session.board=session.history.pop();saveSession();renderBoard();}
-function reset(){if(session.finished)return; clearSession('duet',today); session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens}); renderBoard();}
+function undo(){if(!session.history.length||session.finished)return;showConflictFeedbackNow();session.board=session.history.pop();saveSession();renderBoard();}
+function reset(){if(session.finished)return; showConflictFeedbackNow(); clearSession('duet',today); session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens}); renderBoard();}
 function showHint(){
+  showConflictFeedbackNow();
   const hint=getDuetHint(puzzle,session.board); const card=$('#hintCard'); card.hidden=false;
   track('hint_used',{gameId:'duet',puzzleId:record?.puzzleId,date:today,localId:identity.localId});
   if(!hint){$('#hintText').textContent='Nie widzę teraz prostego logicznego kroku. Sprawdź, czy na planszy nie ma sprzeczności.';return;}
@@ -133,7 +153,7 @@ function finish(){
   $('#doneCopy').textContent=result.firstDayCompletionToday?'Dzisiejsze Figlo zrobione!':'Świetna robota. Duet zaliczony.';
   $('#done').hidden=false; $('#backToSet').focus(); renderBoard();
 }
-function replay(){clearSession('duet',today); session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens}); $('#done').hidden=true;track('game_replayed',{gameId:'duet',puzzleId:record.puzzleId,date:today,localId:identity.localId}); renderBoard();}
+function replay(){showConflictFeedbackNow();clearSession('duet',today); session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens}); $('#done').hidden=true;track('game_replayed',{gameId:'duet',puzzleId:record.puzzleId,date:today,localId:identity.localId}); renderBoard();}
 
 async function start(){
   try {
