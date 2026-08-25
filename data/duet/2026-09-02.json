@@ -5,6 +5,7 @@
   "puzzleId": "duet:2026-09-02:v4",
   "seed": "figlo:duet:2026-09-02:v1",
   "resolvedSeed": "figlo:duet:2026-09-02:v1:16",
+  "requestedDifficulty": "medium",
   "puzzle": {
     "size": 6,
     "givens": [
