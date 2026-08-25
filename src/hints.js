@@ -129,22 +129,21 @@ function presentDeduction(deduction, state) {
     const needed = info.values.length;
     const sources = confinedRegions.slice(0, needed);
     const sourceRegions = new Set(sources.map(source => source.region));
-    const sourceRegionCells = allCells.filter(index => sourceRegions.has(regionAt(index)));
-    result.focus = sourceRegionCells;
+    result.focus = allCells.filter(index => sourceRegions.has(regionAt(index)));
     const numbers = formatNumbers(info.values);
 
     if (needed === 1) {
       if (info.axis === 'row') {
         result.reason = `Wyróżniony region ma dostępne pola tylko w ${numbers}. wierszu. Korona tego regionu musi więc znaleźć się w tym wierszu.`;
-        result.action = `Pozostałe pola ${numbers}. wiersza poza wyróżnionym regionem możesz oznaczyć X.`;
+        result.instruction = `Pozostałe pola ${numbers}. wiersza poza wyróżnionym regionem możesz oznaczyć X.`;
       } else {
         result.reason = `Wyróżniony region ma dostępne pola tylko w ${numbers}. kolumnie. Korona tego regionu musi więc znaleźć się w tej kolumnie.`;
-        result.action = `Pozostałe pola ${numbers}. kolumny poza wyróżnionym regionem możesz oznaczyć X.`;
+        result.instruction = `Pozostałe pola ${numbers}. kolumny poza wyróżnionym regionem możesz oznaczyć X.`;
       }
     } else {
       const axisName = info.axis === 'row' ? 'wierszach' : 'kolumnach';
       result.reason = `Wyróżnione ${needed} regiony mają dostępne pola tylko w ${axisName} ${numbers}. Ich korony muszą pozostać w tych ${axisName}.`;
-      result.action = `Pozostałe wyróżnione pola poza tymi regionami możesz oznaczyć X.`;
+      result.instruction = `Pozostałe wyróżnione pola poza tymi regionami możesz oznaczyć X.`;
     }
     return result;
   }
@@ -183,7 +182,9 @@ export function deductionHint(state) {
       area:deduction.area || [],
       focus:deduction.focus || [],
       text:deduction.reason,
-      reason:deduction.reason
+      reason:deduction.reason,
+      action:deduction.instruction || null,
+      rule:deduction.rule
     };
   }
 
@@ -208,22 +209,11 @@ export function deductionHint(state) {
     focus:deduction.focus || [],
     text:deduction.reason,
     reason:deduction.reason,
-    action:deduction.action && deduction.action !== 'cross' ? deduction.action : (deduction.instruction || null),
+    action:deduction.instruction || null,
     rule:deduction.rule
   };
 }
 
 export function getHint(state, history = []) {
-  const hint = findMistake(state, history) || deductionHint(state);
-  if (!hint) return null;
-  if (hint.rule === 'region-subset') {
-    const raw = nextHumanDeduction(regions, {crowns:state.crowns, crossed:state.manualXs});
-    const presented = raw ? presentDeduction(raw, state) : null;
-    if (presented?.rule === 'region-subset') {
-      hint.reason = presented.reason;
-      hint.action = presented.action;
-      hint.text = presented.reason;
-    }
-  }
-  return hint;
+  return findMistake(state, history) || deductionHint(state);
 }
