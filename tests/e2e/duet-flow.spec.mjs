@@ -88,15 +88,18 @@ test('Duet completion produces 1/2 if Korony is not done', async ({ page }) => {
   await expect(page.locator('#duetStatus')).toContainText(/ponownie/i);
 });
 
-test('Duet replay does not increment product counters', async ({ page }) => {
+test('Duet freeplay loads and does not increment product counters', async ({ page }) => {
   await fresh(page);
   await solveDuet(page);
 
   const first = await page.evaluate(k => JSON.parse(localStorage.getItem(k)), STORAGE_KEY);
   await page.locator('#replay').click();
-  await solveDuet(page);
-  const second = await page.evaluate(k => JSON.parse(localStorage.getItem(k)), STORAGE_KEY);
 
+  await expect(page.locator('#roundLabel')).toContainText('Freeplay', { timeout: 10000 });
+  await expect(page.locator('#board .duet-cell')).toHaveCount(36);
+  await expect(page.locator('#done')).toBeHidden();
+
+  const second = await page.evaluate(k => JSON.parse(localStorage.getItem(k)), STORAGE_KEY);
   expect(second.user.completedGames).toBe(first.user.completedGames);
   expect(second.games.duet.completedCount).toBe(first.games.duet.completedCount);
 });
