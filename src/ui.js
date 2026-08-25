@@ -65,7 +65,27 @@ function render(){ const focusedIndex=board.contains(document.activeElement)?Num
 function handleCellKeys(event){ const index=Number(event.currentTarget.dataset.index); const [row,column]=rc(index); let next=null; if(event.key==='ArrowUp'&&row>0)next=index-N; if(event.key==='ArrowDown'&&row<N-1)next=index+N; if(event.key==='ArrowLeft'&&column>0)next=index-1; if(event.key==='ArrowRight'&&column<N-1)next=index+1; if(event.key==='Enter'||event.key===' '){event.preventDefault();makeMove(index);return;} if(next!==null){event.preventDefault();board.children[next]?.focus();} }
 function finishGame(ms){ finished=true; pauseTimer(); elapsedMs=ms; runningSince=null; timer.textContent=fmt(ms); finalTime.textContent=`Czas ${timer.textContent}`; if(gameMode==='daily'||gameMode==='replay'){ const previousBest=productState.games.korony.bestTimeMs; const result=completeDailyGame('korony',{timeMs:ms,today}); productState=result.state; const currentBest=productState.games.korony.bestTimeMs; const isNewRecord=Number.isFinite(currentBest)&&currentBest===ms&&(!previousBest||ms<previousBest); $('#recordBadge').hidden=!isNewRecord; } else $('#recordBadge').hidden=true; if(gameMode==='daily')persistSession(); refreshStats(); }
 function makeMove(index){ if(finished)return; startTimer(); clearHint(); history.push(snapshot(state)); state=cycleCell(state,index,{autoXEnabled}); persistSession(); if(isSolved(state))finishGame(currentElapsed()); render(); }
-function showHint(){ if(finished)return; clearHint(); const hint=getHint(state,history); if(!hint){hintText.textContent='Nie znalazłem teraz prostej, uczciwej dedukcji.';hintCard.classList.add('show');return;} for(const index of hint.area||[])board.children[index]?.classList.add('hint-area'); for(const index of hint.focus||[])board.children[index]?.classList.add('hint-focus'); for(const index of hint.cells||[])board.children[index]?.classList.add(hint.kind==='error'?'hint-error':'hint-candidate'); for(const index of hint.eliminate||[])board.children[index]?.classList.add('hint-eliminate'); hintText.innerHTML='<div class="hint-section"><span class="hint-label">Dlaczego</span><p class="hint-copy"></p></div><div class="hint-section"><span class="hint-label">Co zrobić</span><p class="hint-copy"></p></div>'; const copies=hintText.querySelectorAll('.hint-copy'); copies[0].textContent=hint.reason||hint.text; copies[1].textContent=hint.action||hint.text; hintCard.classList.add('show'); }
+function showHint(){
+  if(finished)return;
+  clearHint();
+  const hint=getHint(state,history);
+  if(!hint){hintText.textContent='Nie znalazłem teraz prostej, uczciwej dedukcji.';hintCard.classList.add('show');return;}
+  for(const index of hint.area||[])board.children[index]?.classList.add('hint-area');
+  for(const index of hint.focus||[])board.children[index]?.classList.add('hint-focus');
+  for(const index of hint.cells||[])board.children[index]?.classList.add(hint.kind==='error'?'hint-error':'hint-candidate');
+  for(const index of hint.eliminate||[])board.children[index]?.classList.add('hint-eliminate');
+  const reason=hint.reason||hint.text;
+  if(hint.action){
+    hintText.innerHTML='<div class="hint-section"><span class="hint-label">Dlaczego</span><p class="hint-copy"></p></div><div class="hint-section"><span class="hint-label">Co zrobić</span><p class="hint-copy"></p></div>';
+    const copies=hintText.querySelectorAll('.hint-copy');
+    copies[0].textContent=reason;
+    copies[1].textContent=hint.action;
+  }else{
+    hintText.innerHTML='<div class="hint-section"><p class="hint-copy"></p></div>';
+    hintText.querySelector('.hint-copy').textContent=reason;
+  }
+  hintCard.classList.add('show');
+}
 function resetRound({persist=true}={}){ state=createGameState(); history=[]; finished=false; started=false; pauseTimer(); elapsedMs=0; runningSince=null; timer.textContent='00:00'; finalTime.textContent=''; $('#recordBadge').hidden=true; clearHint(); if(persist)persistSession(); render(); }
 function practiceSeed(){ return globalThis.crypto?.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random()}`; }
 function undo(){ if(!history.length||finished)return; clearHint(); const previous=history.pop(); state=createGameState(previous.crowns,previous.manualXs); persistSession(); render(); }
