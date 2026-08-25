@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {rectForDrag,applyPlacementReplacingOverlaps} from '../src/bloki/interaction.js';
+import {rectForDrag,overlapsAnotherPlacement,replacePlacementForClue,stateIsCorrectCheckpoint,findLastCorrectCheckpoint} from '../src/bloki/interaction.js';
 
 test('dragging from anywhere inside an existing block can expand it',()=>{
   const baseRect={row:0,col:4,width:2,height:4}; // 8 pól
@@ -22,14 +22,35 @@ test('dragging on one axis preserves the other axis of the existing block',()=>{
   assert.deepEqual(horizontal,{row:1,col:1,width:3,height:2});
 });
 
-test('a new valid placement replaces older overlapping placements',()=>{
+test('a placement cannot overwrite a different existing block',()=>{
   const placements=[
-    {clueId:'old',rect:{row:0,col:0,width:2,height:1}},
+    {clueId:'old',rect:{row:0,col:0,width:2,height:2}},
     {clueId:'safe',rect:{row:4,col:4,width:2,height:2}}
   ];
-  const next=applyPlacementReplacingOverlaps(placements,{clueId:'new',rect:{row:0,col:0,width:2,height:2}});
+  assert.equal(overlapsAnotherPlacement(placements,{clueId:'new',rect:{row:1,col:1,width:2,height:2}}),true);
+  assert.equal(overlapsAnotherPlacement(placements,{clueId:'old',rect:{row:0,col:0,width:2,height:3}}),false);
+});
+
+test('editing a clue replaces only that clue placement',()=>{
+  const placements=[
+    {clueId:'a',rect:{row:0,col:0,width:2,height:2}},
+    {clueId:'b',rect:{row:4,col:4,width:2,height:2}}
+  ];
+  const next=replacePlacementForClue(placements,{clueId:'a',rect:{row:0,col:0,width:2,height:3}});
   assert.deepEqual(next,[
-    {clueId:'safe',rect:{row:4,col:4,width:2,height:2}},
-    {clueId:'new',rect:{row:0,col:0,width:2,height:2}}
+    {clueId:'b',rect:{row:4,col:4,width:2,height:2}},
+    {clueId:'a',rect:{row:0,col:0,width:2,height:3}}
   ]);
+});
+
+test('hint repair returns the latest fully correct checkpoint',()=>{
+  const correctA={clueId:'a',rect:{row:0,col:0,width:2,height:2}};
+  const wrongB={clueId:'b',rect:{row:2,col:0,width:2,height:1}};
+  const correctC={clueId:'c',rect:{row:4,col:0,width:2,height:1}};
+  const history=[[],[correctA],[correctA,wrongB]];
+  const isCorrect=p=>p.clueId!=='b';
+  assert.equal(stateIsCorrectCheckpoint([correctA,wrongB,correctC],isCorrect),false);
+  const repaired=findLastCorrectCheckpoint(history,isCorrect);
+  assert.deepEqual(repaired.placements,[correctA]);
+  assert.deepEqual(repaired.history,[[]]);
 });
