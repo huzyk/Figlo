@@ -10,12 +10,12 @@ function partition(rows,cols,count,rng){const regions=[{row:0,col:0,width:cols,h
 function anchor(region,rng){return{row:randInt(rng,region.row,region.row+region.height-1),col:randInt(rng,region.col,region.col+region.width-1)};}
 function clueFor(region,index,rng){const a=anchor(region,rng);return{id:`b${index+1}`,row:a.row,col:a.col,area:rectArea(region),shape:rectShape(region)};}
 function relaxationBudget(difficulty){return difficulty==='easy'?2:difficulty==='hard'?7:4;}
-function clueVariants(clue){const actualShape=clue.shape;return[
-  {...clue,shape:null},
+function canUseAnyWithArea(area){if(area==null)return true;if(area<4)return false;const root=Math.sqrt(area);return Number.isInteger(root);}
+function clueVariants(clue){const actualShape=clue.shape;const variants=[
   {...clue,area:null,shape:actualShape},
-  {...clue,shape:SHAPES.ANY},
-  {...clue,area:null,shape:SHAPES.ANY},
-  {...clue,area:null,shape:null}
-];}
+  {...clue,area:null,shape:SHAPES.ANY}
+];
+if(canUseAnyWithArea(clue.area))variants.push({...clue,shape:SHAPES.ANY});
+return variants;}
 function relax(puzzle,rng,difficulty){let current=structuredClone(puzzle),relaxed=0;for(const clueId of shuffle(rng,current.clues.map(c=>c.id))){if(relaxed>=relaxationBudget(difficulty))break;const i=current.clues.findIndex(c=>c.id===clueId);const original=current.clues[i];for(const candidate of shuffle(rng,clueVariants(original))){const trial=structuredClone(current);trial.clues[i]=candidate;if(hasUniqueSolution(trial)){current=trial;relaxed++;break;}}}return current;}
 export function generateBloki({seed,rows=6,cols=6,difficulty='medium',maxAttempts=400}={}){if(seed==null)throw new Error('Bloki generator requires a seed');const base=hashSeed(seed);for(let attempt=0;attempt<maxAttempts;attempt++){const rng=mulberry32((base+Math.imul(attempt+1,0x9E3779B1))>>>0);const count=difficulty==='easy'?randInt(rng,6,7):difficulty==='hard'?randInt(rng,9,10):randInt(rng,7,9);const regions=partition(rows,cols,count,rng);if(!regions)continue;const puzzle={version:1,game:'bloki',seed:String(seed),rows,cols,difficulty,clues:regions.map((r,i)=>clueFor(r,i,rng))};if(!hasUniqueSolution(puzzle))continue;const result=relax(puzzle,rng,difficulty);if(hasUniqueSolution(result))return result;}throw new Error(`Could not generate unique Bloki puzzle for seed ${seed}`);}
