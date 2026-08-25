@@ -1,49 +1,46 @@
 /* Korony — czytelna hierarchia podpowiedzi */
 
-/* Podpowiedź logiczna: wygaszamy wszystko poza polami, na które gracz ma patrzeć. */
+/* Podpowiedź logiczna: wygaszamy tło głównie przez opacity.
+   Unikamy ciężkich filtrów na wszystkich 81 komórkach, bo na słabszych GPU
+   potrafią powodować zauważalne przycięcia. */
 .board:has(.hint-area, .hint-focus, .hint-candidate, .hint-eliminate):not(:has(.hint-error)) .cell {
-  filter: brightness(.42) saturate(.55);
-  opacity: .72;
+  opacity: .48;
 }
 
 .board:has(.hint-area, .hint-focus, .hint-candidate, .hint-eliminate):not(:has(.hint-error)) .cell.hint-area,
 .board:has(.hint-area, .hint-focus, .hint-candidate, .hint-eliminate):not(:has(.hint-error)) .cell.hint-focus,
 .board:has(.hint-area, .hint-focus, .hint-candidate, .hint-eliminate):not(:has(.hint-error)) .cell.hint-candidate,
 .board:has(.hint-area, .hint-focus, .hint-candidate, .hint-eliminate):not(:has(.hint-error)) .cell.hint-eliminate {
-  filter: brightness(1.24) saturate(1.08);
   opacity: 1;
   z-index: 5;
 }
 
-/* Pola stanowiące sedno dedukcji mają być wyraźnie jaśniejsze, ale bez ciężkich ramek. */
 .board .cell.hint-area,
 .board .cell.hint-focus {
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.32), 0 0 16px rgba(255,255,255,.10);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.38);
 }
 
 .board .cell.hint-candidate {
-  filter: brightness(1.34) saturate(1.12);
-  box-shadow: inset 0 0 0 3px rgba(185,165,255,.9), 0 0 20px rgba(142,108,255,.48);
+  box-shadow: inset 0 0 0 3px rgba(185,165,255,.95), 0 0 10px rgba(142,108,255,.30);
   z-index: 7;
 }
 
 .board .cell.hint-eliminate {
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.38);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.46);
 }
 
-/* Błędna korona: bez wygaszania reszty planszy, za to bardzo mocny czerwony sygnał. */
+/* Błędna korona: mocny czerwony sygnał, ale bez kosztownych filtrów. */
 .board .cell.hint-error,
 .board .cell.bad:has(.crown) {
-  filter: brightness(1.08) saturate(1.08);
-  box-shadow: inset 0 0 0 5px #ff4858, 0 0 22px rgba(255,72,88,.62);
+  box-shadow: inset 0 0 0 5px #ff4858, 0 0 12px rgba(255,72,88,.45);
   z-index: 9;
 }
 
 .board .cell.hint-error .crown,
 .board .cell.bad:has(.crown) .crown {
   border-color: #ff4858;
-  box-shadow: 0 0 0 4px rgba(255,72,88,.38), 0 0 26px rgba(255,72,88,.72), 0 3px 0 rgba(15,15,20,.52);
-  transform: scale(1.06);
+  box-shadow: 0 0 0 3px rgba(255,72,88,.34), 0 0 14px rgba(255,72,88,.50), 0 2px 0 rgba(15,15,20,.52);
+  transform: scale(1.04);
 }
 
 @media (prefers-reduced-motion:no-preference) {
@@ -54,6 +51,6 @@
 }
 
 @keyframes crown-error-pulse {
-  0%,100% { transform: scale(1.06); }
-  50% { transform: scale(1.14); }
+  0%,100% { transform: scale(1.04); }
+  50% { transform: scale(1.09); }
 }
