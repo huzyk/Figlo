@@ -4,21 +4,21 @@ import {rectForDrag,overlapsAnotherPlacement,replacePlacementForClue,stateIsCorr
 
 test('dragging from anywhere inside an existing block can expand it',()=>{
   const baseRect={row:0,col:4,width:2,height:4}; // 8 pól
-  const rect=rectForDrag({start:{row:2,col:5},end:{row:5,col:5},baseRect});
+  const rect=rectForDrag({start:{row:2,col:5},end:{row:5,col:5},baseRect,baseClueId:'b1'});
   assert.deepEqual(rect,{row:0,col:4,width:2,height:6}); // 12 pól
 });
 
 test('dragging inside an existing block can shrink it',()=>{
   const baseRect={row:0,col:4,width:2,height:6}; // 12 pól
-  const rect=rectForDrag({start:{row:2,col:5},end:{row:3,col:5},baseRect});
+  const rect=rectForDrag({start:{row:2,col:5},end:{row:3,col:5},baseRect,baseClueId:'b1'});
   assert.deepEqual(rect,{row:0,col:4,width:2,height:4}); // 8 pól
 });
 
 test('dragging on one axis preserves the other axis of the existing block',()=>{
   const baseRect={row:1,col:1,width:4,height:2};
-  const vertical=rectForDrag({start:{row:1,col:3},end:{row:4,col:3},baseRect});
+  const vertical=rectForDrag({start:{row:1,col:3},end:{row:4,col:3},baseRect,baseClueId:'a'});
   assert.deepEqual(vertical,{row:1,col:1,width:4,height:4});
-  const horizontal=rectForDrag({start:{row:2,col:2},end:{row:2,col:3},baseRect});
+  const horizontal=rectForDrag({start:{row:2,col:2},end:{row:2,col:3},baseRect,baseClueId:'a'});
   assert.deepEqual(horizontal,{row:1,col:1,width:3,height:2});
 });
 
@@ -28,7 +28,15 @@ test('a placement cannot overwrite a different existing block',()=>{
     {clueId:'safe',rect:{row:4,col:4,width:2,height:2}}
   ];
   assert.equal(overlapsAnotherPlacement(placements,{clueId:'new',rect:{row:1,col:1,width:2,height:2}}),true);
-  assert.equal(overlapsAnotherPlacement(placements,{clueId:'old',rect:{row:0,col:0,width:2,height:3}}),false);
+});
+
+test('redrawing over the same clue is blocked unless the gesture started inside its existing block',()=>{
+  const placements=[{clueId:'old',rect:{row:0,col:0,width:2,height:2}}];
+  const freshRect=rectForDrag({start:{row:0,col:2},end:{row:1,col:0},baseRect:null,baseClueId:null});
+  assert.equal(overlapsAnotherPlacement(placements,{clueId:'old',rect:freshRect}),true);
+
+  const editedRect=rectForDrag({start:{row:1,col:1},end:{row:2,col:1},baseRect:placements[0].rect,baseClueId:'old'});
+  assert.equal(overlapsAnotherPlacement(placements,{clueId:'old',rect:editedRect}),false);
 });
 
 test('editing a clue replaces only that clue placement',()=>{
