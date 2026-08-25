@@ -195,7 +195,9 @@ async function loadFreeplay(){
   }catch(error){
     console.error('duet freeplay generation failure',error);
     button.textContent='Spróbuj ponownie';
-  }finally button.disabled=false;
+  }finally{
+    button.disabled=false;
+  }
 }
 
 async function start(){
