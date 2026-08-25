@@ -5,7 +5,10 @@ import { completeGame } from '../services/progress-service.js';
 import { getSession, saveSession as persistSession, clearSession } from '../services/session-service.js';
 import { getIdentity } from '../services/identity-service.js';
 import { track } from '../services/analytics-service.js';
+import { loadFigloState } from '../storage.js';
 import { getDuetHint } from './hints.js';
+import { generateDuetPuzzle } from './generator.js';
+import { createDuetSession } from './session.js';
 import { getColumn, getRow, countValues, hasTriple, isPartialBoardValid, isSolved, relationSatisfied } from './rules.js';
 
 const $ = s => document.querySelector(s);
@@ -20,6 +23,8 @@ let session = null;
 let timerTick = null;
 let conflictFeedbackVisible = true;
 let conflictFeedbackTimer = null;
+let gameMode = 'daily';
+let freeplayNumber = 0;
 
 function formatMs(ms) {
   const sec = Math.floor(Math.max(0, ms) / 1000);
@@ -30,7 +35,7 @@ function ensureTimerStarted() {
   if (!session.runningSince && !session.finished) {
     session.runningSince = Date.now();
     session.startedAt ||= new Date().toISOString();
-    track('game_started', { gameId:'duet', puzzleId:record?.puzzleId, date:today, localId:identity.localId });
+    track('game_started', { gameId:'duet', puzzleId:record?.puzzleId, date:today, mode:gameMode, localId:identity.localId });
   }
   if (!timerTick) timerTick = setInterval(renderTimer, 250);
 }
@@ -41,7 +46,7 @@ function pauseTimer() {
   saveSession();
 }
 function renderTimer() { $('#timer').textContent = formatMs(elapsedNow()); }
-function saveSession() { if (session) persistSession('duet', session, today); }
+function saveSession() { if (session && gameMode === 'daily') persistSession('duet', session, today); }
 function delayConflictFeedback(index) {
   conflictFeedbackVisible = false;
   if (conflictFeedbackTimer) clearTimeout(conflictFeedbackTimer);
@@ -56,6 +61,8 @@ function showConflictFeedbackNow() {
   conflictFeedbackTimer = null;
   conflictFeedbackVisible = true;
 }
+function randomSeed() { return globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`; }
+function dailyBest() { return loadFigloState(today).games.duet?.bestTimeMs || null; }
 
 function symbolMarkup(value) {
   if (value === A) return '<span class="symbol a" aria-hidden="true"></span>';
@@ -129,40 +136,83 @@ function handleKey(event,index){
 }
 function renderFeedback(){
   const el=$('#feedback'); el.className='feedback';
-  if(session.finished){el.textContent='Duet ukończony!';el.classList.add('success');return;}
+  if(session.finished){el.textContent=gameMode==='daily'?'Duet Daily ukończony!':'Duet Freeplay ukończony!';el.classList.add('success');return;}
   if(conflictFeedbackVisible && !isPartialBoardValid(session.board,puzzle)){el.textContent='Sprawdź zaznaczone pola — jedna z zasad jest naruszona.';el.classList.add('error');return;}
   const left=session.board.filter(v=>v===EMPTY).length; el.textContent=left?`Dobrze idzie. Zostało ${left} pól.`:'Sprawdź układ jeszcze raz.';
 }
 function updateButtons(){const disabled=!session.history.length||session.finished; $('#undo').disabled=disabled;$('#mobileUndo').disabled=disabled;$('#hint').disabled=session.finished;$('#mobileHint').disabled=session.finished;}
 function undo(){if(!session.history.length||session.finished)return;showConflictFeedbackNow();session.board=session.history.pop();saveSession();renderBoard();}
-function reset(){if(session.finished)return; showConflictFeedbackNow(); clearSession('duet',today); session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens}); renderBoard();}
+function reset(){
+  if(session.finished)return;
+  showConflictFeedbackNow();
+  if(gameMode==='daily'){
+    clearSession('duet',today);
+    session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens});
+  }else session=createDuetSession({date:today,seed:record.puzzleId,givens:puzzle.givens});
+  renderBoard();
+}
 function showHint(){
   showConflictFeedbackNow();
   const hint=getDuetHint(puzzle,session.board); const card=$('#hintCard'); card.hidden=false;
-  track('hint_used',{gameId:'duet',puzzleId:record?.puzzleId,date:today,localId:identity.localId});
+  track('hint_used',{gameId:'duet',puzzleId:record?.puzzleId,date:today,mode:gameMode,localId:identity.localId});
   if(!hint){$('#hintText').textContent='Nie widzę teraz prostego logicznego kroku. Sprawdź, czy na planszy nie ma sprzeczności.';return;}
   const copy={sandwich:'Dwa takie same symbole z przerwą wymuszają przeciwny symbol pośrodku.',balance:'W tym wierszu lub kolumnie jest już komplet jednego symbolu.',relation:'Relacja między polami wymusza wartość tego pola.','triple-left':'Dwa takie same symbole obok siebie wymuszają przeciwny trzeci.','triple-right':'Dwa takie same symbole obok siebie wymuszają przeciwny trzeci.'};
   $('#hintText').textContent=hint.reason||copy[hint.rule]||'Ta wartość wynika bezpośrednio z zasad Duetu.'; renderBoard({hintIndex:hint.index});
 }
 function finish(){
-  session.finished=true; pauseTimer(); const ms=session.elapsedMs; saveSession();
-  const result=completeGame({gameId:'duet',puzzleId:record.puzzleId,date:today,elapsedMs:ms,mode:'daily',startedAt:session.startedAt||null});
-  track('game_completed',{...result.event,localId:identity.localId});
-  if(result.firstDayCompletionToday) track('daily_completed',{date:today,localId:identity.localId});
-  $('#finalTime').textContent=formatMs(ms); $('#bestTime').textContent=formatMs(result.state.games.duet.bestTimeMs||ms);
-  $('#doneCopy').textContent=result.firstDayCompletionToday?'Dzisiejsze Figlo zrobione!':'Świetna robota. Duet zaliczony.';
-  $('#done').hidden=false; $('#backToSet').focus(); renderBoard();
+  session.finished=true; pauseTimer(); const ms=session.elapsedMs;
+  let best=dailyBest();
+  if(gameMode==='daily'){
+    saveSession();
+    const result=completeGame({gameId:'duet',puzzleId:record.puzzleId,date:today,elapsedMs:ms,mode:'daily',startedAt:session.startedAt||null});
+    best=result.state.games.duet.bestTimeMs||ms;
+    track('game_completed',{...result.event,localId:identity.localId});
+    if(result.firstDayCompletionToday) track('daily_completed',{date:today,localId:identity.localId});
+    $('#doneCopy').textContent=result.firstDayCompletionToday?'Dzisiejsze Figlo zrobione!':'Świetna robota. Duet zaliczony.';
+  }else{
+    track('game_completed',{gameId:'duet',puzzleId:record.puzzleId,date:today,elapsedMs:ms,mode:'freeplay',localId:identity.localId});
+    $('#doneCopy').textContent='Freeplay ukończony. Ten wynik nie wpływa na Daily.';
+  }
+  $('#finalTime').textContent=formatMs(ms); $('#bestTime').textContent=best?formatMs(best):'—';
+  $('#replay').textContent='Freeplay: nowa plansza';
+  $('#done').hidden=false; $('#replay').focus(); renderBoard();
 }
-function replay(){showConflictFeedbackNow();clearSession('duet',today); session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens}); $('#done').hidden=true;track('game_replayed',{gameId:'duet',puzzleId:record.puzzleId,date:today,localId:identity.localId}); renderBoard();}
+async function loadFreeplay(){
+  showConflictFeedbackNow(); pauseTimer();
+  const button=$('#replay'); button.disabled=true; button.textContent='Generuję…';
+  await new Promise(resolve=>requestAnimationFrame(resolve));
+  try{
+    const seed=randomSeed();
+    const generated=generateDuetPuzzle(seed);
+    record={puzzleId:`duet-freeplay:${seed}`,puzzle:generated.puzzle};
+    puzzle=generated.puzzle; givens=new Set(puzzle.givens.map(g=>g.index));
+    session=createDuetSession({date:today,seed:record.puzzleId,givens:puzzle.givens});
+    gameMode='freeplay'; freeplayNumber+=1;
+    $('#roundLabel').textContent=`Freeplay #${freeplayNumber}`;
+    $('#hintCard').hidden=true; $('#done').hidden=true;
+    track('game_freeplay_started',{gameId:'duet',puzzleId:record.puzzleId,date:today,localId:identity.localId});
+    renderBoard();
+  }catch(error){
+    console.error('duet freeplay generation failure',error);
+    button.textContent='Spróbuj ponownie';
+  }finally button.disabled=false;
+}
 
 async function start(){
   try {
     record=await getDailyGame('duet',today); puzzle=record.puzzle; givens=new Set(puzzle.givens.map(g=>g.index));
     session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens});
     if(session.board.length!==SIZE*SIZE){clearSession('duet',today);session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens});}
+    gameMode='daily'; $('#roundLabel').textContent='Daily';
     if(session.runningSince) timerTick=setInterval(renderTimer,250);
-    track('game_opened',{gameId:'duet',puzzleId:record.puzzleId,date:today,localId:identity.localId});
+    track('game_opened',{gameId:'duet',puzzleId:record.puzzleId,date:today,mode:'daily',localId:identity.localId});
     renderBoard();
+    if(session.finished){
+      $('#finalTime').textContent=formatMs(session.elapsedMs);
+      const best=dailyBest(); $('#bestTime').textContent=best?formatMs(best):'—';
+      $('#doneCopy').textContent='Dzisiejszy Duet jest już ukończony. Możesz zagrać nową planszę Freeplay.';
+      $('#done').hidden=false;
+    }
   } catch(error) {
     console.error('duet daily load failure',error); $('#loadError').hidden=false; boardEl.setAttribute('aria-disabled','true');
   }
@@ -173,7 +223,7 @@ $('#hint').addEventListener('click',showHint);$('#mobileHint').addEventListener(
 $('#reset').addEventListener('click',reset);$('#mobileReset').addEventListener('click',reset);
 $('#hintClose').addEventListener('click',()=>{$('#hintCard').hidden=true;renderBoard();});
 $('#rulesTop').addEventListener('click',()=>{$('#rules').open=true;$('#rules').scrollIntoView({behavior:'smooth'});});
-$('#replay').addEventListener('click',replay);
+$('#replay').addEventListener('click',loadFreeplay);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseTimer();else if(session&&!session.finished&&session.history.length){session.runningSince=Date.now();saveSession();timerTick ||= setInterval(renderTimer,250);}});
 window.addEventListener('pagehide',pauseTimer);
 start();
