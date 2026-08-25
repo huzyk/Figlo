@@ -1,4 +1,5 @@
 import {dailyPuzzleSeed} from '../daily.js';
+import {difficultyForGameDate} from '../difficulty-schedule.js';
 import {puzzleIdFor} from '../domain/completion.js';
 import {generateBloki} from './generator.js';
 import {solve} from './solver.js';
@@ -27,6 +28,7 @@ function generateBlokiAsync(options){
 
 export async function loadBlokiDaily(dateKey){
   const version=1;
-  const {puzzle,solution}=await generateBlokiAsync({seed:dailyPuzzleSeed('bloki',dateKey),difficulty:'medium'});
-  return{game:'bloki',date:dateKey,version,puzzleId:puzzleIdFor('bloki',dateKey,version),puzzle,solution};
+  const difficulty=difficultyForGameDate('bloki',dateKey);
+  const {puzzle,solution}=await generateBlokiAsync({seed:dailyPuzzleSeed('bloki',dateKey),difficulty});
+  return{game:'bloki',date:dateKey,version,difficulty,puzzleId:puzzleIdFor('bloki',dateKey,version),puzzle,solution};
 }

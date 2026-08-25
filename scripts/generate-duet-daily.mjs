@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dailyPuzzleSeed } from '../src/daily.js';
+import { difficultyForGameDate } from '../src/difficulty-schedule.js';
 import { generateDuetPuzzle, DUET_GENERATOR_VERSION } from '../src/duet/generator.js';
 import { countSolutions } from '../src/duet/solver.js';
 import { solveLikeHuman } from '../src/duet/human-solver.js';
@@ -32,8 +33,9 @@ let totalMs=0,maxMs=0,slowestDate=null;
 for (let offset=0; offset<days; offset++) {
   const date=addDays(start,offset);
   const seed=dailyPuzzleSeed('duet',date);
+  const requestedDifficulty=difficultyForGameDate('duet',date);
   const started=performance.now();
-  const generated=generateDuetPuzzle(seed);
+  const generated=generateDuetPuzzle(seed,{difficulty:requestedDifficulty});
   const elapsed=performance.now()-started;
   totalMs+=elapsed; if(elapsed>maxMs){maxMs=elapsed;slowestDate=date;}
   if(countSolutions(generated.puzzle,2)!==1) throw new Error(`Duet ${date}: plansza nie jest unikalna.`);
@@ -49,6 +51,7 @@ for (let offset=0; offset<days; offset++) {
     puzzleId:puzzleIdFor('duet',date,version),
     seed,
     resolvedSeed:generated.resolvedSeed,
+    requestedDifficulty,
     puzzle:generated.puzzle,
     solution:generated.solution,
     difficulty:generated.difficulty

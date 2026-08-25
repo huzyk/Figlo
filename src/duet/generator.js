@@ -14,6 +14,13 @@ export const DAILY_MAX_GIVENS = 11;
 export const DAILY_MIN_RELATIONS = 4;
 const BEST_CANDIDATE_EARLY_RETURN_ATTEMPT = 31;
 
+const DIFFICULTY_PROFILES = {
+  easy: { minScore:24, targetScore:25, maxScore:28 },
+  medium: { minScore:24, targetScore:30, maxScore:38 },
+  hard: { minScore:30, targetScore:35, maxScore:38 }
+};
+
+function profileFor(level='medium') { return DIFFICULTY_PROFILES[level] || DIFFICULTY_PROFILES.medium; }
 function hashSeed(value) { let hash = 2166136261 >>> 0; for (const char of String(value)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash, 16777619); } return hash >>> 0; }
 function seededRandom(seed) { let value = seed >>> 0; return () => { value = (value + 0x6D2B79F5) | 0; let t = Math.imul(value ^ (value >>> 15), 1 | value); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 function shuffle(values, random) { const result = [...values]; for (let i = result.length - 1; i > 0; i--) { const j = Math.floor(random() * (i + 1)); [result[i], result[j]] = [result[j], result[i]]; } return result; }
@@ -42,11 +49,12 @@ function minimizePuzzle(puzzle, random) {
   }
   return current;
 }
-function distanceFromTarget(score) { return Math.abs(score - DAILY_TARGET_SCORE); }
-function isDailyCandidate(puzzle, difficulty) { return puzzle.givens.length >= DAILY_MIN_GIVENS && puzzle.givens.length <= DAILY_MAX_GIVENS && puzzle.relations.length >= DAILY_MIN_RELATIONS && difficulty.score >= DAILY_MIN_SCORE && difficulty.score <= DAILY_MAX_SCORE; }
+function distanceFromTarget(score, target) { return Math.abs(score - target); }
+function isDailyCandidate(puzzle, difficulty, profile) { return puzzle.givens.length >= DAILY_MIN_GIVENS && puzzle.givens.length <= DAILY_MAX_GIVENS && puzzle.relations.length >= DAILY_MIN_RELATIONS && difficulty.score >= profile.minScore && difficulty.score <= profile.maxScore; }
 
-export function generateDuetPuzzle(seed, { maxAttempts = 160 } = {}) {
+export function generateDuetPuzzle(seed, { maxAttempts = 160, difficulty = 'medium' } = {}) {
   const normalizedSeed = String(seed);
+  const profile = profileFor(difficulty);
   let best = null;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const attemptSeed = `${normalizedSeed}:${attempt}`;
@@ -55,13 +63,15 @@ export function generateDuetPuzzle(seed, { maxAttempts = 160 } = {}) {
     const puzzle = minimizePuzzle(createInitialPuzzle(solution, random), random);
     const human = acceptable(puzzle);
     if (!human) continue;
-    const difficulty = gradeDifficulty(human);
-    const candidate = { seed:normalizedSeed, resolvedSeed:attemptSeed, generatorVersion:DUET_GENERATOR_VERSION, puzzle, solution, difficulty };
-    if (!isDailyCandidate(puzzle, difficulty)) continue;
-    if (!best || distanceFromTarget(difficulty.score) < distanceFromTarget(best.difficulty.score)) best = candidate;
-    if (difficulty.score === DAILY_TARGET_SCORE) return candidate;
+    const graded = gradeDifficulty(human);
+    const candidate = { seed:normalizedSeed, resolvedSeed:attemptSeed, generatorVersion:DUET_GENERATOR_VERSION, requestedDifficulty:difficulty, puzzle, solution, difficulty:graded };
+    if (!isDailyCandidate(puzzle, graded, profile)) continue;
+    if (!best || distanceFromTarget(graded.score, profile.targetScore) < distanceFromTarget(best.difficulty.score, profile.targetScore)) best = candidate;
+    if (graded.score === profile.targetScore) return candidate;
     if (best && attempt >= BEST_CANDIDATE_EARLY_RETURN_ATTEMPT) return best;
   }
   if (best) return best;
-  throw new Error(`Nie udało się wygenerować Duetu: ${DAILY_MIN_GIVENS}-${DAILY_MAX_GIVENS} pól startowych, min. ${DAILY_MIN_RELATIONS} relacje, difficulty ${DAILY_MIN_SCORE}-${DAILY_MAX_SCORE}.`);
+  throw new Error(`Nie udało się wygenerować Duetu (${difficulty}): score ${profile.minScore}-${profile.maxScore}.`);
 }
+
+export { DIFFICULTY_PROFILES };
