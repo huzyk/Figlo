@@ -159,13 +159,13 @@ export function completeDailyGame(gameId, { timeMs = null, today = currentDateKe
   const gameState = state.games[gameId];
   if (!gameState) throw new Error(`Nieznana gra: ${gameId}`);
   if (!state.daily.requiredGames.includes(gameId)) throw new Error(`Gra ${gameId} nie należy do zestawu na ${today}`);
-  if (Number.isFinite(timeMs) && timeMs > 0 && (!gameState.bestTimeMs || timeMs < gameState.bestTimeMs)) gameState.bestTimeMs = timeMs;
 
   const alreadyCompletedToday = state.daily.completedGames.includes(gameId);
   if (alreadyCompletedToday) {
-    saveFigloState(state);
     return { state, firstGameCompletionToday: false, firstDayCompletionToday: false };
   }
+
+  if (Number.isFinite(timeMs) && timeMs > 0 && (!gameState.bestTimeMs || timeMs < gameState.bestTimeMs)) gameState.bestTimeMs = timeMs;
 
   const wasDayComplete = isTodayComplete(state);
   state.daily.completedGames.push(gameId);
