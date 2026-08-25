@@ -14,6 +14,18 @@ export function getDailyProgress(dateKey) {
 
 export function completeGame({ gameId, puzzleId, date, elapsedMs = null, mode = 'daily', startedAt = null }) {
   const event = createCompletionEvent({ gameId, puzzleId, date, elapsedMs, mode, startedAt });
+
+  // Only the canonical Daily attempt can affect Daily completion, streaks or ranking stats.
+  // Replay/freeplay still produce analytics events, but must never mutate Daily progress.
+  if (mode !== 'daily') {
+    return {
+      state: loadFigloState(date),
+      firstGameCompletionToday: false,
+      firstDayCompletionToday: false,
+      event
+    };
+  }
+
   const result = completeDailyGame(gameId, { timeMs: elapsedMs, today: date });
   return { ...result, event };
 }
