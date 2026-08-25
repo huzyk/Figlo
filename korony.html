@@ -10,8 +10,10 @@
   <link rel="stylesheet" href="game-responsive.css">
   <link rel="stylesheet" href="korony-x-fix.css">
   <link rel="stylesheet" href="completion.css">
+  <link rel="stylesheet" href="game-loader.css">
 </head>
 <body>
+<div class="game-loader" id="gameLoader" role="status" aria-live="polite"><div class="game-loader-inner"><div class="game-loader-logo">FIGLO</div><div class="game-loader-dots" aria-hidden="true"><i></i><i></i><i></i></div><p class="game-loader-text" id="gameLoaderText">Przygotowuję dzisiejszą planszę…</p></div></div>
 <main class="app">
   <header class="game-topbar">
     <a class="icon-button home-link" href="index.html" aria-label="Wróć do strony głównej"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></a>
@@ -24,6 +26,7 @@
   <details class="game-tools" id="rules"><summary>Zasady i ustawienia</summary><div class="tools-content"><section class="game-stats" aria-label="Statystyki Koron"><div><strong id="crownsStreak">—</strong><span>seria Koron</span></div><div><strong id="crownsBest">—</strong><span>najlepszy czas</span></div><div><strong id="crownsCount">0</strong><span>ukończone</span></div></section><section class="how"><h2>Jak grać</h2><ol><li>Umieść dokładnie jedną koronę w każdym rzędzie, kolumnie i kolorowym regionie.</li><li>Dotknij raz, aby postawić X, a drugi raz, aby postawić koronę.</li><li>Dwie korony nie mogą się stykać, nawet po przekątnej.</li></ol></section><button class="clear" id="clearMarks" type="button">Wyczyść moje X</button></div></details>
   <section class="done completion" id="done" role="dialog" aria-modal="true" aria-labelledby="doneTitle" aria-live="polite"><div class="completion-card"><span class="success-mark" aria-hidden="true">✓</span><h2 class="done-title" id="doneTitle">Korony ukończone!</h2><div class="record-badge" id="recordBadge" hidden>Nowy rekord!</div><div class="completion-stats done-stats"><div><span>Czas</span><strong class="done-time" id="finalTime">—</strong></div><div><span>Najlepszy Daily</span><strong id="modalBest">—</strong></div></div><a class="primary" id="backToSet" href="index.html#gry">Wróć do dzisiejszego zestawu</a><button class="next-puzzle" id="nextPuzzle" type="button">Nowa plansza treningowa</button></div></section>
 </main>
+<script type="module" src="src/ui/game-loader.js"></script>
 <script type="module" src="src/ui/terminology.js"></script>
 <script type="module" src="src/ui/completion-ui.js"></script>
 <script type="module" src="src/ui.js"></script>
