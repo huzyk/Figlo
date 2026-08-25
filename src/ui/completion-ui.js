@@ -46,16 +46,12 @@ function elementsFor(root, gameId) {
   const title = root.querySelector('#doneTitle');
   const time = root.querySelector('#finalTime');
   const best = root.querySelector(gameId === 'korony' ? '#modalBest' : '#bestTime');
-  const primary = gameId === 'korony'
-    ? root.querySelector('a')
-    : root.querySelector('#backToSet');
-  const secondary = gameId === 'korony'
-    ? root.querySelector('#nextPuzzle')
-    : root.querySelector('#replay');
+  const primary = root.querySelector('#backToSet') || root.querySelector('a');
+  const secondary = root.querySelector(gameId === 'korony' ? '#nextPuzzle' : '#replay');
 
   const eyebrow = ensureElement(root, '[data-completion-eyebrow]', 'span', 'completion-eyebrow', '#doneTitle');
-  const copy = ensureElement(root, '[data-completion-copy]', 'p', 'completion-copy', gameId === 'korony' ? '.done-stats' : '.completion-stats');
-  const progress = ensureElement(root, '[data-completion-progress]', 'div', 'completion-progress', gameId === 'korony' ? '.done-stats' : '.completion-stats');
+  const copy = ensureElement(root, '[data-completion-copy]', 'p', 'completion-copy', '.completion-stats');
+  const progress = ensureElement(root, '[data-completion-progress]', 'div', 'completion-progress', '.completion-stats');
 
   return { title, time, best, primary, secondary, eyebrow, copy, progress };
 }
@@ -66,13 +62,13 @@ export function buildCompletionView({ state, gameId, mode }) {
 
   if (mode !== 'daily') {
     return {
-      eyebrow: 'FREEPLAY',
+      eyebrow: 'TRENING',
       title: meta?.title || 'Ukończone!',
-      copy: 'Dobra robota. Ten wynik nie wpływa na Daily.',
+      copy: 'Dobra robota. Tryb treningowy nie wpływa na dzisiejszy zestaw.',
       progress: null,
       primaryLabel: 'Wróć do dzisiejszego zestawu',
       primaryHref: 'index.html#gry',
-      secondaryLabel: 'Nowa plansza Freeplay'
+      secondaryLabel: 'Nowa plansza treningowa'
     };
   }
 
@@ -87,7 +83,7 @@ export function buildCompletionView({ state, gameId, mode }) {
       progress: `${progress.completed}/${progress.total}`,
       primaryLabel: 'Wróć do dzisiejszego zestawu',
       primaryHref: 'index.html#gry',
-      secondaryLabel: 'Nowa plansza Freeplay'
+      secondaryLabel: 'Nowa plansza treningowa'
     };
   }
 
@@ -98,7 +94,7 @@ export function buildCompletionView({ state, gameId, mode }) {
     progress: progress.total ? `${progress.completed}/${progress.total}` : null,
     primaryLabel: next ? `Graj dalej: ${GAME_META[next]?.name || next}` : 'Wróć do dzisiejszego zestawu',
     primaryHref: next ? GAME_META[next]?.href || 'index.html#gry' : 'index.html#gry',
-    secondaryLabel: 'Nowa plansza Freeplay'
+    secondaryLabel: 'Nowa plansza treningowa'
   };
 }
 
@@ -107,7 +103,7 @@ export function refreshCompletion(root = document.querySelector('#done')) {
   if (!root || !gameId) return null;
 
   const state = loadFigloState(currentDateKey());
-  const mode = isDailyMode() ? 'daily' : 'freeplay';
+  const mode = isDailyMode() ? 'daily' : 'training';
   const view = buildCompletionView({ state, gameId, mode });
   const elements = elementsFor(root, gameId);
 
@@ -128,7 +124,6 @@ export function refreshCompletion(root = document.querySelector('#done')) {
     elements.secondary.classList.add('completion-secondary');
   }
 
-  // Korony historically render "Czas 01:23" as a standalone line; keep only the value.
   if (gameId === 'korony' && elements.time) {
     elements.time.textContent = elements.time.textContent.replace(/^Czas\s+/i, '');
   }
