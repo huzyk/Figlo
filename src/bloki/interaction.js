@@ -16,12 +16,28 @@ export function resizeRectFromDrag(rect,start,end){
   return{row:top,col:left,width:right-left+1,height:bottom-top+1};
 }
 
-export function rectForDrag(drag){return drag.baseRect?resizeRectFromDrag(drag.baseRect,drag.start,drag.end):rectFromPoints(drag.start,drag.end);}
+function markEditingClue(rect,clueId){
+  if(!clueId)return rect;
+  Object.defineProperty(rect,'_editingClueId',{value:clueId,enumerable:false,configurable:false,writable:false});
+  return rect;
+}
+
+export function rectForDrag(drag){
+  const rect=drag.baseRect?resizeRectFromDrag(drag.baseRect,drag.start,drag.end):rectFromPoints(drag.start,drag.end);
+  return markEditingClue(rect,drag.baseClueId||null);
+}
 
 function clonePlacements(placements=[]){return placements.map(p=>({clueId:p.clueId,rect:{...p.rect}}));}
 
 export function overlapsAnotherPlacement(placements,placement){
-  return placements.some(p=>p.clueId!==placement.clueId&&cellsOverlap(p.rect,placement.rect));
+  return placements.some(p=>{
+    if(!cellsOverlap(p.rect,placement.rect))return false;
+    if(p.clueId!==placement.clueId)return true;
+    // Ten sam blok wolno zmieniać tylko wtedy, gdy gest faktycznie zaczął się
+    // wewnątrz niego. Narysowanie nowego prostokąta "po" istniejącym bloku
+    // ma być konfliktem, a nie podmianą zaznaczenia.
+    return placement.rect?._editingClueId!==p.clueId;
+  });
 }
 
 export function replacePlacementForClue(placements,placement){
