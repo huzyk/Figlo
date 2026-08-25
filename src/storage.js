@@ -20,7 +20,7 @@ function defaultState(today = currentDateKey()) {
     version: 2,
     user: { streak: 0, bestStreak: 0, completedDays: 0, completedGames: 0, lastCompletedDate: null, completedDates: [] },
     daily: { date: today, requiredGames: requiredGamesForDate(today), completedGames: [] },
-    games: { korony: defaultGameStats(), duet: defaultGameStats() },
+    games: { korony: defaultGameStats(), duet: defaultGameStats(), bloki: defaultGameStats() },
     settings: { autoX: false },
     sessions: { korony: defaultCrownSession(), duet: defaultDuetSession() }
   };
@@ -71,7 +71,8 @@ function normalizeState(raw, today) {
       ...fallback.games,
       ...(raw.games || {}),
       korony: { ...fallback.games.korony, ...(raw.games?.korony || {}) },
-      duet: { ...fallback.games.duet, ...(raw.games?.duet || {}) }
+      duet: { ...fallback.games.duet, ...(raw.games?.duet || {}) },
+      bloki: { ...fallback.games.bloki, ...(raw.games?.bloki || {}) }
     },
     settings: { ...fallback.settings, ...(raw.settings || {}) },
     sessions: {
@@ -98,7 +99,7 @@ function normalizeState(raw, today) {
   state.sessions.duet.elapsedMs = safeNumber(state.sessions.duet.elapsedMs);
   state.sessions.duet.runningSince = Number.isFinite(Number(state.sessions.duet.runningSince)) ? Number(state.sessions.duet.runningSince) : null;
 
-  for (const gameId of ['korony', 'duet']) {
+  for (const gameId of ['korony', 'duet', 'bloki']) {
     state.games[gameId].completedCount = safeNumber(state.games[gameId].completedCount);
     state.games[gameId].totalTimeMs = safeNumber(state.games[gameId].totalTimeMs);
     state.games[gameId].timedCompletions = safeNumber(state.games[gameId].timedCompletions);
