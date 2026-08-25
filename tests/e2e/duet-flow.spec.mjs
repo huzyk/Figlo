@@ -66,12 +66,17 @@ test('Duet hint opens and remains inside viewport', async ({ page }, info) => {
   const hint = info.project.name === 'mobile-chromium' ? page.locator('#mobileHint') : page.locator('#hint');
   await hint.click();
   await expect(page.locator('#hintCard')).toBeVisible();
+  if (info.project.name === 'mobile-chromium') await page.waitForTimeout(450);
   const box = await page.locator('#hintCard').boundingBox();
   const viewport = page.viewportSize();
   expect(box).not.toBeNull();
   expect(viewport).not.toBeNull();
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
+  if (info.project.name === 'mobile-chromium') {
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y + Math.min(box.height, 120)).toBeLessThanOrEqual(viewport.height - 70);
+  }
 });
 
 test('Duet completion produces 1/2 if Korony is not done', async ({ page }) => {
