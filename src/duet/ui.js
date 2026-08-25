@@ -7,7 +7,7 @@ import { getIdentity } from '../services/identity-service.js';
 import { track } from '../services/analytics-service.js';
 import { loadFigloState } from '../storage.js';
 import { getDuetHint } from './hints.js';
-import { generateDuetPuzzle } from './generator.js';
+import { generateDuetFreeplayPuzzle } from './generator.js';
 import { createDuetSession } from './session.js';
 import { getColumn, getRow, countValues, hasTriple, isPartialBoardValid, isSolved, relationSatisfied } from './rules.js';
 
@@ -183,7 +183,7 @@ async function loadFreeplay(){
   await new Promise(resolve=>requestAnimationFrame(resolve));
   try{
     const seed=randomSeed();
-    const generated=generateDuetPuzzle(seed);
+    const generated=generateDuetFreeplayPuzzle(seed);
     record={puzzleId:`duet-freeplay:${seed}`,puzzle:generated.puzzle};
     puzzle=generated.puzzle; givens=new Set(puzzle.givens.map(g=>g.index));
     session=createDuetSession({date:today,seed:record.puzzleId,givens:puzzle.givens});
