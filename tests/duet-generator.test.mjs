@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateDuetPuzzle } from '../src/duet/generator.js';
+import { generateDuetPuzzle, generateDuetFreeplayPuzzle } from '../src/duet/generator.js';
 import { countSolutions } from '../src/duet/solver.js';
 import { solveLikeHuman } from '../src/duet/human-solver.js';
 import { isSolved } from '../src/duet/rules.js';
@@ -26,4 +26,15 @@ test('generated Duet is unique and human solvable', () => {
   const human = solveLikeHuman(generated.puzzle);
   assert.equal(human.solved, true);
   assert.ok(human.steps.length > 0);
+});
+
+test('freeplay Duet is unique and human solvable without daily minimization', () => {
+  const first = generateDuetFreeplayPuzzle('duet-freeplay-quality');
+  const second = generateDuetFreeplayPuzzle('duet-freeplay-quality');
+  assert.deepEqual(second.puzzle, first.puzzle);
+  assert.deepEqual(second.solution, first.solution);
+  assert.equal(first.solution.length, 36);
+  assert.equal(isSolved(first.solution, first.puzzle), true);
+  assert.equal(countSolutions(first.puzzle, 2), 1);
+  assert.equal(solveLikeHuman(first.puzzle).solved, true);
 });
