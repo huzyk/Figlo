@@ -2,7 +2,7 @@ name: Figlo tests
 
 on:
   push:
-    branches: [main, preview]
+    branches: [main, preview, 'feature/**']
   pull_request:
     branches: [main, preview]
 

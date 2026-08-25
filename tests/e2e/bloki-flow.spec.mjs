@@ -1,0 +1,7 @@
+import {test,expect} from '@playwright/test';
+const DATE='2026-08-25';
+async function fresh(page){await page.goto(`/bloki.html?date=${DATE}`);await page.evaluate(()=>localStorage.clear());await page.reload();}
+
+test('Bloki daily renders a 6x6 board',async({page})=>{await fresh(page);await expect(page.locator('#board .bloki-cell')).toHaveCount(36);await expect(page.locator('#loadError')).toBeHidden();await expect(page.locator('.clue-cell').first()).toBeVisible();});
+test('Bloki hint persists and completion joins daily progress',async({page},info)=>{await fresh(page);const hint=info.project.name==='mobile-chromium'?page.locator('#mobileHint'):page.locator('#hint');await hint.click();await expect(page.locator('.block-placement')).toHaveCount(1);await page.reload();await expect(page.locator('.block-placement')).toHaveCount(1);for(let i=0;i<12&&!(await page.locator('#done').isVisible());i++)await hint.click();await expect(page.locator('#done')).toBeVisible();await page.goto(`/index.html?date=${DATE}`);await expect(page.locator('#progressRing')).toHaveText('1/3');await expect(page.locator('#blokiStatus')).toContainText(/ponownie/i);});
+test('Bloki board fits mobile and desktop viewport',async({page})=>{await fresh(page);const box=await page.locator('#board').boundingBox();const viewport=page.viewportSize();expect(box).not.toBeNull();expect(viewport).not.toBeNull();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width+1);});
