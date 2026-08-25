@@ -1,0 +1,64 @@
+/* Bloki marker readability overrides */
+.clue-token{
+  width:auto;
+  height:auto;
+  min-width:0;
+  min-height:0;
+  max-width:none;
+  max-height:none;
+  border-radius:7px;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--clue) 10%,transparent);
+}
+.clue-token.square{
+  width:42px;
+  height:42px;
+}
+.clue-token.wide{
+  width:54px;
+  height:32px;
+}
+.clue-token.tall{
+  width:32px;
+  height:54px;
+}
+.clue-token.square::before,
+.clue-token.square::after,
+.clue-token.wide::before,
+.clue-token.wide::after,
+.clue-token.tall::before,
+.clue-token.tall::after{
+  display:none !important;
+}
+.clue-token.any{
+  width:38px;
+  height:38px;
+}
+.clue-token.any::before{
+  display:block;
+  left:-10px;
+  right:-10px;
+  top:9px;
+  bottom:9px;
+  border-radius:6px;
+  opacity:.7;
+}
+.clue-token.any::after{
+  display:block;
+  top:-10px;
+  bottom:-10px;
+  left:9px;
+  right:9px;
+  border-radius:6px;
+  opacity:.7;
+}
+.clue-area{
+  font-size:clamp(17px,3.4vw,26px);
+}
+@media(max-width:767px){
+  .clue-token.square{width:34px;height:34px}
+  .clue-token.wide{width:46px;height:28px}
+  .clue-token.tall{width:28px;height:46px}
+  .clue-token.any{width:32px;height:32px}
+  .clue-token.any::before{left:-8px;right:-8px;top:8px;bottom:8px}
+  .clue-token.any::after{top:-8px;bottom:-8px;left:8px;right:8px}
+}
