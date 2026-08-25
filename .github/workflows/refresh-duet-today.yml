@@ -38,7 +38,7 @@ jobs:
       - name: Commit refreshed daily buffer
         shell: bash
         run: |
-          if git diff --quiet -- data/duet; then
+          if [ -z "$(git status --porcelain -- data/duet)" ]; then
             echo "No Duet daily changes"
             exit 0
           fi
