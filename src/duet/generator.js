@@ -12,6 +12,7 @@ export const DAILY_MAX_SCORE = 38;
 export const DAILY_MIN_GIVENS = 9;
 export const DAILY_MAX_GIVENS = 11;
 export const DAILY_MIN_RELATIONS = 4;
+const BEST_CANDIDATE_EARLY_RETURN_ATTEMPT = 31;
 
 function hashSeed(value) { let hash = 2166136261 >>> 0; for (const char of String(value)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash, 16777619); } return hash >>> 0; }
 function seededRandom(seed) { let value = seed >>> 0; return () => { value = (value + 0x6D2B79F5) | 0; let t = Math.imul(value ^ (value >>> 15), 1 | value); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -59,6 +60,7 @@ export function generateDuetPuzzle(seed, { maxAttempts = 160 } = {}) {
     if (!isDailyCandidate(puzzle, difficulty)) continue;
     if (!best || distanceFromTarget(difficulty.score) < distanceFromTarget(best.difficulty.score)) best = candidate;
     if (difficulty.score === DAILY_TARGET_SCORE) return candidate;
+    if (best && attempt >= BEST_CANDIDATE_EARLY_RETURN_ATTEMPT) return best;
   }
   if (best) return best;
   throw new Error(`Nie udało się wygenerować Duetu: ${DAILY_MIN_GIVENS}-${DAILY_MAX_GIVENS} pól startowych, min. ${DAILY_MIN_RELATIONS} relacje, difficulty ${DAILY_MIN_SCORE}-${DAILY_MAX_SCORE}.`);
