@@ -1,0 +1,74 @@
+/* Shared responsive desktop layout for Figlo games. Mobile layouts remain owned by each game stylesheet. */
+@media (min-width: 768px) {
+  /* Korony */
+  .app {
+    --figlo-board-size: min(calc(100vw - 250px), calc(100vh - 220px), 900px);
+    width: min(100%, 1280px);
+    max-width: 1280px;
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .app .game-meta {
+    width: min(100%, calc(var(--figlo-board-size) + 158px));
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .app .game-layout {
+    grid-template-columns: minmax(0, var(--figlo-board-size)) 132px;
+    gap: 26px;
+    justify-content: center;
+  }
+
+  .app .board {
+    width: var(--figlo-board-size);
+    max-width: none;
+  }
+
+  .app .controls {
+    width: 132px;
+  }
+
+  .app .board-column .feedback,
+  .app .board-column .hint-card,
+  .app .board-column .bottom-actions,
+  .app .game-tools {
+    max-width: var(--figlo-board-size);
+  }
+
+  /* Duet + Bloki use the same desktop shell. */
+  .game-shell {
+    --figlo-board-size: min(calc(100vw - 400px), calc(100vh - 225px), 820px);
+    width: min(100%, 1320px);
+    max-width: 1320px;
+    grid-template-columns: minmax(0, var(--figlo-board-size)) 280px;
+    gap: clamp(28px, 3vw, 48px);
+    justify-content: center;
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .game-shell .board-wrap {
+    width: var(--figlo-board-size);
+    max-width: none;
+  }
+
+  .game-shell .feedback,
+  .game-shell .load-error,
+  .game-shell .bloki-legend {
+    max-width: var(--figlo-board-size);
+  }
+
+  /* On shorter desktop windows prioritize fitting the full board vertically. */
+  @media (max-height: 820px) {
+    .app {
+      --figlo-board-size: min(calc(100vw - 250px), calc(100vh - 190px), 760px);
+    }
+
+    .game-shell {
+      --figlo-board-size: min(calc(100vw - 400px), calc(100vh - 195px), 700px);
+      padding-top: 24px;
+    }
+  }
+}
