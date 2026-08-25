@@ -29,9 +29,12 @@
 .clue-token.tall::after{
   display:none !important;
 }
+
+/* "Dowolny" jak w Patches: kwadrat + szeroki + wysoki nałożone na siebie. */
 .clue-token.any{
   width:38px;
   height:38px;
+  border-radius:7px;
 }
 .clue-token.any::before{
   display:block;
@@ -39,8 +42,8 @@
   right:-10px;
   top:9px;
   bottom:9px;
-  border-radius:6px;
-  opacity:.7;
+  border-radius:7px;
+  opacity:.78;
 }
 .clue-token.any::after{
   display:block;
@@ -48,9 +51,44 @@
   bottom:-10px;
   left:9px;
   right:9px;
-  border-radius:6px;
-  opacity:.7;
+  border-radius:7px;
+  opacity:.78;
 }
+
+/* Legenda używa dokładnie tej samej geometrii co znacznik na planszy. */
+.legend-shape.any{
+  position:relative;
+  width:18px;
+  height:18px;
+  border:2px solid #8E6CFF;
+  border-radius:4px;
+  background:rgba(142,108,255,.20);
+  box-shadow:none;
+  overflow:visible;
+  z-index:0;
+}
+.legend-shape.any::before,
+.legend-shape.any::after{
+  content:"";
+  position:absolute;
+  border:2px solid #8E6CFF;
+  background:rgba(142,108,255,.20);
+  border-radius:4px;
+  z-index:-1;
+}
+.legend-shape.any::before{
+  left:-5px;
+  right:-5px;
+  top:4px;
+  bottom:4px;
+}
+.legend-shape.any::after{
+  top:-5px;
+  bottom:-5px;
+  left:4px;
+  right:4px;
+}
+
 .clue-area{
   font-size:clamp(17px,3.4vw,26px);
 }
