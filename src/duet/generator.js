@@ -12,6 +12,8 @@ export const DAILY_MAX_SCORE = 38;
 export const DAILY_MIN_GIVENS = 9;
 export const DAILY_MAX_GIVENS = 11;
 export const DAILY_MIN_RELATIONS = 4;
+export const FREEPLAY_GIVENS = 14;
+export const FREEPLAY_RELATIONS = 8;
 
 function hashSeed(value) { let hash = 2166136261 >>> 0; for (const char of String(value)) { hash ^= char.charCodeAt(0); hash = Math.imul(hash, 16777619); } return hash >>> 0; }
 function seededRandom(seed) { let value = seed >>> 0; return () => { value = (value + 0x6D2B79F5) | 0; let t = Math.imul(value ^ (value >>> 15), 1 | value); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -21,7 +23,7 @@ const ROW_PATTERNS = validRowPatterns();
 function generateSolution(random) { const board = Array(SIZE * SIZE).fill(EMPTY); const rowOrder = shuffle(ROW_PATTERNS, random); function search(row) { if (row === SIZE) return isSolved(board, { givens: [], relations: [] }); for (const pattern of shuffle(rowOrder, random)) { for (let col = 0; col < SIZE; col++) board[indexOf(row, col)] = pattern[col]; if (isPartialBoardValid(board, { relations: [] }) && search(row + 1)) return true; for (let col = 0; col < SIZE; col++) board[indexOf(row, col)] = EMPTY; } return false; } if (!search(0)) throw new Error('Nie udało się zbudować rozwiązania Duetu.'); return [...board]; }
 function allAdjacentPairs() { const pairs = []; for (let row = 0; row < SIZE; row++) for (let col = 0; col < SIZE; col++) { const a = indexOf(row, col); if (col + 1 < SIZE) pairs.push([a, indexOf(row, col + 1)]); if (row + 1 < SIZE) pairs.push([a, indexOf(row + 1, col)]); } return pairs; }
 function createRelations(solution, random, count = 6) { return shuffle(allAdjacentPairs(), random).slice(0, count).map(([a,b]) => ({ a, b, type: solution[a] === solution[b] ? REL_SAME : REL_DIFFERENT })); }
-function createInitialPuzzle(solution, random) { const givens = shuffle(Array.from({ length: solution.length }, (_, index) => index), random).slice(0, DAILY_MAX_GIVENS).map(index => ({ index, value: solution[index] })); return { size: SIZE, givens, relations: createRelations(solution, random, 6) }; }
+function createInitialPuzzle(solution, random, { givensCount = DAILY_MAX_GIVENS, relationCount = 6 } = {}) { const givens = shuffle(Array.from({ length: solution.length }, (_, index) => index), random).slice(0, givensCount).map(index => ({ index, value: solution[index] })); return { size: SIZE, givens, relations: createRelations(solution, random, relationCount) }; }
 function acceptable(puzzle) { if (countSolutions(puzzle, 2) !== 1) return null; const human = solveLikeHuman(puzzle); return human.solved ? human : null; }
 function minimizePuzzle(puzzle, random) {
   let current = { size: SIZE, givens: [...puzzle.givens], relations: [...puzzle.relations] };
@@ -43,6 +45,27 @@ function minimizePuzzle(puzzle, random) {
 }
 function distanceFromTarget(score) { return Math.abs(score - DAILY_TARGET_SCORE); }
 function isDailyCandidate(puzzle, difficulty) { return puzzle.givens.length >= DAILY_MIN_GIVENS && puzzle.givens.length <= DAILY_MAX_GIVENS && puzzle.relations.length >= DAILY_MIN_RELATIONS && difficulty.score >= DAILY_MIN_SCORE && difficulty.score <= DAILY_MAX_SCORE; }
+
+export function generateDuetFreeplayPuzzle(seed, { maxAttempts = 32 } = {}) {
+  const normalizedSeed = String(seed);
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const attemptSeed = `${normalizedSeed}:${attempt}`;
+    const random = seededRandom(hashSeed(`figlo:duet:freeplay:${DUET_GENERATOR_VERSION}:${attemptSeed}`));
+    const solution = generateSolution(random);
+    const puzzle = createInitialPuzzle(solution, random, { givensCount: FREEPLAY_GIVENS, relationCount: FREEPLAY_RELATIONS });
+    const human = acceptable(puzzle);
+    if (!human) continue;
+    return {
+      seed: normalizedSeed,
+      resolvedSeed: attemptSeed,
+      generatorVersion: DUET_GENERATOR_VERSION,
+      puzzle,
+      solution,
+      difficulty: gradeDifficulty(human)
+    };
+  }
+  throw new Error('Nie udało się szybko wygenerować planszy Duet Freeplay.');
+}
 
 export function generateDuetPuzzle(seed, { maxAttempts = 160 } = {}) {
   const normalizedSeed = String(seed);
