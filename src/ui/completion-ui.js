@@ -137,14 +137,49 @@ function modalIsVisible(root) {
   return true;
 }
 
+function clearTrainingParam() {
+  const url = new URL(location.href);
+  url.searchParams.delete('mode');
+  history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+}
+
+function wireTrainingEntry(root, gameId) {
+  if (new URLSearchParams(location.search).get('mode') !== 'training') return;
+  let launched = false;
+  const launch = () => {
+    if (launched) return;
+    const secondary = root.querySelector(gameId === 'korony' ? '#nextPuzzle' : '#replay');
+    if (!secondary) return;
+
+    if (gameId === 'korony') {
+      const label = document.querySelector('#roundLabel')?.textContent?.trim().toLowerCase();
+      if (label !== 'replay') return;
+    } else if (!modalIsVisible(root)) {
+      return;
+    }
+
+    launched = true;
+    clearTrainingParam();
+    secondary.click();
+  };
+
+  const label = document.querySelector('#roundLabel');
+  const observer = new MutationObserver(() => queueMicrotask(launch));
+  observer.observe(root, { attributes: true, attributeFilter: ['hidden', 'class'] });
+  if (label) observer.observe(label, { childList: true, subtree: true, characterData: true });
+  queueMicrotask(launch);
+}
+
 function init() {
   const root = document.querySelector('#done');
-  if (!root) return;
+  const gameId = gameIdFromPath();
+  if (!root || !gameId) return;
   const observer = new MutationObserver(() => {
     if (modalIsVisible(root)) queueMicrotask(() => refreshCompletion(root));
   });
   observer.observe(root, { attributes: true, attributeFilter: ['hidden', 'class'] });
   if (modalIsVisible(root)) refreshCompletion(root);
+  wireTrainingEntry(root, gameId);
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
