@@ -1,15 +1,17 @@
 import {test,expect} from '@playwright/test';
 import {dailyPuzzleSeed} from '../../src/daily.js';
+import {difficultyForGameDate} from '../../src/difficulty-schedule.js';
 import {generateBloki} from '../../src/bloki/generator.js';
 import {solve} from '../../src/bloki/solver.js';
 
 const DATE='2026-08-25';
 const STORAGE_KEY='figlo_user_state_v2';
 
-async function fresh(page){await page.goto(`/bloki.html?date=${DATE}`);await page.evaluate(()=>localStorage.clear());await page.reload();}
+async function fresh(page){await page.goto(`/bloki.html?date=${DATE}`);await page.evaluate(()=>localStorage.clear());await page.reload();await expect(page.locator('#board .bloki-cell')).toHaveCount(36);}
 
 function dailySolution(){
-  const puzzle=generateBloki({seed:dailyPuzzleSeed('bloki',DATE),rows:6,cols:6,difficulty:'medium'});
+  const difficulty=difficultyForGameDate('bloki',DATE);
+  const puzzle=generateBloki({seed:dailyPuzzleSeed('bloki',DATE),rows:6,cols:6,difficulty});
   const solution=solve(puzzle,{limit:1})[0];
   if(!solution)throw new Error('Missing Bloki daily solution in E2E');
   return solution;
@@ -35,7 +37,6 @@ async function solveDaily(page){
 
 test('Bloki daily renders a 6x6 board',async({page})=>{
   await fresh(page);
-  await expect(page.locator('#board .bloki-cell')).toHaveCount(36);
   await expect(page.locator('#loadError')).toBeHidden();
   await expect(page.locator('.clue-cell').first()).toBeVisible();
 });
