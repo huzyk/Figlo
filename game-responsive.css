@@ -1,4 +1,12 @@
 /* Shared responsive desktop layout for Figlo games. Mobile layouts remain owned by each game stylesheet. */
+
+/* Isolate board painting so changes inside a game board do not invalidate the whole page. */
+.board,
+.duet-board,
+.bloki-board {
+  contain: layout paint style;
+}
+
 @media (min-width: 768px) {
   /* Desktop sizing is intentionally moderate: the board should grow on large screens,
      but the hint / feedback area must remain comfortably reachable without the game
@@ -83,6 +91,13 @@
 
   .game-shell .side-panel {
     width: 260px;
+  }
+
+  /* Hint cards must remain readable without being constrained by a tall board. */
+  .game-shell .hint-card {
+    max-height: min(44vh, 360px);
+    overflow: auto;
+    overscroll-behavior: contain;
   }
 
   /* Short desktop windows: fit the board and leave room for feedback / hints below it. */
