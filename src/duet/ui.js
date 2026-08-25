@@ -12,7 +12,7 @@ const $ = s => document.querySelector(s);
 const boardEl = $('#board');
 const today = currentDateKey();
 const identity = getIdentity();
-const CONFLICT_FEEDBACK_DELAY_MS = 320;
+const CONFLICT_FEEDBACK_DELAY_MS = 380;
 let record = null;
 let puzzle = null;
 let givens = new Set();
