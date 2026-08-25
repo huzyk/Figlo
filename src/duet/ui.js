@@ -7,7 +7,7 @@ import { getIdentity } from '../services/identity-service.js';
 import { track } from '../services/analytics-service.js';
 import { loadFigloState } from '../storage.js';
 import { getDuetHint } from './hints.js';
-import { generateDuetPuzzle } from './generator.js';
+import { generateDuetPuzzleAsync } from './freeplay-generator.js';
 import { createDuetSession } from './session.js';
 import { getColumn, getRow, countValues, hasTriple, isPartialBoardValid, isSolved, relationSatisfied } from './rules.js';
 
@@ -25,6 +25,8 @@ let conflictFeedbackVisible = true;
 let conflictFeedbackTimer = null;
 let gameMode = 'daily';
 let freeplayNumber = 0;
+let relationsByCell = new Map();
+let outgoingRelationsByCell = new Map();
 
 function formatMs(ms) {
   const sec = Math.floor(Math.max(0, ms) / 1000);
@@ -63,6 +65,18 @@ function showConflictFeedbackNow() {
 }
 function randomSeed() { return globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`; }
 function dailyBest() { return loadFigloState(today).games.duet?.bestTimeMs || null; }
+function indexRelations() {
+  relationsByCell = new Map();
+  outgoingRelationsByCell = new Map();
+  for (const rel of puzzle?.relations || []) {
+    if (!relationsByCell.has(rel.a)) relationsByCell.set(rel.a, []);
+    if (!relationsByCell.has(rel.b)) relationsByCell.set(rel.b, []);
+    if (!outgoingRelationsByCell.has(rel.a)) outgoingRelationsByCell.set(rel.a, []);
+    relationsByCell.get(rel.a).push(rel);
+    relationsByCell.get(rel.b).push(rel);
+    outgoingRelationsByCell.get(rel.a).push(rel);
+  }
+}
 
 function symbolMarkup(value) {
   if (value === A) return '<span class="symbol a" aria-hidden="true"></span>';
@@ -71,7 +85,7 @@ function symbolMarkup(value) {
 }
 function valueKey(value) { return value === A ? 'a' : value === B ? 'b' : 'empty'; }
 function valueName(value) { return value === A ? 'symbol fioletowy' : value === B ? 'symbol złoty' : 'puste'; }
-function relationForCell(index) { return (puzzle.relations || []).filter(r => r.a === index || r.b === index); }
+function relationForCell(index) { return relationsByCell.get(index) || []; }
 function conflictCells() {
   const bad = new Set();
   for (let row=0; row<SIZE; row++) {
@@ -86,7 +100,7 @@ function conflictCells() {
   return bad;
 }
 function relationMarkup(index) {
-  return (puzzle.relations || []).filter(r=>r.a===index).map(rel => {
+  return (outgoingRelationsByCell.get(index) || []).map(rel => {
     const ar=Math.floor(rel.a/SIZE), br=Math.floor(rel.b/SIZE);
     const cls = ar===br ? 'horizontal' : 'vertical';
     const typeCls = rel.type===REL_SAME ? 'same' : 'different';
@@ -183,9 +197,9 @@ async function loadFreeplay(){
   await new Promise(resolve=>requestAnimationFrame(resolve));
   try{
     const seed=randomSeed();
-    const generated=generateDuetPuzzle(seed);
+    const generated=await generateDuetPuzzleAsync(seed);
     record={puzzleId:`duet-freeplay:${seed}`,puzzle:generated.puzzle};
-    puzzle=generated.puzzle; givens=new Set(puzzle.givens.map(g=>g.index));
+    puzzle=generated.puzzle; givens=new Set(puzzle.givens.map(g=>g.index)); indexRelations();
     session=createDuetSession({date:today,seed:record.puzzleId,givens:puzzle.givens});
     gameMode='freeplay'; freeplayNumber+=1;
     $('#roundLabel').textContent=`Freeplay #${freeplayNumber}`;
@@ -202,7 +216,7 @@ async function loadFreeplay(){
 
 async function start(){
   try {
-    record=await getDailyGame('duet',today); puzzle=record.puzzle; givens=new Set(puzzle.givens.map(g=>g.index));
+    record=await getDailyGame('duet',today); puzzle=record.puzzle; givens=new Set(puzzle.givens.map(g=>g.index)); indexRelations();
     session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens});
     if(session.board.length!==SIZE*SIZE){clearSession('duet',today);session=getSession('duet',{date:today,seed:record.puzzleId,givens:puzzle.givens});}
     gameMode='daily'; $('#roundLabel').textContent='Daily';
