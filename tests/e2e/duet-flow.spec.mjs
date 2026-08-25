@@ -75,6 +75,19 @@ test('Duet keyboard can set value and navigate', async ({ page }) => {
   await expect(page.locator(`[data-index="${index}"]`)).toHaveAttribute('data-value', 'a');
 });
 
+test('Duet hint opens and remains inside viewport', async ({ page }, info) => {
+  await fresh(page);
+  const hint = info.project.name === 'mobile-chromium' ? page.locator('#mobileHint') : page.locator('#hint');
+  await hint.click();
+  await expect(page.locator('#hintCard')).toBeVisible();
+  const box = await page.locator('#hintCard').boundingBox();
+  const viewport = page.viewportSize();
+  expect(box).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
+});
+
 test('Duet completion produces 1/2 if Korony is not done', async ({ page }) => {
   await fresh(page);
   await solveDuet(page);
@@ -88,13 +101,15 @@ test('Duet completion produces 1/2 if Korony is not done', async ({ page }) => {
   await expect(page.locator('#duetStatus')).toContainText(/ponownie/i);
 });
 
-test('Duet replay does not increment product counters', async ({ page }) => {
+test('Duet freeplay renders 36 cells and does not increment product counters', async ({ page }) => {
   await fresh(page);
   await solveDuet(page);
 
   const first = await page.evaluate(k => JSON.parse(localStorage.getItem(k)), STORAGE_KEY);
   await page.locator('#replay').click();
-  await solveDuet(page);
+  await expect(page.locator('#roundLabel')).toContainText(/Freeplay/i);
+  await expect(page.locator('#board .duet-cell')).toHaveCount(36);
+  await expect(page.locator('#done')).toBeHidden();
   const second = await page.evaluate(k => JSON.parse(localStorage.getItem(k)), STORAGE_KEY);
 
   expect(second.user.completedGames).toBe(first.user.completedGames);
