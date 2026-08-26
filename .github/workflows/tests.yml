@@ -5,6 +5,10 @@ on:
     branches: [main, preview, 'feature/**']
   pull_request:
     branches: [main, preview]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -23,11 +27,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-
       - name: Run unit tests
         run: npm test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Run E2E tests
         run: npm run test:e2e
