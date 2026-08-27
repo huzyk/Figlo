@@ -1,0 +1,198 @@
+/* Figlo game visual polish
+   This layer intentionally avoids board geometry. Keep layout-critical rules
+   (grid sizing, dimensions, gaps and board positioning) in the game styles. */
+
+:root{
+  --game-bg:#0F0F14;
+  --game-surface:#191A23;
+  --game-surface-raised:#1D1E28;
+  --game-surface-hover:#222430;
+  --game-border:rgba(255,255,255,.075);
+  --game-border-strong:rgba(255,255,255,.13);
+  --game-text:#F7F6FA;
+  --game-muted:#9B9DAC;
+  --game-dim:#737584;
+  --game-purple:#8E6CFF;
+  --game-purple-strong:#7652FF;
+  --game-gold:#FFBD3D;
+  --game-success:#54D68B;
+  --game-error:#EF6A73;
+}
+
+/* Shared chrome: visual properties only. */
+body.game-korony,
+body.game-duet,
+body.game-bloki,
+body.game-latarnie{
+  background:var(--game-bg);
+  color:var(--game-text);
+}
+
+body.game-korony .game-topbar,
+body.game-duet .game-topbar,
+body.game-bloki .game-topbar,
+body.game-latarnie .game-topbar{
+  border-color:var(--game-border);
+}
+
+body.game-korony .icon-button,
+body.game-duet .back,
+body.game-duet .icon-btn,
+body.game-bloki .back,
+body.game-bloki .icon-btn,
+body.game-latarnie .back,
+body.game-latarnie .icon-btn{
+  background:var(--game-surface);
+  border-color:var(--game-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+  transition:background-color 140ms ease,border-color 140ms ease,box-shadow 140ms ease,color 140ms ease;
+}
+
+body.game-korony .icon-button:hover,
+body.game-duet .back:hover,
+body.game-duet .icon-btn:hover,
+body.game-bloki .back:hover,
+body.game-bloki .icon-btn:hover,
+body.game-latarnie .back:hover,
+body.game-latarnie .icon-btn:hover{
+  background:var(--game-surface-hover);
+  border-color:var(--game-border-strong);
+}
+
+body.game-duet .eyebrow,
+body.game-bloki .eyebrow,
+body.game-latarnie .eyebrow{
+  color:#9C83FF;
+}
+
+body.game-duet .game-meta div,
+body.game-bloki .game-meta div,
+body.game-latarnie .game-meta div{
+  background:var(--game-surface);
+  border-color:var(--game-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.018);
+}
+
+body.game-korony .game-meta{
+  background:var(--game-surface);
+  border-color:var(--game-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.018);
+}
+
+body.game-korony .game-meta>div+div{
+  border-color:var(--game-border);
+}
+
+body.game-korony .game-meta small,
+body.game-duet .game-meta span,
+body.game-bloki .game-meta span,
+body.game-latarnie .game-meta span{
+  color:var(--game-muted);
+}
+
+body.game-duet .panel-card,
+body.game-bloki .panel-card,
+body.game-latarnie .panel-card,
+body.game-korony .tools-content,
+body.game-korony .hint-card{
+  background:rgba(25,26,35,.78);
+  border-color:var(--game-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.018);
+}
+
+body.game-duet .panel-card>button,
+body.game-duet .panel-card summary,
+body.game-bloki .panel-card>button,
+body.game-bloki .panel-card summary,
+body.game-latarnie .panel-card>button,
+body.game-latarnie .panel-card summary{
+  background:#20222C;
+  border-color:var(--game-border);
+  transition:background-color 140ms ease,border-color 140ms ease,box-shadow 140ms ease;
+}
+
+body.game-duet .panel-card>button:hover,
+body.game-duet .panel-card summary:hover,
+body.game-bloki .panel-card>button:hover,
+body.game-bloki .panel-card summary:hover,
+body.game-latarnie .panel-card>button:hover,
+body.game-latarnie .panel-card summary:hover{
+  background:#252733;
+  border-color:var(--game-border-strong);
+}
+
+body.game-korony .controls button,
+body.game-korony .control-toggle{
+  background:var(--game-surface);
+  border-color:var(--game-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.018);
+}
+
+body.game-korony .controls button:hover,
+body.game-korony .control-toggle:hover{
+  background:var(--game-surface-hover);
+  border-color:var(--game-border-strong);
+}
+
+body.game-korony .feedback,
+body.game-duet .feedback,
+body.game-bloki .feedback,
+body.game-latarnie .feedback{
+  background:rgba(25,26,35,.72);
+  border-color:var(--game-border);
+  color:#C6C8D3;
+}
+
+body.game-korony .feedback.success,
+body.game-duet .feedback.success,
+body.game-bloki .feedback.success,
+body.game-latarnie .feedback.success{
+  color:#A7EFC5;
+}
+
+body.game-korony .feedback.error,
+body.game-duet .feedback.error,
+body.game-bloki .feedback.error,
+body.game-latarnie .feedback.error{
+  color:#FFB2BA;
+}
+
+body.game-korony .mobile-controls,
+body.game-duet .mobile-controls,
+body.game-bloki .mobile-controls,
+body.game-latarnie .mobile-controls{
+  background:#15161E;
+  border-color:var(--game-border);
+  box-shadow:0 -10px 28px rgba(0,0,0,.16);
+}
+
+body.game-korony button:focus-visible,
+body.game-korony a:focus-visible,
+body.game-duet button:focus-visible,
+body.game-duet a:focus-visible,
+body.game-bloki button:focus-visible,
+body.game-bloki a:focus-visible,
+body.game-latarnie button:focus-visible,
+body.game-latarnie a:focus-visible{
+  outline-color:#A98FFF;
+}
+
+@media(prefers-reduced-motion:reduce){
+  body.game-korony *,
+  body.game-korony *::before,
+  body.game-korony *::after,
+  body.game-duet *,
+  body.game-duet *::before,
+  body.game-duet *::after,
+  body.game-bloki *,
+  body.game-bloki *::before,
+  body.game-bloki *::after,
+  body.game-latarnie *,
+  body.game-latarnie *::before,
+  body.game-latarnie *::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+}
