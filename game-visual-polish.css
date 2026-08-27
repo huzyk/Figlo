@@ -460,3 +460,112 @@ body.game-bloki .block-placement.hint-highlight{
   background:rgba(255,255,255,.045);
   box-shadow:0 0 0 999px rgba(7,8,12,.68),inset 0 0 0 2px rgba(255,255,255,.78),0 0 18px color-mix(in srgb,var(--block,#8E6CFF) 42%,transparent);
 }
+
+/* Completion: one shared system, one signature moment per game. */
+body.game-korony .completion,
+body.game-duet .completion,
+body.game-bloki .completion,
+body.game-latarnie .completion{
+  background:rgba(5,5,8,.84);
+  backdrop-filter:blur(5px);
+}
+
+body.game-korony .completion-card,
+body.game-duet .completion-card,
+body.game-bloki .completion-card,
+body.game-latarnie .completion-card{
+  background:linear-gradient(180deg,#1B1C26 0%,#171821 100%);
+  border-color:rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 26px 80px rgba(0,0,0,.42);
+  animation:completion-card-in 280ms cubic-bezier(.2,.85,.3,1);
+}
+
+body.game-korony .completion-stats div,
+body.game-duet .completion-stats div,
+body.game-bloki .completion-stats div,
+body.game-latarnie .completion-stats div{
+  background:#111219;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+body.game-korony .completion .primary,
+body.game-duet .completion .primary,
+body.game-bloki .completion .primary,
+body.game-latarnie .completion .primary{
+  background:linear-gradient(180deg,#7652FF 0%,#6540EE 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 20px rgba(108,64,255,.18);
+}
+
+body.game-korony .completion-card>button,
+body.game-duet .completion-card>button,
+body.game-bloki .completion-card>button,
+body.game-latarnie .completion-card>button{
+  border-color:rgba(255,255,255,.16);
+  background:rgba(255,255,255,.015);
+}
+
+body.game-korony .success-mark,
+body.game-duet .success-mark,
+body.game-bloki .success-mark,
+body.game-latarnie .success-mark{
+  position:relative;
+  font-size:0;
+  animation:completion-mark-in 420ms cubic-bezier(.2,.9,.25,1);
+}
+
+body.game-korony .success-mark{
+  background:linear-gradient(180deg,#FFD267 0%,#EAA72E 100%);
+  color:#17130B;
+  box-shadow:0 0 0 6px rgba(255,189,61,.07),0 0 28px rgba(255,189,61,.18);
+}
+body.game-korony .success-mark::before{
+  content:"♛";
+  font-size:29px;
+  line-height:1;
+}
+
+body.game-duet .success-mark{
+  background:linear-gradient(135deg,#8E6CFF 0 50%,#F3B63E 50% 100%);
+  color:#12131A;
+  box-shadow:0 0 0 6px rgba(142,108,255,.06),0 0 24px rgba(142,108,255,.12);
+}
+body.game-duet .success-mark::before{
+  content:"● ◆";
+  font-size:15px;
+  letter-spacing:.08em;
+  line-height:1;
+}
+
+body.game-latarnie .success-mark{
+  background:radial-gradient(circle at 50% 42%,#FFFBD3 0%,#FFD85E 48%,#CE9424 100%);
+  color:#17130B;
+  box-shadow:0 0 0 7px rgba(255,198,61,.06),0 0 34px rgba(255,198,61,.28);
+}
+body.game-latarnie .success-mark::before{
+  content:"✦";
+  font-size:27px;
+  line-height:1;
+  text-shadow:0 0 9px rgba(255,255,255,.45);
+}
+
+body.game-bloki .success-mark{
+  background:linear-gradient(180deg,#9C82FF 0%,#7552EF 100%);
+  color:#fff;
+  box-shadow:0 0 0 6px rgba(142,108,255,.07),0 0 25px rgba(142,108,255,.16);
+}
+body.game-bloki .success-mark::before{
+  content:"▦";
+  font-size:25px;
+  line-height:1;
+}
+
+@keyframes completion-card-in{
+  0%{opacity:0;transform:translateY(10px);filter:brightness(.92)}
+  100%{opacity:1;transform:translateY(0);filter:brightness(1)}
+}
+
+@keyframes completion-mark-in{
+  0%{opacity:0;transform:scale(.72)}
+  65%{opacity:1;transform:scale(1.08)}
+  100%{opacity:1;transform:scale(1)}
+}
