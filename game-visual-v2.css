@@ -1,0 +1,400 @@
+/* Figlo Visual Pass 2.0
+   Stronger art direction without touching board geometry, sizing or game logic. */
+
+:root{
+  --v2-bg:#0d0e13;
+  --v2-surface:rgba(25,26,35,.62);
+  --v2-surface-strong:#1b1d27;
+  --v2-border:rgba(255,255,255,.065);
+  --v2-border-strong:rgba(255,255,255,.12);
+  --v2-text:#f8f7fb;
+  --v2-muted:#9b9daa;
+  --v2-purple:#8e6cff;
+  --v2-purple-hi:#aa91ff;
+  --v2-purple-deep:#6848d9;
+  --v2-gold:#ffbd3d;
+  --v2-gold-hi:#ffd66b;
+  --v2-error:#ef6a73;
+}
+
+body.game-korony,
+body.game-duet,
+body.game-bloki,
+body.game-latarnie,
+body.game-zip{
+  background:var(--v2-bg);
+  color:var(--v2-text);
+}
+
+/* Shared chrome: calmer than the boards. */
+body.game-korony .game-meta,
+body.game-duet .game-meta div,
+body.game-bloki .game-meta div,
+body.game-latarnie .game-meta div,
+body.game-zip .game-meta{
+  background:var(--v2-surface);
+  border-color:var(--v2-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
+}
+
+body.game-korony .game-meta>div+div,
+body.game-zip .game-meta div+div{
+  border-color:var(--v2-border);
+}
+
+body.game-korony .controls button,
+body.game-korony .control-toggle,
+body.game-duet .panel-card,
+body.game-bloki .panel-card,
+body.game-latarnie .panel-card,
+body.game-zip .panel-card,
+body.game-zip .controls-card>button{
+  background:var(--v2-surface);
+  border-color:var(--v2-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
+}
+
+body.game-duet .panel-card>button,
+body.game-duet .panel-card summary,
+body.game-bloki .panel-card>button,
+body.game-bloki .panel-card summary,
+body.game-latarnie .panel-card>button,
+body.game-latarnie .panel-card summary{
+  background:#1c1e28;
+  border-color:var(--v2-border);
+}
+
+body.game-korony .feedback,
+body.game-duet .feedback,
+body.game-bloki .feedback,
+body.game-latarnie .feedback,
+body.game-zip .feedback{
+  background:rgba(19,20,28,.62);
+  border-color:var(--v2-border);
+  color:#c7c8d2;
+}
+
+/* =========================
+   KORONY — jewel / royal
+   ========================= */
+body.game-korony .board{
+  background:#0f1016;
+  border-color:#0f1016;
+  box-shadow:0 22px 56px rgba(0,0,0,.30),0 0 0 1px rgba(255,255,255,.025);
+}
+
+body.game-korony .r0{background:linear-gradient(145deg,#8068c6 0%,#6750a6 100%)}
+body.game-korony .r1{background:linear-gradient(145deg,#c98258 0%,#a95f3d 100%)}
+body.game-korony .r2{background:linear-gradient(145deg,#5d8dcc 0%,#416fa8 100%)}
+body.game-korony .r3{background:linear-gradient(145deg,#9daf52 0%,#778737 100%)}
+body.game-korony .r4{background:linear-gradient(145deg,#c35e61 0%,#9c4248 100%)}
+body.game-korony .r5{background:linear-gradient(145deg,#64a77a 0%,#447e5c 100%)}
+body.game-korony .r6{background:linear-gradient(145deg,#968b89 0%,#716866 100%)}
+body.game-korony .r7{background:linear-gradient(145deg,#b45d88 0%,#8d456b 100%)}
+body.game-korony .r8{background:linear-gradient(145deg,#54a39b 0%,#397f7a 100%)}
+
+body.game-korony .cell{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055),inset 0 -1px 0 rgba(0,0,0,.09);
+}
+
+body.game-korony .cell::before{
+  border-color:rgba(10,11,16,.28);
+}
+
+body.game-korony .cell::after{
+  border-color:#12131a;
+}
+
+body.game-korony .x-mark{
+  background:rgba(13,14,20,.52);
+  border-color:rgba(255,255,255,.12);
+  color:#c0b2f2;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 2px 7px rgba(0,0,0,.16);
+  text-shadow:none;
+}
+
+body.game-korony .crown{
+  background:linear-gradient(180deg,#ffdc78 0%,#f2b840 56%,#d99124 100%);
+  border-color:rgba(89,54,8,.58);
+  color:#17130b;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.34),inset 0 -2px 0 rgba(112,67,0,.20),0 5px 13px rgba(0,0,0,.30),0 0 18px rgba(255,190,65,.15);
+  filter:saturate(1.04);
+  animation:v2-crown-in 220ms cubic-bezier(.2,.85,.3,1);
+}
+
+body.game-korony .hint-candidate{
+  box-shadow:inset 0 0 0 4px #b094ff,0 0 18px rgba(142,108,255,.32);
+}
+
+@keyframes v2-crown-in{
+  0%{opacity:.35;transform:scale(.72);filter:brightness(1.3)}
+  68%{opacity:1;transform:scale(1.10);filter:brightness(1.12)}
+  100%{opacity:1;transform:scale(1);filter:brightness(1)}
+}
+
+/* =========================
+   LATARNIE — warm light
+   ========================= */
+body.game-latarnie .latarnie-board{
+  background:#171a23;
+  border-color:rgba(255,255,255,.12);
+  box-shadow:0 24px 60px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+body.game-latarnie .latarnia-cell{
+  background:#11141d;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
+  transition:background 240ms ease,box-shadow 240ms ease,filter 220ms ease;
+}
+
+body.game-latarnie .latarnia-cell:hover{background:#171b27}
+
+body.game-latarnie .latarnia-cell.is-lit{
+  background:radial-gradient(circle at 50% 42%,#fffde9 0%,#ffe995 30%,#efc553 63%,#9c6f22 100%);
+  box-shadow:inset 0 0 20px rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.08);
+}
+
+body.game-latarnie .latarnia-cell.has-bulb{
+  background:radial-gradient(circle at 50% 40%,#fffef0 0%,#ffe27a 38%,#e4a92e 72%,#a96f18 100%);
+  box-shadow:inset 0 0 20px rgba(255,255,255,.18),0 0 15px rgba(255,210,100,.30),0 0 32px rgba(255,185,50,.14);
+}
+
+body.game-latarnie .bulb{
+  color:#18130a;
+  text-shadow:0 1px 0 rgba(255,255,255,.30),0 0 10px rgba(255,235,145,.42);
+  animation:v2-lantern-in 220ms cubic-bezier(.2,.85,.3,1);
+}
+
+body.game-latarnie .latarnia-wall{
+  background:linear-gradient(180deg,#05060a 0%,#0a0c12 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),inset 0 -4px 10px rgba(0,0,0,.28);
+}
+
+@keyframes v2-lantern-in{
+  0%{opacity:.25;transform:scale(.7);filter:brightness(1.6)}
+  72%{opacity:1;transform:scale(1.08);filter:brightness(1.18)}
+  100%{opacity:1;transform:scale(1);filter:brightness(1)}
+}
+
+/* =========================
+   BLOKI — physical pieces
+   ========================= */
+body.game-bloki .bloki-board{
+  background:#262a35;
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 24px 60px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+body.game-bloki .bloki-cell,
+body.game-bloki .bloki-cell:nth-child(odd){
+  background:#141720;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.012);
+}
+
+body.game-bloki .clue-cell{background:#1c202a!important}
+
+body.game-bloki .clue-token,
+body.game-bloki .clue-token::before,
+body.game-bloki .clue-token::after{
+  background:color-mix(in srgb,var(--clue) 24%,#191b24);
+  border-color:color-mix(in srgb,var(--clue) 76%,#dcd6ff 24%);
+}
+
+body.game-bloki .clue-token{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 2px 8px rgba(0,0,0,.14);
+}
+
+body.game-bloki .block-placement{
+  background:color-mix(in srgb,var(--block,#8e6cff) 48%,#171820);
+  border-color:color-mix(in srgb,var(--block,#8e6cff) 78%,#fff 22%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.17),inset 0 -2px 4px rgba(0,0,0,.14),0 7px 18px rgba(0,0,0,.22);
+  filter:saturate(1.04);
+}
+
+body.game-bloki .block-placement.preview,
+body.game-bloki .block-placement.draft{
+  background:rgba(255,189,61,.075);
+  border-color:rgba(255,198,82,.72);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
+  opacity:.48;
+}
+
+body.game-bloki .preview-count{
+  background:#101219;
+  color:#fff4cf;
+  border-color:#efb94e;
+  box-shadow:0 5px 16px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+body.game-bloki .bloki-legend{
+  background:rgba(17,19,27,.58);
+  border-color:var(--v2-border);
+}
+
+/* =========================
+   DUET — balance / precision
+   ========================= */
+body.game-duet .duet-board{
+  background:#1d202a;
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 24px 60px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+body.game-duet .duet-cell{background:#151821}
+body.game-duet .duet-cell.given{background:#1d2029}
+body.game-duet .duet-cell:not(.given):hover{background:#1b1f2a}
+
+body.game-duet .symbol.a{
+  border-color:#aa91ff;
+  filter:drop-shadow(0 5px 9px rgba(0,0,0,.30));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 0 12px rgba(142,108,255,.10);
+}
+body.game-duet .symbol.a::after{
+  background:#aa91ff;
+  box-shadow:0 0 12px rgba(142,108,255,.18);
+}
+
+body.game-duet .symbol.b{
+  background:linear-gradient(145deg,#ffd66b 0%,#e7a72d 100%);
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.24),inset -1px -1px 0 rgba(116,66,0,.14),0 6px 14px rgba(0,0,0,.22);
+}
+
+body.game-duet .relation{
+  background:#eeeef3;
+  border-color:#626572;
+  box-shadow:0 2px 7px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.72);
+}
+
+/* =========================
+   ZIP — flow / energy
+   ========================= */
+body.game-zip{background:#0b0d12}
+
+body.game-zip .board-wrap{
+  background:linear-gradient(145deg,rgba(142,108,255,.18),rgba(142,108,255,.035));
+  box-shadow:0 24px 64px rgba(0,0,0,.40),0 0 0 1px rgba(255,255,255,.025);
+}
+
+body.game-zip .zip-board{
+  background:#0d1017;
+  border-color:#090a0f;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+body.game-zip .zip-cell,
+body.game-zip .zip-cell:nth-of-type(odd){
+  background:#12151e;
+  color:#f7f6fb;
+  border-right-color:#252936;
+  border-bottom-color:#252936;
+}
+
+body.game-zip .zip-cell:nth-of-type(odd){background:#141821}
+body.game-zip .zip-cell.wall-r{border-right-color:#020307}
+body.game-zip .zip-cell.wall-b{border-bottom-color:#020307}
+
+body.game-zip .zip-cell.on-path{
+  background:#1d1830;
+  box-shadow:inset 0 0 18px rgba(142,108,255,.08);
+}
+
+body.game-zip .zip-cell.path-head{
+  box-shadow:inset 0 0 0 3px rgba(169,143,255,.55),inset 0 0 18px rgba(142,108,255,.12);
+}
+
+body.game-zip .zip-path-layer polyline{
+  stroke:#9b7fff;
+  stroke-width:.24;
+  filter:drop-shadow(0 0 3px rgba(182,160,255,.55)) drop-shadow(0 0 8px rgba(108,64,255,.34));
+}
+
+body.game-zip .checkpoint{
+  background:#151821;
+  color:#f8f7fb;
+  border-color:#9f85ff;
+  box-shadow:0 5px 14px rgba(0,0,0,.34),0 0 0 3px rgba(142,108,255,.16),inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+body.game-zip .zip-cell.on-path .checkpoint{
+  background:#f7f5ff;
+  color:#15151d;
+  border-color:#c4b3ff;
+  box-shadow:0 5px 14px rgba(0,0,0,.26),0 0 0 3px rgba(142,108,255,.20),0 0 16px rgba(142,108,255,.18);
+}
+
+body.game-zip .zip-cell.hint-target{
+  box-shadow:inset 0 0 0 4px #ffd064,0 0 20px rgba(255,189,61,.30);
+}
+
+/* =========================
+   Completion identities
+   ========================= */
+body.game-korony .completion-card,
+body.game-duet .completion-card,
+body.game-bloki .completion-card,
+body.game-latarnie .completion-card,
+body.game-zip .completion-card{
+  background:linear-gradient(180deg,#1a1c25 0%,#13151c 100%);
+  border-color:rgba(255,255,255,.11);
+  box-shadow:0 30px 90px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+body.game-korony .success-mark,
+body.game-duet .success-mark,
+body.game-bloki .success-mark,
+body.game-latarnie .success-mark,
+body.game-zip .success-mark{
+  font-size:0;
+  animation:v2-finish-mark 500ms cubic-bezier(.2,.9,.25,1);
+}
+
+body.game-korony .success-mark{
+  background:linear-gradient(180deg,#ffdc78,#df9d27);
+  box-shadow:0 0 0 7px rgba(255,189,61,.08),0 0 30px rgba(255,189,61,.22);
+}
+body.game-korony .success-mark::before{content:"♛";font-size:30px;color:#17130b}
+
+body.game-duet .success-mark{
+  background:linear-gradient(135deg,#9b7fff 0 50%,#f2b33a 50% 100%);
+}
+body.game-duet .success-mark::before{content:"● ◆";font-size:15px;color:#14151c;letter-spacing:.08em}
+
+body.game-latarnie .success-mark{
+  background:radial-gradient(circle,#fffde8 0%,#ffde69 48%,#c98d20 100%);
+  box-shadow:0 0 0 8px rgba(255,198,61,.07),0 0 38px rgba(255,198,61,.30);
+}
+body.game-latarnie .success-mark::before{content:"✦";font-size:28px;color:#17130b;text-shadow:0 0 9px rgba(255,255,255,.5)}
+
+body.game-bloki .success-mark{background:linear-gradient(180deg,#aa91ff,#7450ed)}
+body.game-bloki .success-mark::before{content:"▦";font-size:26px;color:#fff}
+
+body.game-zip .success-mark{
+  position:relative;
+  background:#171a24;
+  border:2px solid #9b7fff;
+  box-shadow:0 0 0 7px rgba(142,108,255,.07),0 0 28px rgba(142,108,255,.22);
+}
+body.game-zip .success-mark::before{
+  content:"↝";
+  font-size:30px;
+  color:#b8a4ff;
+  text-shadow:0 0 10px rgba(142,108,255,.45);
+}
+
+@keyframes v2-finish-mark{
+  0%{opacity:0;transform:scale(.68);filter:brightness(1.35)}
+  68%{opacity:1;transform:scale(1.10);filter:brightness(1.12)}
+  100%{opacity:1;transform:scale(1);filter:brightness(1)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  body.game-korony *,body.game-korony *::before,body.game-korony *::after,
+  body.game-duet *,body.game-duet *::before,body.game-duet *::after,
+  body.game-bloki *,body.game-bloki *::before,body.game-bloki *::after,
+  body.game-latarnie *,body.game-latarnie *::before,body.game-latarnie *::after,
+  body.game-zip *,body.game-zip *::before,body.game-zip *::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}
