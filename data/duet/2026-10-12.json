@@ -1,71 +1,71 @@
 {
-  "date": "2026-10-10",
+  "date": "2026-10-12",
   "game": "duet",
   "version": 4,
-  "puzzleId": "duet:2026-10-10:v4",
-  "seed": "figlo:duet:2026-10-10:v1",
-  "resolvedSeed": "figlo:duet:2026-10-10:v1:0",
-  "requestedDifficulty": "hard",
+  "puzzleId": "duet:2026-10-12:v4",
+  "seed": "figlo:duet:2026-10-12:v1",
+  "resolvedSeed": "figlo:duet:2026-10-12:v1:5",
+  "requestedDifficulty": "easy",
   "puzzle": {
     "size": 6,
     "givens": [
       {
-        "index": 28,
+        "index": 23,
         "value": 2
       },
       {
-        "index": 18,
+        "index": 1,
         "value": 1
-      },
-      {
-        "index": 34,
-        "value": 2
-      },
-      {
-        "index": 16,
-        "value": 1
-      },
-      {
-        "index": 26,
-        "value": 1
-      },
-      {
-        "index": 33,
-        "value": 1
-      },
-      {
-        "index": 13,
-        "value": 2
       },
       {
         "index": 6,
+        "value": 2
+      },
+      {
+        "index": 9,
+        "value": 2
+      },
+      {
+        "index": 4,
         "value": 1
       },
       {
-        "index": 23,
+        "index": 29,
         "value": 2
+      },
+      {
+        "index": 31,
+        "value": 2
+      },
+      {
+        "index": 22,
+        "value": 1
+      },
+      {
+        "index": 14,
+        "value": 1
       }
     ],
     "relations": [
       {
-        "a": 25,
-        "b": 31,
+        "a": 4,
+        "b": 10,
         "type": "same"
-      },
-      {
-        "a": 30,
-        "b": 31,
-        "type": "same"
-      },
-      {
-        "a": 18,
-        "b": 24,
-        "type": "different"
       },
       {
         "a": 15,
-        "b": 21,
-        "type": "same"
+        "b": 16,
+        "type": "different"
+      },
+      {
+        "a": 7,
+        "b": 13,
+        "type": "different"
+      },
+      {
+        "a": 18,
+        "b": 19,
+        "type": "different"
       }
     ]
   },
@@ -76,30 +76,30 @@
     2,
     1,
     2,
-    1,
-    1,
     2,
     1,
     2,
     2,
-    2,
-    2,
-    1,
-    2,
     1,
     1,
-    1,
-    1,
-    2,
-    2,
-    1,
-    2,
     2,
     2,
     1,
     1,
     2,
     1,
+    1,
+    2,
+    1,
+    2,
+    1,
+    2,
+    1,
+    1,
+    2,
+    1,
+    2,
+    2,
     2,
     2,
     1,
