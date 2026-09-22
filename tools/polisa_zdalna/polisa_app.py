@@ -74,12 +74,11 @@ def locate_fields(page):
             insured.append(b)
 
     rep = None
-    rep_labels = [
+    for lab in search_any(page, [
         "Pieczęć i podpis przedstawiciela PZU SA",
         "Pieczęć i podpis przedstawiciela",
         "podpis przedstawiciela PZU SA",
-    ]
-    for lab in search_any(page, rep_labels):
+    ]):
         b = box_above_label(lab, boxes)
         if b is not None:
             rep = b
@@ -149,20 +148,26 @@ def process_pdf(input_pdf, facsimile, outdir):
 
 
 class App(tk.Tk):
+    BREAKPOINT = 760
+
     def __init__(self):
         super().__init__()
         self.title("Polisa zdalna – PZU")
-        self.geometry("900x650")
-        self.minsize(760, 560)
+        self.geometry("900x620")
+        self.minsize(520, 420)
         self.configure(bg="#F4F6F8")
+
         self.files = []
         self.facsimile_var = tk.StringVar()
         self.output_var = tk.StringVar()
         self.remember_var = tk.BooleanVar(value=True)
         self.status_var = tk.StringVar(value="Dodaj PDF-y lub cały folder.")
+        self._compact = None
+
         self._configure_style()
         self._build_ui()
         self._load_config()
+        self.bind("<Configure>", self._on_resize)
 
     def _configure_style(self):
         style = ttk.Style(self)
@@ -172,70 +177,157 @@ class App(tk.Tk):
             pass
         style.configure("TFrame", background="#F4F6F8")
         style.configure("Card.TFrame", background="white")
-        style.configure("Title.TLabel", background="white", foreground="#111827", font=("Segoe UI", 18, "bold"))
+        style.configure("Title.TLabel", background="white", foreground="#111827", font=("Segoe UI", 17, "bold"))
         style.configure("Sub.TLabel", background="white", foreground="#6B7280", font=("Segoe UI", 9))
         style.configure("Card.TLabel", background="white", foreground="#1F2937", font=("Segoe UI", 9))
         style.configure("Status.TLabel", background="white", foreground="#4B5563", font=("Segoe UI", 9))
-        style.configure("Primary.TButton", font=("Segoe UI", 10, "bold"), padding=(18, 10))
-        style.configure("TButton", font=("Segoe UI", 9), padding=(10, 7))
+        style.configure("Primary.TButton", font=("Segoe UI", 10, "bold"), padding=(16, 9))
+        style.configure("TButton", font=("Segoe UI", 9), padding=(9, 6))
         style.configure("TCheckbutton", background="white", font=("Segoe UI", 9))
 
     def _build_ui(self):
-        header = ttk.Frame(self, style="Card.TFrame", padding=(22, 16))
-        header.pack(fill="x")
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        header = ttk.Frame(self, style="Card.TFrame", padding=(18, 12))
+        header.grid(row=0, column=0, sticky="ew")
         ttk.Label(header, text="Polisa zdalna", style="Title.TLabel").pack(anchor="w")
-        ttk.Label(header, text="PZU • ostatnia strona • 2× POLISA ZDALNA • faksymile", style="Sub.TLabel").pack(anchor="w", pady=(3, 0))
+        ttk.Label(header, text="PZU • ostatnia strona • 2× POLISA ZDALNA • faksymile", style="Sub.TLabel").pack(anchor="w", pady=(2, 0))
 
-        outer = ttk.Frame(self, padding=18)
-        outer.pack(fill="both", expand=True)
+        self.outer = ttk.Frame(self, padding=14)
+        self.outer.grid(row=1, column=0, sticky="nsew")
+        self.outer.grid_rowconfigure(1, weight=1)
+        self.outer.grid_columnconfigure(0, weight=1)
 
-        toolbar = ttk.Frame(outer)
-        toolbar.pack(fill="x", pady=(0, 10))
-        ttk.Button(toolbar, text="Dodaj PDF-y", command=self.add_pdfs).pack(side="left", padx=(0, 8))
-        ttk.Button(toolbar, text="Dodaj folder", command=self.add_folder).pack(side="left", padx=(0, 8))
-        ttk.Button(toolbar, text="Usuń zaznaczone", command=self.remove_selected).pack(side="left", padx=(0, 8))
-        ttk.Button(toolbar, text="Wyczyść", command=self.clear_files).pack(side="left")
+        self.toolbar = ttk.Frame(self.outer)
+        self.toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 9))
+        self.btn_add = ttk.Button(self.toolbar, text="Dodaj PDF-y", command=self.add_pdfs)
+        self.btn_folder = ttk.Button(self.toolbar, text="Dodaj folder", command=self.add_folder)
+        self.btn_remove = ttk.Button(self.toolbar, text="Usuń zaznaczone", command=self.remove_selected)
+        self.btn_clear = ttk.Button(self.toolbar, text="Wyczyść", command=self.clear_files)
+        for i, btn in enumerate((self.btn_add, self.btn_folder, self.btn_remove, self.btn_clear)):
+            btn.grid(row=0, column=i, padx=(0, 7), sticky="w")
 
-        files_card = ttk.Frame(outer, style="Card.TFrame", padding=14)
-        files_card.pack(fill="both", expand=True)
+        files_card = ttk.Frame(self.outer, style="Card.TFrame", padding=12)
+        files_card.grid(row=1, column=0, sticky="nsew")
+        files_card.grid_rowconfigure(1, weight=1)
+        files_card.grid_columnconfigure(0, weight=1)
+
         files_header = ttk.Frame(files_card, style="Card.TFrame")
-        files_header.pack(fill="x", pady=(0, 8))
-        ttk.Label(files_header, text="Pliki do przetworzenia", style="Card.TLabel", font=("Segoe UI", 10, "bold")).pack(side="left")
+        files_header.grid(row=0, column=0, sticky="ew", pady=(0, 7))
+        files_header.grid_columnconfigure(0, weight=1)
+        ttk.Label(files_header, text="Pliki do przetworzenia", style="Card.TLabel", font=("Segoe UI", 10, "bold")).grid(row=0, column=0, sticky="w")
         self.count_label = ttk.Label(files_header, text="0 plików", style="Card.TLabel")
-        self.count_label.pack(side="right")
+        self.count_label.grid(row=0, column=1, sticky="e")
 
         list_frame = ttk.Frame(files_card, style="Card.TFrame")
-        list_frame.pack(fill="both", expand=True)
-        self.listbox = tk.Listbox(list_frame, selectmode=tk.EXTENDED, bd=1, relief="solid", font=("Segoe UI", 9), activestyle="none")
+        list_frame.grid(row=1, column=0, sticky="nsew")
+        list_frame.grid_rowconfigure(0, weight=1)
+        list_frame.grid_columnconfigure(0, weight=1)
+        self.listbox = tk.Listbox(list_frame, selectmode=tk.EXTENDED, bd=1, relief="solid", font=("Segoe UI", 9), activestyle="none", height=5)
         scroll = ttk.Scrollbar(list_frame, orient="vertical", command=self.listbox.yview)
         self.listbox.configure(yscrollcommand=scroll.set)
-        self.listbox.pack(side="left", fill="both", expand=True)
-        scroll.pack(side="right", fill="y")
+        self.listbox.grid(row=0, column=0, sticky="nsew")
+        scroll.grid(row=0, column=1, sticky="ns")
 
-        settings = ttk.Frame(outer, style="Card.TFrame", padding=14)
-        settings.pack(fill="x", pady=(10, 0))
-        settings.columnconfigure(1, weight=1)
+        self.settings = ttk.Frame(self.outer, style="Card.TFrame", padding=12)
+        self.settings.grid(row=2, column=0, sticky="ew", pady=(9, 0))
+        self.settings.grid_columnconfigure(1, weight=1)
 
-        ttk.Label(settings, text="Faksymile", style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=6)
-        ttk.Entry(settings, textvariable=self.facsimile_var, state="readonly").grid(row=0, column=1, sticky="ew", pady=6)
-        ttk.Button(settings, text="Wybierz…", command=self.choose_facsimile).grid(row=0, column=2, padx=(10, 10), pady=6)
-        ttk.Checkbutton(settings, text="Zapamiętaj", variable=self.remember_var).grid(row=0, column=3, sticky="w", pady=6)
+        self.lbl_fac = ttk.Label(self.settings, text="Faksymile", style="Card.TLabel")
+        self.ent_fac = ttk.Entry(self.settings, textvariable=self.facsimile_var, state="readonly")
+        self.btn_fac = ttk.Button(self.settings, text="Wybierz…", command=self.choose_facsimile)
+        self.chk_remember = ttk.Checkbutton(self.settings, text="Zapamiętaj", variable=self.remember_var)
 
-        ttk.Label(settings, text="Folder wynikowy", style="Card.TLabel").grid(row=1, column=0, sticky="w", padx=(0, 10), pady=6)
-        ttk.Entry(settings, textvariable=self.output_var).grid(row=1, column=1, sticky="ew", pady=6)
-        ttk.Button(settings, text="Wybierz…", command=self.choose_output).grid(row=1, column=2, padx=(10, 10), pady=6)
-        ttk.Label(settings, text="", style="Card.TLabel").grid(row=1, column=3, sticky="w")
+        self.lbl_out = ttk.Label(self.settings, text="Folder wynikowy", style="Card.TLabel")
+        self.ent_out = ttk.Entry(self.settings, textvariable=self.output_var)
+        self.btn_out = ttk.Button(self.settings, text="Wybierz…", command=self.choose_output)
 
-        bottom = ttk.Frame(outer, style="Card.TFrame", padding=(14, 10))
-        bottom.pack(fill="x", pady=(10, 0))
-        bottom.columnconfigure(0, weight=1)
-        ttk.Label(bottom, textvariable=self.status_var, style="Status.TLabel").grid(row=0, column=0, sticky="w")
-        self.progress = ttk.Progressbar(bottom, mode="indeterminate", length=260)
-        self.progress.grid(row=1, column=0, sticky="ew", padx=(0, 18), pady=(7, 0))
-        self.run_button = ttk.Button(bottom, text="PRZETWÓRZ", style="Primary.TButton", command=self.start_processing)
-        self.run_button.grid(row=0, column=1, rowspan=2, sticky="e", padx=(16, 0))
+        self.bottom = ttk.Frame(self.outer, style="Card.TFrame", padding=(12, 9))
+        self.bottom.grid(row=3, column=0, sticky="ew", pady=(9, 0))
+        self.bottom.grid_columnconfigure(0, weight=1)
 
-        ttk.Label(outer, text="Program zapisuje tylko ostatnią stronę każdego PDF-a. Jeśli nie rozpozna pól, nie nanosi niczego i zgłasza plik jako błąd.", foreground="#6B7280", background="#F4F6F8", font=("Segoe UI", 8)).pack(fill="x", pady=(8, 0))
+        self.status_label = ttk.Label(self.bottom, textvariable=self.status_var, style="Status.TLabel")
+        self.progress = ttk.Progressbar(self.bottom, mode="indeterminate")
+        self.run_button = ttk.Button(self.bottom, text="PRZETWÓRZ", style="Primary.TButton", command=self.start_processing)
+
+        self.note = ttk.Label(
+            self.outer,
+            text="Tylko ostatnia strona. Gdy program nie rozpozna pól, nie nanosi niczego i zgłasza błąd.",
+            foreground="#6B7280", background="#F4F6F8", font=("Segoe UI", 8),
+            wraplength=800, justify="left"
+        )
+        self.note.grid(row=4, column=0, sticky="ew", pady=(7, 0))
+
+        self._apply_layout(False)
+
+    def _on_resize(self, event):
+        if event.widget is not self:
+            return
+        compact = event.width < self.BREAKPOINT
+        if compact != self._compact:
+            self._apply_layout(compact)
+        self.note.configure(wraplength=max(260, event.width - 50))
+
+    def _apply_layout(self, compact):
+        self._compact = compact
+
+        for w in (self.btn_add, self.btn_folder, self.btn_remove, self.btn_clear):
+            w.grid_forget()
+
+        if compact:
+            self.btn_add.grid(row=0, column=0, padx=(0, 7), pady=(0, 6), sticky="ew")
+            self.btn_folder.grid(row=0, column=1, padx=(0, 0), pady=(0, 6), sticky="ew")
+            self.btn_remove.grid(row=1, column=0, padx=(0, 7), sticky="ew")
+            self.btn_clear.grid(row=1, column=1, sticky="ew")
+            self.toolbar.grid_columnconfigure(0, weight=1)
+            self.toolbar.grid_columnconfigure(1, weight=1)
+            for c in (2, 3):
+                self.toolbar.grid_columnconfigure(c, weight=0)
+        else:
+            for i, btn in enumerate((self.btn_add, self.btn_folder, self.btn_remove, self.btn_clear)):
+                btn.grid(row=0, column=i, padx=(0, 7), pady=0, sticky="w")
+                self.toolbar.grid_columnconfigure(i, weight=0)
+
+        for w in (self.lbl_fac, self.ent_fac, self.btn_fac, self.chk_remember, self.lbl_out, self.ent_out, self.btn_out):
+            w.grid_forget()
+
+        if compact:
+            self.settings.grid_columnconfigure(0, weight=1)
+            self.settings.grid_columnconfigure(1, weight=0)
+            self.lbl_fac.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 4))
+            self.ent_fac.grid(row=1, column=0, sticky="ew", padx=(0, 8))
+            self.btn_fac.grid(row=1, column=1, sticky="e")
+            self.chk_remember.grid(row=2, column=0, columnspan=2, sticky="w", pady=(5, 9))
+
+            self.lbl_out.grid(row=3, column=0, columnspan=2, sticky="w", pady=(0, 4))
+            self.ent_out.grid(row=4, column=0, sticky="ew", padx=(0, 8))
+            self.btn_out.grid(row=4, column=1, sticky="e")
+        else:
+            self.settings.grid_columnconfigure(0, weight=0)
+            self.settings.grid_columnconfigure(1, weight=1)
+            self.settings.grid_columnconfigure(2, weight=0)
+            self.settings.grid_columnconfigure(3, weight=0)
+            self.lbl_fac.grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.ent_fac.grid(row=0, column=1, sticky="ew", pady=5)
+            self.btn_fac.grid(row=0, column=2, padx=(9, 9), pady=5)
+            self.chk_remember.grid(row=0, column=3, sticky="w", pady=5)
+
+            self.lbl_out.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=5)
+            self.ent_out.grid(row=1, column=1, sticky="ew", pady=5)
+            self.btn_out.grid(row=1, column=2, padx=(9, 9), pady=5)
+
+        for w in (self.status_label, self.progress, self.run_button):
+            w.grid_forget()
+
+        if compact:
+            self.status_label.grid(row=0, column=0, sticky="w")
+            self.progress.grid(row=1, column=0, sticky="ew", pady=(6, 8))
+            self.run_button.grid(row=2, column=0, sticky="ew")
+        else:
+            self.status_label.grid(row=0, column=0, sticky="w")
+            self.progress.grid(row=1, column=0, sticky="ew", padx=(0, 14), pady=(6, 0))
+            self.run_button.grid(row=0, column=1, rowspan=2, sticky="e", padx=(14, 0))
 
     def _load_config(self):
         try:
@@ -310,7 +402,10 @@ class App(tk.Tk):
         self.refresh_list()
 
     def choose_facsimile(self):
-        p = filedialog.askopenfilename(title="Wybierz faksymile", filetypes=[("Obrazy", "*.png *.jpg *.jpeg *.bmp *.tif *.tiff"), ("Wszystkie pliki", "*.*")])
+        p = filedialog.askopenfilename(
+            title="Wybierz faksymile",
+            filetypes=[("Obrazy", "*.png *.jpg *.jpeg *.bmp *.tif *.tiff"), ("Wszystkie pliki", "*.*")]
+        )
         if p:
             self.facsimile_var.set(p)
 
@@ -331,6 +426,7 @@ class App(tk.Tk):
         if not out:
             out = str(Path(self.files[0]).parent / "POLISY_GOTOWE")
             self.output_var.set(out)
+
         try:
             Path(out).mkdir(parents=True, exist_ok=True)
             self._save_config()
@@ -363,7 +459,10 @@ class App(tk.Tk):
         if errors:
             lines = [f"• {Path(f).name}: {err}" for f, err in errors[:10]]
             more = "" if len(errors) <= 10 else f"\n…i jeszcze {len(errors)-10} błędów."
-            messagebox.showwarning("Zakończono z uwagami", f"Przetworzono: {len(ok)}\nBłędy: {len(errors)}\n\n" + "\n".join(lines) + more)
+            messagebox.showwarning(
+                "Zakończono z uwagami",
+                f"Przetworzono: {len(ok)}\nBłędy: {len(errors)}\n\n" + "\n".join(lines) + more
+            )
         else:
             if messagebox.askyesno("Gotowe", f"Przetworzono {len(ok)} plików.\n\nOtworzyć folder wynikowy?"):
                 try:
