@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {completedSudokuUnits,newlyCompletedSudokuUnits,findSudokuHint} from '../src/sudoku/hints.js';
+import {completedSudokuUnits,newlyCompletedSudokuUnits,findSudokuHint,boardHasSudokuConflict} from '../src/sudoku/hints.js';
 
 const solved=[
   1,2,3,4,5,6,
@@ -54,4 +54,40 @@ test('hint returns a diagnostic for conflicting editable values',()=>{
   assert.equal(hint.index,0);
   assert.equal(hint.kind,'conflict');
   assert.equal(hint.value,null);
+});
+
+test('do not celebrate a filled row when another column has duplicate 4s (screenshot regression)',()=>{
+  const before=[
+    6,3,5,4,1,2,
+    2,1,4,3,6,0,
+    1,0,4,6,2,3,
+    0,2,3,1,5,4,
+    5,0,0,2,4,6,
+    0,0,0,5,3,1
+  ];
+  const after=before.slice();
+  after[11]=5;
+  assert.equal(boardHasSudokuConflict(after),true);
+  assert.deepEqual(newlyCompletedSudokuUnits(before,after),[]);
+  assert.deepEqual(completedSudokuUnits(after),[]);
+
+  // Clearing the duplicate removes the conflict, but must not re-celebrate
+  // rows that were already full before the correction.
+  const repaired=after.slice();
+  repaired[14]=0;
+  assert.equal(boardHasSudokuConflict(repaired),false);
+  assert.deepEqual(newlyCompletedSudokuUnits(after,repaired),[]);
+  assert.ok(completedSudokuUnits(repaired).some(unit=>unit.type==='row'&&unit.index===1));
+});
+
+test('do not celebrate even an unrelated correct row while the board has errors',()=>{
+  const after=solved.slice();
+  after[0]=0;
+  after[18]=0;
+  after[24]=solved[18]; // conflicting digit in a different row
+  const before=after.slice();
+  // Finish row 0 correctly, but a different part of the board remains invalid.
+  after[0]=solved[0];
+  assert.equal(boardHasSudokuConflict(after),true);
+  assert.deepEqual(newlyCompletedSudokuUnits(before,after),[]);
 });
