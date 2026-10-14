@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#F6F7FB">
   <title>PUZLI — codzienna porcja łamigłówek</title>
   <link rel="stylesheet" href="home.css">
+  <link rel="stylesheet" href="analytics.css">
 </head>
 <body>
 <header class="site-header">
@@ -131,10 +132,11 @@
   <div class="footer-inner shell">
     <div><a class="logo footer-logo" href="index.html">PUZLI</a><p>Codzienne łamigłówki, które wciągają.</p></div>
     <div><b>Nawigacja</b><a href="#gry">Gry</a><a href="#statystyki">Statystyki</a><a href="#jak">Jak grać?</a><a href="index.html">O PUZLI</a></div>
-    <div class="footer-note"><b>Twój postęp</b><p>Wyniki i serie są zapisywane lokalnie w tej przeglądarce. Nie potrzebujesz konta, żeby grać.</p></div>
+    <div class="footer-note"><b>Twój postęp</b><p>Wyniki i serie są zapisywane lokalnie w tej przeglądarce. Nie potrzebujesz konta, żeby grać.</p><button id="analyticsSettings" type="button" hidden>Ustawienia statystyk</button></div>
   </div>
 </footer>
 
+<script type="module" src="src/services/analytics-bootstrap.js"></script>
 <script type="module" src="home.js"></script>
 </body>
 </html>
