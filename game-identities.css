@@ -518,3 +518,23 @@ body.game-zip .zip-cell.wall-b::before {
     rgba(240,255,193,.72) 100%);
   box-shadow:inset 0 -1px 0 rgba(245,255,196,.62),0 2px 8px rgba(188,255,103,.33);
 }
+
+/* Latarnie / conflict must outrank the glowing has-bulb skin.
+ * Earlier rules painted the conflict's red inset shadow underneath a later,
+ * more specific gold box-shadow: the game rejected the move but looked solved.
+ */
+body.game-latarnie .latarnia-cell.has-bulb.conflict{
+  background:radial-gradient(circle at center,#ffe4d7 0%,#ffc2ae 46%,#dd6370 100%);
+  box-shadow:inset 0 0 0 4px #f5465c,0 0 0 1px #fff3df,0 0 18px rgba(245,70,92,.68);
+  z-index:3;
+}
+body.game-latarnie .latarnia-cell.has-bulb.conflict .bulb{
+  color:#852839;
+  text-shadow:0 1px 0 rgba(255,255,255,.5);
+}
+body.game-latarnie .feedback.error:not(.hint-feedback){
+  color:#ffe7e9;
+  background:linear-gradient(95deg,rgba(91,38,48,.96),rgba(55,34,49,.96));
+  border-color:#e17b87;
+  border-left-color:#ff657a;
+}
