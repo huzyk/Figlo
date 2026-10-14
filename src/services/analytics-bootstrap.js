@@ -91,11 +91,14 @@ function hideBanner() {
 }
 
 function setConsent(choice) {
+  const wasEnabled = enabled;
   write(CONSENT_KEY, choice);
   hideBanner();
   if (choice === 'accepted') {
-    startGA4();
-    currentPageOpened();
+    if (!enabled) {
+      startGA4();
+      currentPageOpened();
+    }
     return;
   }
   enabled = false;
@@ -104,6 +107,9 @@ function setConsent(choice) {
   remove(SENT_KEY);
   remove(FIRST_DAY_KEY);
   remove(LAST_DAY_KEY);
+  // Already loaded Google scripts cannot be unloaded from a live document.
+  // A reload removes them; the persisted refusal prevents them loading again.
+  if (wasEnabled) location.reload();
 }
 
 function showBanner() {
