@@ -1,0 +1,116 @@
+{
+  "date": "2027-06-12",
+  "game": "duet",
+  "version": 4,
+  "puzzleId": "duet:2027-06-12:v4",
+  "seed": "figlo:duet:2027-06-12:v1",
+  "resolvedSeed": "figlo:duet:2027-06-12:v1:8",
+  "requestedDifficulty": "hard",
+  "puzzle": {
+    "size": 6,
+    "givens": [
+      {
+        "index": 3,
+        "value": 1
+      },
+      {
+        "index": 13,
+        "value": 1
+      },
+      {
+        "index": 34,
+        "value": 2
+      },
+      {
+        "index": 4,
+        "value": 1
+      },
+      {
+        "index": 30,
+        "value": 1
+      },
+      {
+        "index": 21,
+        "value": 2
+      },
+      {
+        "index": 10,
+        "value": 1
+      },
+      {
+        "index": 27,
+        "value": 2
+      },
+      {
+        "index": 1,
+        "value": 2
+      }
+    ],
+    "relations": [
+      {
+        "a": 25,
+        "b": 26,
+        "type": "same"
+      },
+      {
+        "a": 34,
+        "b": 35,
+        "type": "different"
+      },
+      {
+        "a": 30,
+        "b": 31,
+        "type": "different"
+      },
+      {
+        "a": 21,
+        "b": 22,
+        "type": "different"
+      }
+    ]
+  },
+  "solution": [
+    1,
+    2,
+    2,
+    1,
+    1,
+    2,
+    2,
+    1,
+    1,
+    2,
+    1,
+    2,
+    2,
+    1,
+    2,
+    1,
+    2,
+    1,
+    1,
+    2,
+    1,
+    2,
+    1,
+    2,
+    2,
+    1,
+    1,
+    2,
+    2,
+    1,
+    1,
+    2,
+    2,
+    1,
+    2,
+    1
+  ],
+  "difficulty": {
+    "score": 27,
+    "steps": 27,
+    "maxRule": "row-balance",
+    "label": "hard"
+  }
+}
