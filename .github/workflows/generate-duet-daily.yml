@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: duet-daily-main
+  cancel-in-progress: false
+
 jobs:
   generate:
     if: github.ref == 'refs/heads/main'
@@ -24,23 +28,24 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Generate 45-day Duet buffer
         shell: bash
         run: |
           START=$(TZ=Europe/Warsaw date +%F)
           npm run generate:duet -- --start "$START" --days 45
+          node scripts/check-duet-buffer.mjs --start "$START" --days 45
 
       - name: Commit generated daily assets
         shell: bash
         run: |
-          if git diff --quiet -- data/duet; then
+          git add data/duet
+          if git diff --cached --quiet -- data/duet; then
             echo "No new Duet daily assets."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/duet
           git commit -m "duet: refresh pre-generated daily buffer"
           git push

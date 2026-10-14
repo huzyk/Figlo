@@ -1,0 +1,28 @@
+name: Check Duet daily buffer
+
+on:
+  schedule:
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'data/duet/**'
+      - 'src/duet/**'
+      - 'scripts/check-duet-buffer.mjs'
+      - '.github/workflows/check-duet-buffer.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify at least 14 days of published puzzles
+        run: node scripts/check-duet-buffer.mjs --days 14
