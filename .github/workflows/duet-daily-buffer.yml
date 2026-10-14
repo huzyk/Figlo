@@ -1,0 +1,119 @@
+name: Refresh Duet daily puzzles
+
+# Keep the next 365 Warsaw calendar days ready, including every date in between.
+# The push trigger warms up the buffer automatically on first installation.
+on:
+  schedule:
+    - cron: '41 3 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/duet-daily-buffer.yml'
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: duet-daily-buffer
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+      pages_mode: ${{ steps.pages.outputs.mode }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Resolve today's date in Warsaw
+        id: date
+        shell: bash
+        run: echo "today=$(TZ=Europe/Warsaw date +%F)" >> "$GITHUB_OUTPUT"
+
+      - name: Fill and validate 365 days of Duet
+        run: node scripts/generate-duet-daily.mjs --start "${{ steps.date.outputs.today }}" --days 365 --skip-existing
+
+      - name: Verify buffer automation is idempotent
+        run: node --test tests/duet-buffer-automation.test.mjs
+
+      - name: Commit and push only new puzzles
+        id: commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- data/duet/
+          if git diff --cached --quiet; then
+            echo "No new Duet puzzles needed."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "chore(duet): extend validated daily buffer to 365 days"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # GitHub Actions GITHUB_TOKEN commits do not automatically trigger
+      # another GitHub Pages build, so publish explicitly.
+      - name: Detect GitHub Pages source
+        id: pages
+        if: steps.commit.outputs.changed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MODE="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '.build_type')"
+          if [[ "$MODE" == "workflow" ]]; then
+            echo "mode=workflow" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=legacy" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trigger branch-based GitHub Pages build
+        if: steps.commit.outputs.changed == 'true' && steps.pages.outputs.mode == 'legacy'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds"
+
+  # Re-deploy the current static repository if GitHub Pages uses Actions mode.
+  publish-actions-pages:
+    needs: refresh
+    if: needs.refresh.outputs.changed == 'true' && needs.refresh.outputs.pages_mode == 'workflow'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout updated main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
