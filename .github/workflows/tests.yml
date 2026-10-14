@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main, preview]
 
+# Avoid competing Chromium test suites after rapid feature commits or PR updates.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
