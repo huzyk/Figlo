@@ -11,7 +11,15 @@ export function showMobileHint(feedback,{reason,action}={}){
   feedback.setAttribute('aria-live','polite');
   const heading=document.createElement('div');
   heading.className='mobile-hint-title';
-  heading.textContent='✦ Podpowiedź';
+  const label=document.createElement('span');
+  label.textContent='✦ Podpowiedź';
+  const close=document.createElement('button');
+  close.type='button';
+  close.className='mobile-hint-close';
+  close.setAttribute('aria-label','Zamknij podpowiedź');
+  close.textContent='×';
+  close.addEventListener('click',()=>dismissMobileHint(feedback));
+  heading.append(label,close);
   feedback.replaceChildren(heading);
   if(reason){
     const paragraph=document.createElement('p');
