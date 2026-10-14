@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#F4F1E8">
+  <title>Sudoku — PUZLI</title>
+  <link rel="stylesheet" href="sudoku.css">
+  <link rel="stylesheet" href="completion.css">
+  <link rel="stylesheet" href="analytics.css">
+</head>
+<body class="game-sudoku">
+  <header class="sudoku-header">
+    <a href="index.html#gry" class="sudoku-back" aria-label="Wróć do zestawu">←</a>
+    <div class="sudoku-brand"><span class="sudoku-kicker">PUZLI / KLASYKA</span><h1>Sudoku<span class="sudoku-brand-dot">.</span></h1></div>
+    <button id="rulesTop" class="sudoku-help" type="button" aria-label="Pokaż zasady">?</button>
+  </header>
+  <main class="sudoku-shell">
+    <section class="sudoku-primary">
+      <div class="sudoku-heading">
+        <div><span class="sudoku-overline">DZISIEJSZA ŁAMIGŁÓWKA</span><p>Dziewięć cyfr. Jedna logiczna odpowiedź.</p></div>
+        <span class="sudoku-series">№ 06 / 06</span>
+      </div>
+      <div class="sudoku-meta" aria-label="Postęp Sudoku">
+        <div><span>TRYB</span><strong id="roundLabel">Dzisiaj</strong></div>
+        <div><span>CZAS</span><strong id="timer">00:00</strong></div>
+        <div><span>WYPEŁNIONE</span><strong id="filledCounter">0/81</strong></div>
+      </div>
+      <div class="sudoku-board-wrap">
+        <div id="board" class="sudoku-board" role="grid" aria-label="Plansza Sudoku 9 na 9" aria-busy="true"></div>
+      </div>
+      <p id="feedback" class="sudoku-feedback" role="status" aria-live="polite">Wybierz puste pole i wpisz cyfrę 1–9.</p>
+      <div class="sudoku-tools" aria-label="Narzędzia">
+        <button id="undo" type="button"><span class="tool-icon" aria-hidden="true">↶</span>Cofnij</button>
+        <button id="erase" type="button"><span class="tool-icon" aria-hidden="true">⌫</span>Wymaż</button>
+        <button id="notes" type="button" aria-pressed="false"><span class="tool-icon" aria-hidden="true">✎</span>Notatki</button>
+        <button id="hint" type="button"><span class="tool-icon" aria-hidden="true">✦</span>Podpowiedź</button>
+      </div>
+      <div class="sudoku-keypad" id="keypad" aria-label="Wybierz cyfrę">
+        <button type="button" data-digit="1">1</button><button type="button" data-digit="2">2</button>
+        <button type="button" data-digit="3">3</button><button type="button" data-digit="4">4</button>
+        <button type="button" data-digit="5">5</button><button type="button" data-digit="6">6</button>
+        <button type="button" data-digit="7">7</button><button type="button" data-digit="8">8</button>
+        <button type="button" data-digit="9">9</button>
+      </div>
+      <div id="loadError" class="sudoku-error" hidden>Nie udało się przygotować Sudoku. Odśwież stronę.</div>
+    </section>
+    <aside class="sudoku-aside">
+      <section class="sudoku-aside-card">
+        <span class="sudoku-overline">JAK GRAĆ</span>
+        <h2>Wszystko jest w liczbach.</h2>
+        <p>Każdy wiersz, kolumna i kwadrat 3×3 musi zawierać cyfry od 1 do 9 — każdą dokładnie raz.</p>
+        <ul><li>Dotknij pola i wybierz cyfrę.</li><li>Włącz notatki, aby zapisać kandydatów.</li><li>Czerwone oznaczenia pokazują sprzeczności.</li></ul>
+      </section>
+      <button type="button" id="reset" class="sudoku-reset">Zacznij tę planszę od nowa ↻</button>
+      <details id="rules" class="sudoku-rules"><summary>Skróty klawiaturowe</summary><p>Cyfry 1–9: wpisywanie. Backspace: wymaż. Strzałki: wybór pola. N: notatki. Ctrl+Z: cofnięcie.</p></details>
+    </aside>
+  </main>
+  <section id="done" class="completion" role="dialog" aria-modal="true" aria-labelledby="doneTitle" hidden>
+    <div class="completion-card"><span class="success-mark">✓</span><h2 id="doneTitle">Sudoku ukończone!</h2>
+      <p id="doneCopy">Dziewięć na dziewięć. Brawo!</p>
+      <div class="completion-stats"><div><span>Czas</span><strong id="finalTime">—</strong></div>
+      <div><span>Najlepszy Daily</span><strong id="bestTime">—</strong></div></div>
+      <a id="backToSet" class="primary" href="index.html#gry">Wróć do dzisiejszego zestawu</a>
+      <button id="replay" type="button">Nowa plansza treningowa</button>
+    </div>
+  </section>
+  <script type="module" src="src/services/analytics-bootstrap.js"></script>
+  <script type="module" src="src/ui/completion-ui.js"></script>
+  <script type="module" src="src/sudoku/ui.js"></script>
+</body>
+</html>
