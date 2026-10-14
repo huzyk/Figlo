@@ -1,3 +1,4 @@
+import { dayDifference } from '../daily.js';
 import { getGameAverageTime, loadFigloState } from '../storage.js';
 
 export function getUserStats(dateKey) {
@@ -7,7 +8,7 @@ export function getUserStats(dateKey) {
   const weightedTotal = timed.reduce((sum, item) => sum + item.avg * item.count, 0);
   const weightedCount = timed.reduce((sum, item) => sum + item.count, 0);
   return {
-    streak: state.user.streak,
+    streak: [0, 1].includes(dayDifference(state.user.lastCompletedDate, dateKey)) ? state.user.streak : 0,
     bestStreak: state.user.bestStreak,
     completedDays: state.user.completedDays,
     completedGames: state.user.completedGames,
