@@ -58,6 +58,10 @@ test('Sudoku keypad notes, undo and daily session persist across reloads',async 
   await expect(page.locator('.sudoku-cell').nth(index)).toBeEmpty();
   await page.locator('#hint').click();
   await expect(page.locator('.sudoku-cell.hinted')).toHaveCount(1);
+  if (page.viewportSize()?.width <= 767) {
+    await page.locator('#rulesTop').click();
+    await expect(page.locator('.sudoku-aside')).toHaveClass(/mobile-open/);
+  }
   await page.locator('#reset').click();
   await expect(page.locator('.sudoku-cell.hinted')).toHaveCount(0);
   await expect(page.locator('#filledCounter')).toHaveText(/\d+\/36/);

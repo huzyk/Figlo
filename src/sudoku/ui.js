@@ -266,6 +266,13 @@ $('#hint').addEventListener('click',hint);
 $('#reset').addEventListener('click',reset);
 $('#replay').addEventListener('click',()=>loadRound(true));
 $('#rulesTop').addEventListener('click',()=>{
+  if(matchMedia('(max-width: 767px)').matches){
+    const aside=$('.sudoku-aside');
+    const open=aside.classList.toggle('mobile-open');
+    $('#rulesTop').setAttribute('aria-expanded',String(open));
+    if(open)aside.querySelector('.sudoku-reset')?.focus({preventScroll:true});
+    return;
+  }
   const rules=$('#rules');rules.open=true;rules.scrollIntoView({behavior:'smooth'});
 });
 document.addEventListener('keydown',handleKey);

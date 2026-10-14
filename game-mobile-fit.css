@@ -1,0 +1,369 @@
+/*
+ * PUZLI / mobile gameplay viewport
+ * Use the visible dynamic viewport, not the document height. All six boards,
+ * the feedback and the active controls stay in view on regular phones.
+ * Game-specific artwork and actual puzzle geometry remain unchanged.
+ */
+@media (max-width:767px) {
+  body.game-korony, body.game-duet, body.game-bloki,
+  body.game-latarnie, body.game-zip, body.game-sudoku {
+    height:100dvh;
+    min-height:0;
+    overflow:hidden;
+    overscroll-behavior:none;
+  }
+
+  /* Korony — header + meta + 9x9 board + fixed actions + short feedback. */
+  body.game-korony .app {
+    height:100dvh;
+    min-height:0;
+    max-height:100dvh;
+    overflow:hidden;
+    padding:4px 10px 0;
+  }
+  body.game-korony .app .game-topbar {
+    height:48px;
+    min-height:48px;
+  }
+  body.game-korony .app .game-meta {
+    height:50px;
+    margin:3px 0 7px;
+  }
+  body.game-korony .app .game-layout {display:block}
+  body.game-korony .app .board-column {
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+  }
+  body.game-korony .app .board {
+    width:min(calc(100vw - 20px),calc(100dvh - 229px));
+    max-width:100%;
+    flex-shrink:0;
+    margin:0 auto;
+  }
+  body.game-korony .app .feedback {
+    width:100%;
+    height:44px;
+    max-height:44px;
+    overflow:auto;
+    overscroll-behavior:contain;
+    margin:7px auto 0;
+    padding:6px 9px;
+    line-height:1.35;
+    font-size:12px;
+  }
+  body.game-korony .app .hint-card,
+  body.game-korony .app .bottom-actions,
+  body.game-korony .app .controls {display:none!important}
+  body.game-korony .app .game-tools {
+    display:none;
+    position:fixed;
+    z-index:75;
+    inset:56px 10px max(12px,env(safe-area-inset-bottom));
+    max-width:none;
+    margin:0;
+    padding:12px 18px;
+    border-radius:16px;
+    overflow:auto;
+    color:inherit;
+    background:#281b36;
+    border:1px solid #76537d;
+    box-shadow:0 12px 45px rgba(0,0,0,.65);
+  }
+  body.game-korony .app .game-tools[open] {display:block}
+  body.game-korony .app .mobile-controls {
+    min-height:62px;
+    height:calc(62px + env(safe-area-inset-bottom));
+  }
+  body.game-korony .app .mobile-controls button {gap:3px}
+  body.game-korony .app .mobile-controls span {font-size:10px}
+
+  /* The other four games share the same functional shell. */
+  body.game-duet,body.game-bloki,body.game-latarnie,body.game-zip {
+    --mobile-board-size:min(calc(100vw - 20px),calc(100dvh - 251px));
+    --mobile-actions-height:62px;
+  }
+  body.game-bloki {
+    /* Bloki also displays a compact, always-visible clue legend. */
+    --mobile-board-size:min(calc(100vw - 20px),calc(100dvh - 298px));
+  }
+  body.game-duet .game-topbar,body.game-bloki .game-topbar,
+  body.game-latarnie .game-topbar,body.game-zip .game-topbar {
+    height:52px;
+    min-height:52px;
+    padding:0 10px;
+  }
+  body.game-duet .game-shell,body.game-bloki .game-shell,
+  body.game-latarnie .game-shell,body.game-zip .game-shell {
+    display:block;
+    width:100%;
+    height:calc(100dvh - 52px);
+    max-height:calc(100dvh - 52px);
+    padding:6px 10px 0;
+    overflow:hidden;
+  }
+  body.game-duet .game-shell .play-area,body.game-bloki .game-shell .play-area,
+  body.game-latarnie .game-shell .play-area,body.game-zip .game-shell .play-area {
+    width:100%;
+    min-width:0;
+  }
+  body.game-duet .game-shell .game-meta,body.game-bloki .game-shell .game-meta,
+  body.game-latarnie .game-shell .game-meta,body.game-zip .game-shell .game-meta {
+    height:51px;
+    min-height:51px;
+    margin:0 0 7px;
+    gap:5px;
+  }
+  body.game-duet .game-shell .game-meta div,body.game-bloki .game-shell .game-meta div,
+  body.game-latarnie .game-shell .game-meta div,body.game-zip .game-shell .game-meta div {
+    padding:4px 8px;
+  }
+  body.game-duet .game-shell .game-meta span,body.game-bloki .game-shell .game-meta span,
+  body.game-latarnie .game-shell .game-meta span,body.game-zip .game-shell .game-meta span {
+    font-size:10px;
+  }
+  body.game-duet .game-shell .game-meta strong,body.game-bloki .game-shell .game-meta strong,
+  body.game-latarnie .game-shell .game-meta strong,body.game-zip .game-shell .game-meta strong {
+    font-size:15px;
+  }
+  body.game-duet .game-shell .board-wrap,body.game-bloki .game-shell .board-wrap,
+  body.game-latarnie .game-shell .board-wrap,body.game-zip .game-shell .board-wrap {
+    width:var(--mobile-board-size);
+    max-width:100%;
+    margin:0 auto;
+    flex-shrink:0;
+  }
+  body.game-duet .game-shell .duet-board,body.game-bloki .game-shell .bloki-board,
+  body.game-zip .game-shell .zip-board {width:100%}
+  body.game-duet .game-shell .feedback,body.game-bloki .game-shell .feedback,
+  body.game-latarnie .game-shell .feedback,body.game-zip .game-shell .feedback {
+    box-sizing:border-box;
+    min-height:44px;
+    height:44px;
+    max-height:44px;
+    overflow:auto;
+    overscroll-behavior:contain;
+    margin:7px auto 0;
+    padding:6px 9px;
+    font-size:12px;
+    line-height:1.32;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  body.game-duet .game-shell .feedback.hint-feedback,
+  body.game-latarnie .game-shell .feedback.hint-feedback,
+  body.game-zip .game-shell .feedback.hint-feedback,
+  body.game-korony .app .feedback.hint-feedback {
+    border-left:3px solid #f2cb79;
+    justify-content:flex-start;
+  }
+  body.game-duet .game-shell .side-panel,body.game-bloki .game-shell .side-panel,
+  body.game-latarnie .game-shell .side-panel,body.game-zip .game-shell .side-panel {
+    margin:0;
+    height:0;
+    overflow:visible;
+  }
+  body.game-duet .side-panel>.panel-card:first-child,
+  body.game-bloki .side-panel>.panel-card:first-child,
+  body.game-latarnie .side-panel>.panel-card:first-child,
+  body.game-zip .side-panel>.panel-card:first-child,
+  body.game-duet .side-panel .hint-card,
+  body.game-latarnie .side-panel .hint-card,
+  body.game-zip .side-panel .hint-card {display:none!important}
+
+  /* Rules stay accessible as an overlay, without displacing the game. */
+  body.game-duet .game-shell .side-panel details.rules,
+  body.game-bloki .game-shell .side-panel details.rules,
+  body.game-latarnie .game-shell .side-panel details.rules,
+  body.game-zip .game-shell .side-panel details.rules {
+    display:none;
+    position:fixed;
+    z-index:75;
+    top:60px;
+    left:10px;
+    right:10px;
+    max-height:calc(100dvh - 75px);
+    overflow:auto;
+    margin:0;
+    padding:8px 12px 12px;
+    background:var(--surface,#172635);
+    border:1px solid #7c8994;
+    border-radius:14px;
+    box-shadow:0 16px 55px rgba(0,0,0,.65);
+  }
+  body.game-duet .game-shell .side-panel details.rules[open],
+  body.game-bloki .game-shell .side-panel details.rules[open],
+  body.game-latarnie .game-shell .side-panel details.rules[open],
+  body.game-zip .game-shell .side-panel details.rules[open] {display:block}
+
+  body.game-duet .mobile-controls,body.game-bloki .mobile-controls,
+  body.game-latarnie .mobile-controls,body.game-zip .mobile-controls {
+    height:calc(var(--mobile-actions-height) + env(safe-area-inset-bottom));
+    min-height:0;
+    padding-top:3px;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  body.game-duet .mobile-controls button,body.game-bloki .mobile-controls button,
+  body.game-latarnie .mobile-controls button,body.game-zip .mobile-controls button {
+    min-height:0;
+    height:58px;
+  }
+
+  /* Bloki legend in one compact line, still available while playing. */
+  body.game-bloki .game-shell .bloki-legend {
+    height:43px;
+    max-height:43px;
+    margin:6px auto 0;
+    padding:7px 8px;
+    overflow:hidden;
+  }
+  body.game-bloki .game-shell .bloki-legend>strong,
+  body.game-bloki .game-shell .bloki-legend>small {display:none}
+  body.game-bloki .game-shell .legend-grid {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:2px;
+  }
+  body.game-bloki .game-shell .legend-grid span {
+    justify-content:center;
+    padding:0;
+    font-size:10px;
+    gap:3px;
+    white-space:nowrap;
+  }
+
+  /* Sudoku: 6 digits in a single row and a viewport-height-aware square. */
+  body.game-sudoku .sudoku-header {
+    flex:0 0 52px;
+    height:52px;
+    min-height:52px;
+    padding:0 10px;
+  }
+  body.game-sudoku .sudoku-back,body.game-sudoku .sudoku-help{
+    width:40px;
+    height:40px;
+  }
+  body.game-sudoku .sudoku-shell {
+    display:block;
+    flex:1 1 auto;
+    height:calc(100dvh - 52px);
+    max-height:calc(100dvh - 52px);
+    overflow:hidden;
+    padding:6px 10px 0;
+  }
+  body.game-sudoku .sudoku-primary {
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    height:100%;
+  }
+  body.game-sudoku .sudoku-heading {
+    flex:0 0 43px;
+    min-height:43px;
+    margin:0 0 5px;
+    align-items:center;
+  }
+  body.game-sudoku .sudoku-heading p {font-size:12px;line-height:1.2;margin:3px 0 0}
+  body.game-sudoku .sudoku-overline {font-size:9px}
+  body.game-sudoku .sudoku-series {font-size:12px}
+  body.game-sudoku .sudoku-meta {
+    flex:0 0 50px;
+    min-height:50px;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:5px;
+    margin:0 0 6px;
+  }
+  body.game-sudoku .sudoku-meta div {padding:5px 8px;min-width:0}
+  body.game-sudoku .sudoku-meta strong {font-size:16px;margin-top:1px}
+  body.game-sudoku .sudoku-meta span {font-size:9px}
+  body.game-sudoku .sudoku-board-wrap {
+    flex:0 0 auto;
+    width:min(calc(100vw - 20px),calc(100dvh - 315px));
+    max-width:100%;
+    margin:0 auto;
+  }
+  body.game-sudoku .sudoku-board {width:100%;aspect-ratio:1}
+  body.game-sudoku button.sudoku-cell{
+    font-size:clamp(24px,min(9.5vw,calc((100dvh - 315px)/8)),43px);
+    font-weight:800;
+  }
+  body.game-sudoku .sudoku-feedback {
+    flex:0 0 42px;
+    min-height:42px;
+    max-height:42px;
+    overflow:auto;
+    overscroll-behavior:contain;
+    margin:7px 0 0;
+    padding:6px 8px;
+    font-size:12px;
+    line-height:1.25;
+  }
+  body.game-sudoku .sudoku-tools {
+    flex:0 0 46px;
+    min-height:46px;
+    height:46px;
+    gap:5px;
+    margin:6px 0 0;
+  }
+  body.game-sudoku .sudoku-tools button {
+    min-height:46px;
+    height:46px;
+    flex-direction:row;
+    gap:3px;
+    padding:0 2px;
+    font-size:11px;
+  }
+  body.game-sudoku .sudoku-tools button .tool-icon {font-size:19px}
+  body.game-sudoku .sudoku-keypad {
+    display:grid;
+    flex:0 0 46px;
+    min-height:46px;
+    height:46px;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:4px;
+    margin:6px 0 0;
+  }
+  body.game-sudoku .sudoku-keypad button {
+    height:46px;
+    min-height:46px;
+    font-size:30px;
+    border-radius:8px;
+    padding:0;
+  }
+  body.game-sudoku .sudoku-aside {display:none}
+  body.game-sudoku .sudoku-aside.mobile-open {
+    display:grid;
+    position:fixed;
+    z-index:75;
+    inset:60px 10px max(12px,env(safe-area-inset-bottom));
+    padding:14px;
+    border-radius:16px;
+    align-content:start;
+    gap:12px;
+    overflow:auto;
+    background:#f3f3e9;
+    border:1px solid #9abca6;
+    box-shadow:0 15px 50px rgba(26,43,33,.5);
+    margin:0;
+  }
+}
+
+/* A rare extremely short viewport remains scrollable rather than clipping
+   controls entirely. Ordinary phone heights remain one-screen experiences. */
+@media (max-width:767px) and (max-height:520px) {
+  body.game-korony,body.game-duet,body.game-bloki,
+  body.game-latarnie,body.game-zip,body.game-sudoku {
+    overflow-y:auto;
+    height:auto;
+    min-height:100dvh;
+  }
+  body.game-korony .app,body.game-duet .game-shell,body.game-bloki .game-shell,
+  body.game-latarnie .game-shell,body.game-zip .game-shell,
+  body.game-sudoku .sudoku-shell {
+    height:auto;
+    max-height:none;
+    overflow:visible;
+    padding-bottom:calc(75px + env(safe-area-inset-bottom));
+  }
+}
