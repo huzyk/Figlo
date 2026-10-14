@@ -147,8 +147,8 @@ hintBtn.addEventListener('click',showHint);$('#mobileHint').addEventListener('cl
 $('#rulesBtn').addEventListener('click',()=>toggleRules());$('#helpTop').addEventListener('click',()=>toggleRules(true));
 autoXInput.addEventListener('change',()=>setAutoX(autoXInput.checked));mobileAutoX.addEventListener('click',()=>setAutoX(!autoXEnabled));
 nextPuzzleBtn.addEventListener('click',async()=>{nextPuzzleBtn.disabled=true;try{await loadTrainingPuzzle();nextPuzzleBtn.textContent='Nowa plansza treningowa';}catch{nextPuzzleBtn.textContent='Spróbuj ponownie';}finally{nextPuzzleBtn.disabled=false;}});
-document.addEventListener('visibilitychange',()=>{if(gameMode!=='daily'||finished||!started)return;if(document.hidden){pauseTimer();persistSession();}else{runningSince=Date.now();if(!tick)tick=setInterval(refreshTimer,250);persistSession();}});
-window.addEventListener('pagehide',()=>{if(gameMode==='daily'&&!finished){pauseTimer();persistSession();}});
+document.addEventListener('visibilitychange',()=>{if(finished||!started)return;if(document.hidden){pauseTimer();persistSession();}else{runningSince=Date.now();if(!tick)tick=setInterval(refreshTimer,250);persistSession();}});
+window.addEventListener('pagehide',()=>{if(!finished){pauseTimer();persistSession();}});
 
 refreshStats();
 if(requestedMode==='training')loadTrainingPuzzle();else loadDailyPuzzle();
