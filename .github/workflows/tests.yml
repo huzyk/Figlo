@@ -2,11 +2,11 @@ name: Figlo tests
 
 on:
   push:
-    branches: [main, preview, 'feature/**']
+    branches: [main, preview]
   pull_request:
     branches: [main, preview]
 
-# Avoid competing Chromium test suites after rapid feature commits or PR updates.
+# Feature branches are tested once through their PR to avoid duplicate browser suites.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
