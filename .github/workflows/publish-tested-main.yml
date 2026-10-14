@@ -1,0 +1,89 @@
+name: Publish tested main to GitHub Pages
+
+# Pages currently serves the preview branch; CI and PR merges land on main.
+# workflow_run publishes only tested changes. The daily run also catches
+# GitHub Actions token commits (e.g. Duet's automated daily puzzle updates),
+# which GitHub does not propagate to new workflow events.
+on:
+  workflow_run:
+    workflows: ["Figlo tests"]
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: '47 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: publish-tested-main-to-preview
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Sync preview branch using fast-forward only
+        id: sync
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          CHECKED_SHA: ${{ github.event.workflow_run.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main preview
+
+          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            target="$CHECKED_SHA"
+            git merge-base --is-ancestor "$target" "origin/main" || {
+              echo "::error::The tested SHA is no longer on main."
+              exit 1
+            }
+          else
+            target="$(git rev-parse origin/main)"
+          fi
+
+          preview="$(git rev-parse origin/preview)"
+          if [[ "$preview" == "$target" ]]; then
+            echo "preview is already current"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git merge-base --is-ancestor "$target" "$preview"; then
+            echo "preview already contains this tested revision"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git merge-base --is-ancestor "$preview" "$target" || {
+            echo "::error::preview has diverged from main; refusing to overwrite it."
+            exit 1
+          }
+
+          git push origin "$target:refs/heads/preview"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "Published $target from main to preview"
+
+      - name: Trigger Pages build for bot-initiated updates
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          # GITHUB_TOKEN pushes do not fire the Pages branch-push build on their own.
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds"
