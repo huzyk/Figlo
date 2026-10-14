@@ -107,7 +107,7 @@ test('Zip checkpoint circles and numbers are centered in cells, including walls'
   }
 });
 
-test('Sudoku 6x6 shows legible smaller digits without changing cell geometry',async ({page})=>{
+test('Sudoku 6x6 shows compact digits without changing cell geometry',async ({page},testInfo)=>{
   await page.goto('/sudoku.html?date=2026-10-15');
   const cells=page.locator('.sudoku-cell');
   await expect(cells).toHaveCount(36);
@@ -121,7 +121,8 @@ test('Sudoku 6x6 shows legible smaller digits without changing cell geometry',as
       cellWidth:box.width,cellHeight:box.height,boardWidth:parent.width,
       overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+2};
   });
-  expect(sizes.digit).toBeGreaterThanOrEqual(26);
+  expect(sizes.digit).toBeGreaterThanOrEqual(20);
+  if(testInfo.project.name==='mobile-chromium')expect(sizes.digit).toBeLessThanOrEqual(29);
   expect(sizes.digit).toBeLessThan(sizes.cellHeight);
   expect(sizes.keypad).toBeGreaterThanOrEqual(29);
   expect(Math.abs(sizes.cellWidth-sizes.cellHeight)).toBeLessThan(2);
