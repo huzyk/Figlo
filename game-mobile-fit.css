@@ -327,7 +327,7 @@
   body.game-sudoku .sudoku-keypad button {
     height:46px;
     min-height:46px;
-    font-size:28px;
+    font-size:30px;
     border-radius:8px;
     padding:0;
   }
