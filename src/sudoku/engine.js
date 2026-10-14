@@ -1,7 +1,10 @@
-// Sudoku Daily: seeded, uniquely solvable 9x9 puzzles, with no network dependency.
-export const SIZE = 9;
-export const CELL_COUNT = 81;
-const ALL = 0b1111111110;
+// PUZLI Sudoku 6x6: deterministic puzzles with 2-row x 3-column boxes.
+export const SIZE = 6;
+export const BOX_ROWS = 2;
+export const BOX_COLS = 3;
+export const CELL_COUNT = SIZE * SIZE;
+const ALL = (1 << (SIZE + 1)) - 2;
+const DIGITS = Array.from({length: SIZE}, (_, i) => i + 1);
 
 function random(seed) {
   let state = 2166136261;
@@ -22,49 +25,56 @@ function shuffled(items, rng) {
   }
   return result;
 }
-const boxOf = index => Math.floor(Math.floor(index / 9) / 3) * 3 + Math.floor((index % 9) / 3);
+const boxOf = index =>
+  Math.floor(Math.floor(index / SIZE) / BOX_ROWS) * (SIZE / BOX_COLS) +
+  Math.floor((index % SIZE) / BOX_COLS);
 
 export function candidates(board, index) {
-  if (board[index]) return [];
+  if (!Array.isArray(board) || board.length !== CELL_COUNT ||
+      !Number.isInteger(index) || index < 0 || index >= CELL_COUNT || board[index]) return [];
   const used = new Set();
-  const row = Math.floor(index / 9), col = index % 9;
-  for (let k = 0; k < 9; k++) {
-    used.add(board[row * 9 + k]);
-    used.add(board[k * 9 + col]);
+  const row = Math.floor(index / SIZE), col = index % SIZE;
+  for (let k = 0; k < SIZE; k++) {
+    used.add(board[row * SIZE + k]);
+    used.add(board[k * SIZE + col]);
   }
-  const firstRow = Math.floor(row / 3) * 3, firstCol = Math.floor(col / 3) * 3;
-  for (let r = firstRow; r < firstRow + 3; r++) {
-    for (let c = firstCol; c < firstCol + 3; c++) used.add(board[r * 9 + c]);
+  const firstRow = Math.floor(row / BOX_ROWS) * BOX_ROWS;
+  const firstCol = Math.floor(col / BOX_COLS) * BOX_COLS;
+  for (let r = firstRow; r < firstRow + BOX_ROWS; r++) {
+    for (let c = firstCol; c < firstCol + BOX_COLS; c++) used.add(board[r * SIZE + c]);
   }
-  return Array.from({ length: 9 }, (_, i) => i + 1).filter(n => !used.has(n));
+  return DIGITS.filter(n => !used.has(n));
 }
 
 export function isSudokuSolved(board) {
-  if (!Array.isArray(board) || board.length !== 81) return false;
-  for (let group = 0; group < 9; group++) {
+  if (!Array.isArray(board) || board.length !== CELL_COUNT) return false;
+  for (let group = 0; group < SIZE; group++) {
     const row = new Set(), col = new Set(), box = new Set();
-    for (let i = 0; i < 9; i++) {
-      row.add(board[group * 9 + i]);
-      col.add(board[i * 9 + group]);
-      box.add(board[(Math.floor(group / 3) * 3 + Math.floor(i / 3)) * 9 +
-        (group % 3) * 3 + (i % 3)]);
+    const boxRow = Math.floor(group / (SIZE / BOX_COLS)) * BOX_ROWS;
+    const boxCol = (group % (SIZE / BOX_COLS)) * BOX_COLS;
+    for (let i = 0; i < SIZE; i++) {
+      row.add(board[group * SIZE + i]);
+      col.add(board[i * SIZE + group]);
+      box.add(board[(boxRow + Math.floor(i / BOX_COLS)) * SIZE +
+        boxCol + (i % BOX_COLS)]);
     }
-    if (row.size !== 9 || col.size !== 9 || box.size !== 9 ||
-      row.has(0) || col.has(0) || box.has(0)) return false;
+    if (row.size !== SIZE || col.size !== SIZE || box.size !== SIZE ||
+        row.has(0) || col.has(0) || box.has(0) ||
+        [...row, ...col, ...box].some(n => !Number.isInteger(n) || n < 1 || n > SIZE)) return false;
   }
   return true;
 }
 
-// Minimum Remaining Values with bit masks. Stop once 2 solutions are found.
+// MRV search using bit masks. Stop at two solutions to validate uniqueness.
 export function countSudokuSolutions(input, limit = 2) {
   if (!Array.isArray(input) || input.length !== CELL_COUNT) return 0;
-  const board = input.slice(), rows = Array(9).fill(0),
-    cols = Array(9).fill(0), boxes = Array(9).fill(0);
+  const board = input.slice(), rows = Array(SIZE).fill(0),
+    cols = Array(SIZE).fill(0), boxes = Array(SIZE).fill(0);
   const blanks = [];
-  for (let i = 0; i < 81; i++) {
-    const value = board[i], r = Math.floor(i / 9), c = i % 9, b = boxOf(i);
+  for (let i = 0; i < CELL_COUNT; i++) {
+    const value = board[i], r = Math.floor(i / SIZE), c = i % SIZE, b = boxOf(i);
     if (value === 0) { blanks.push(i); continue; }
-    if (!Number.isInteger(value) || value < 1 || value > 9) return 0;
+    if (!Number.isInteger(value) || value < 1 || value > SIZE) return 0;
     const bit = 1 << value;
     if ((rows[r] | cols[c] | boxes[b]) & bit) return 0;
     rows[r] |= bit; cols[c] |= bit; boxes[b] |= bit;
@@ -73,9 +83,9 @@ export function countSudokuSolutions(input, limit = 2) {
   function walk(depth) {
     if (count >= limit) return;
     if (depth === blanks.length) { count++; return; }
-    let choice = -1, possibilities = 0, smallest = 10;
+    let choice = -1, possibilities = 0, smallest = SIZE + 1;
     for (let j = depth; j < blanks.length; j++) {
-      const i = blanks[j], r = Math.floor(i / 9), c = i % 9, b = boxOf(i);
+      const i = blanks[j], r = Math.floor(i / SIZE), c = i % SIZE, b = boxOf(i);
       const mask = ALL & ~(rows[r] | cols[c] | boxes[b]);
       let size = 0;
       for (let bits = mask; bits; bits &= bits - 1) size++;
@@ -86,7 +96,7 @@ export function countSudokuSolutions(input, limit = 2) {
       }
     }
     [blanks[depth], blanks[choice]] = [blanks[choice], blanks[depth]];
-    const i = blanks[depth], r = Math.floor(i / 9), c = i % 9, b = boxOf(i);
+    const i = blanks[depth], r = Math.floor(i / SIZE), c = i % SIZE, b = boxOf(i);
     for (let bits = possibilities; bits; bits &= bits - 1) {
       const bit = bits & -bits, value = Math.log2(bit);
       board[i] = value; rows[r] |= bit; cols[c] |= bit; boxes[b] |= bit;
@@ -100,16 +110,20 @@ export function countSudokuSolutions(input, limit = 2) {
   return count;
 }
 
-export function buildSudokuPuzzle(seed, { givens = 39 } = {}) {
-  const rng = random(seed), digits = shuffled([1,2,3,4,5,6,7,8,9], rng);
-  const shuffledBands = shuffled([0,1,2], rng);
-  const shuffledStacks = shuffled([0,1,2], rng);
-  const rows = shuffledBands.flatMap(b => shuffled([0,1,2], rng).map(r => b * 3 + r));
-  const cols = shuffledStacks.flatMap(b => shuffled([0,1,2], rng).map(c => b * 3 + c));
-  const solution = rows.flatMap(r => cols.map(c => digits[(r * 3 + Math.floor(r / 3) + c) % 9]));
-  const puzzle = [...solution], positions = shuffled(Array.from({ length: 81 }, (_, i) => i), rng);
-  const target = Math.max(28, Math.min(55, givens));
-  let filled = 81;
+export function buildSudokuPuzzle(seed, { givens = 18 } = {}) {
+  const rng = random(seed), digits = shuffled(DIGITS, rng);
+  const shuffledBands = shuffled(Array.from({length: SIZE / BOX_ROWS}, (_, i) => i), rng);
+  const shuffledStacks = shuffled(Array.from({length: SIZE / BOX_COLS}, (_, i) => i), rng);
+  const rows = shuffledBands.flatMap(b =>
+    shuffled(Array.from({length: BOX_ROWS}, (_, i) => i), rng).map(r => b * BOX_ROWS + r));
+  const cols = shuffledStacks.flatMap(b =>
+    shuffled(Array.from({length: BOX_COLS}, (_, i) => i), rng).map(c => b * BOX_COLS + c));
+  const solution = rows.flatMap(r =>
+    cols.map(c => digits[(r * BOX_COLS + Math.floor(r / BOX_ROWS) + c) % SIZE]));
+  const puzzle = [...solution];
+  const positions = shuffled(Array.from({length: CELL_COUNT}, (_, i) => i), rng);
+  const target = Math.max(12, Math.min(25, Math.floor(givens)));
+  let filled = CELL_COUNT;
   for (const position of positions) {
     if (filled <= target) break;
     const saved = puzzle[position];
@@ -117,8 +131,9 @@ export function buildSudokuPuzzle(seed, { givens = 39 } = {}) {
     if (countSudokuSolutions(puzzle, 2) === 1) filled--;
     else puzzle[position] = saved;
   }
-  return { game: 'sudoku', seed: String(seed), puzzle, solution, givens: filled,
-    puzzleId: 'sudoku:' + String(seed) + ':v1' };
+  return {game: 'sudoku', seed: String(seed), size: SIZE, boxRows: BOX_ROWS,
+    boxCols: BOX_COLS, puzzle, solution, givens: filled,
+    puzzleId: 'sudoku:' + String(seed) + ':v2'};
 }
 
 export function hasConflict(board, index) {
