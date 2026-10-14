@@ -13,7 +13,7 @@ export function toGA4Event(event) {
   const params = {};
   if (GAMES.has(payload.gameId)) params.game_id = payload.gameId;
   if (MODES.has(payload.mode)) params.game_mode = payload.mode;
-  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(String(payload.date || ''))) params.puzzle_date = payload.date;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(payload.date || ''))) params.puzzle_date = payload.date;
   if (Number.isFinite(payload.elapsedMs) && payload.elapsedMs >= 0)
     params.elapsed_seconds = Math.round(payload.elapsedMs / 1000);
   if (Number.isInteger(payload.hintsUsed) && payload.hintsUsed >= 0)
@@ -22,9 +22,9 @@ export function toGA4Event(event) {
 }
 
 export function visitEvents({ firstDay = null, lastDay = null, today }) {
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(today || ''))) return [];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(today || ''))) return [];
   if (lastDay === today) return [];
-  const first = /^\\d{4}-\\d{2}-\\d{2}$/.test(String(firstDay || '')) ? firstDay : today;
+  const first = /^\d{4}-\d{2}-\d{2}$/.test(String(firstDay || '')) ? firstDay : today;
   const daysSinceFirst = Math.round((
     Date.parse(today + 'T00:00:00Z') - Date.parse(first + 'T00:00:00Z')
   ) / 86400000);
