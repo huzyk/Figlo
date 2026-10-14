@@ -65,17 +65,18 @@ test('Duet hint opens and remains inside viewport', async ({ page }, info) => {
   await fresh(page);
   const hint = info.project.name === 'mobile-chromium' ? page.locator('#mobileHint') : page.locator('#hint');
   await hint.click();
-  await expect(page.locator('#hintCard')).toBeVisible();
-  if (info.project.name === 'mobile-chromium') await page.waitForTimeout(450);
-  const box = await page.locator('#hintCard').boundingBox();
-  const viewport = page.viewportSize();
-  expect(box).not.toBeNull();
-  expect(viewport).not.toBeNull();
-  expect(box.x).toBeGreaterThanOrEqual(0);
-  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
   if (info.project.name === 'mobile-chromium') {
-    expect(box.y).toBeGreaterThanOrEqual(0);
-    expect(box.y + Math.min(box.height, 120)).toBeLessThanOrEqual(viewport.height - 70);
+    const feedback = page.locator('#feedback');
+    await expect(feedback).toHaveClass(/hint-feedback/);
+    await expect(feedback).toBeInViewport();
+    await expect(page.locator('#hintCard')).toBeHidden();
+    expect(await page.evaluate(()=>window.scrollY)).toBe(0);
+  } else {
+    await expect(page.locator('#hintCard')).toBeVisible();
+    const box = await page.locator('#hintCard').boundingBox();
+    const viewport = page.viewportSize();
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
   }
 });
 
