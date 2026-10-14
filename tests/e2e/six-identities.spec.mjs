@@ -60,5 +60,45 @@ test('Sudoku keypad notes, undo and daily session persist across reloads',async 
   await expect(page.locator('.sudoku-cell.hinted')).toHaveCount(1);
   await page.locator('#reset').click();
   await expect(page.locator('.sudoku-cell.hinted')).toHaveCount(0);
-  await expect(page.locator('#filledCounter')).toHaveText(/\d+\/81/);
+  await expect(page.locator('#filledCounter')).toHaveText(/\d+\/36/);
+});
+
+test('6x6 Sudoku has exactly 36 cells, six keys, and 2x3 thick borders',async ({page})=>{
+  await page.goto('/sudoku.html?date=2026-10-15');
+  await expect(page.locator('.sudoku-cell')).toHaveCount(36);
+  await expect(page.locator('.sudoku-keypad button')).toHaveCount(6);
+  await expect(page.locator('#board')).toHaveAttribute('aria-label','Plansza Sudoku 6 na 6');
+  await expect(page.locator('.sudoku-cell.box-right')).toHaveCount(6);
+  await expect(page.locator('.sudoku-cell.box-bottom')).toHaveCount(12);
+  await expect(page.locator('#filledCounter')).toHaveText(/\d+\/36/);
+  const record=await page.evaluate(async()=>{
+    const {getDailyGame}=await import('/src/services/daily-service.js');
+    return getDailyGame('sudoku','2026-10-15');
+  });
+  expect(record.puzzle.length).toBe(36);
+  expect(record.version).toBe(2);
+});
+
+test('Zip checkpoint circles and numbers are centered in cells, including walls',async ({page})=>{
+  await page.goto('/zip.html?date=2026-10-15');
+  await expect(page.locator('.checkpoint')).not.toHaveCount(0);
+  const positions=await page.locator('.zip-cell.numbered').evaluateAll(cells=>cells.map(cell=>{
+    const circle=cell.querySelector('.checkpoint');
+    const number=circle.querySelector('.checkpoint-number');
+    const cb=cell.getBoundingClientRect(),b=circle.getBoundingClientRect(),n=number.getBoundingClientRect();
+    return {
+      cellIndex:Number(cell.dataset.index),
+      dx:(b.left+b.width/2)-(cb.left+cb.width/2),
+      dy:(b.top+b.height/2)-(cb.top+cb.height/2),
+      numberDy:(n.top+n.height/2)-(b.top+b.height/2),
+      overflow:b.left<cb.left||b.right>cb.right||b.top<cb.top||b.bottom>cb.bottom
+    };
+  }));
+  expect(positions.length).toBeGreaterThan(3);
+  for(const p of positions){
+    expect(Math.abs(p.dx), 'checkpoint horizontal cell '+p.cellIndex).toBeLessThan(3);
+    expect(Math.abs(p.dy), 'checkpoint vertical cell '+p.cellIndex).toBeLessThan(3);
+    expect(Math.abs(p.numberDy), 'checkpoint numeral '+p.cellIndex).toBeLessThan(3);
+    expect(p.overflow).toBe(false);
+  }
 });
