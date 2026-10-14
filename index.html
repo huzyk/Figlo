@@ -4,19 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#F6F7FB">
-  <title>Figlo — codzienna porcja łamigłówek</title>
+  <title>PUZLI — codzienna porcja łamigłówek</title>
   <link rel="stylesheet" href="home.css">
 </head>
 <body>
 <header class="site-header">
   <div class="nav-wrap shell">
-    <a class="logo" href="index.html" aria-label="Figlo, strona główna">FIGLO</a>
+    <a class="logo" href="index.html" aria-label="PUZLI, strona główna">PUZLI</a>
     <nav aria-label="Główna nawigacja">
       <a href="#gry">Gry</a>
       <a href="#statystyki">Statystyki</a>
       <a href="#jak">Jak grać?</a>
     </nav>
-    <div class="streak-pill" aria-label="Aktualna seria"><span aria-hidden="true">🔥</span><span id="streakValue">0 dni</span></div>
+    
     <button class="menu" type="button" aria-label="Otwórz menu" aria-expanded="false">☰</button>
   </div>
 </header>
@@ -26,7 +26,7 @@
     <div class="hero-copy">
       <span class="eyebrow">CODZIENNA PORCJA DLA GŁOWY</span>
       <h1>Codzienna porcja łamigłówek.<span>Twój rytuał. Twój wynik.</span></h1>
-      <p>Figlo to krótkie, satysfakcjonujące gry logiczne na każdy dzień. Zagraj, utrzymaj serię i wróć jutro po kolejne wyzwanie.</p>
+      <p>PUZLI to krótkie, satysfakcjonujące gry logiczne na każdy dzień. Zagraj, utrzymaj serię i wróć jutro po kolejne wyzwanie.</p>
       <div class="hero-actions">
         <a class="btn primary" href="#gry">Zagraj dzisiejsze gry</a>
         <a class="btn secondary" href="#jak">Jak to działa?</a>
@@ -43,11 +43,11 @@
       </header>
 
       <div class="progress-block">
-        <div class="ring" id="progressRingVisual" aria-hidden="true"><div><strong id="progressRing">0/1</strong><span>ukończonych</span></div></div>
+        <div class="ring" id="progressRingVisual" aria-hidden="true"><div><strong id="progressRing">0/5</strong><span>ukończonych</span></div></div>
         <div class="progress-copy">
           <small>DZISIEJSZY ZESTAW</small>
-          <strong id="dailyStatusTitle">Korony czekają</strong>
-          <span id="dailyStatusText">Ukończ aktywną grę, żeby zaliczyć dzisiejszy dzień.</span>
+          <strong id="dailyStatusTitle">5 gier czeka</strong>
+          <span id="dailyStatusText">Ukończ pięć dzisiejszych łamigłówek i utrzymaj serię.</span>
         </div>
       </div>
 
@@ -60,7 +60,7 @@
     </article>
   </section>
 
-  <section class="benefits shell" id="jak" aria-label="Dlaczego Figlo">
+  <section class="benefits shell" id="jak" aria-label="Dlaczego PUZLI">
     <article>
       <span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></span>
       <div><strong>Krótko i konkretnie</strong><p>Każda gra to 2–10 minut skupienia.</p></div>
@@ -79,35 +79,32 @@
     <div class="section-head">
       <span class="section-kicker">NA DZIŚ</span>
       <h2>Dzisiejszy zestaw</h2>
-      <p id="gamesSummary">1 gra dostępna. Kolejne Figlo już powstają.</p>
+      <p id="gamesSummary">5 gier dostępnych dzisiaj.</p>
     </div>
 
     <div class="games">
       <a class="game-card active" id="crownsCard" href="korony.html">
-        <div class="game-art crown-art" aria-hidden="true">
-          <svg viewBox="0 0 64 64"><path d="M12 43h40l-4 10H16l-4-10Zm2-24 12 10 6-18 7 18 11-10-5 20H19l-5-20Z"/></svg>
-        </div>
-        <span class="badge">Nowe</span>
-        <h3>Korony</h3>
-        <p>Umieść korony tak, aby nic się nie atakowało.</p>
-        <span class="play" id="crownsStatus">Graj</span>
+        <div class="game-art crown-art" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 43h40l-4 10H16l-4-10Zm2-24 12 10 6-18 7 18 11-10-5 20H19l-5-20Z"/></svg></div>
+        <h3>Korony</h3><p>Umieść po jednej koronie w każdym wierszu, kolumnie i regionie.</p><span class="play" id="crownsStatus">Graj</span>
       </a>
-
-      <article class="game-card coming-soon">
-        <div class="game-art dots-art" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 18h14l12 14h14"/><path d="M12 46h14l12-14"/><circle cx="12" cy="18" r="4"/><circle cx="12" cy="46" r="4"/><circle cx="52" cy="32" r="4"/></svg></div>
-        <h3>Kropki</h3><p>Połącz wszystkie kropki jedną linią.</p><span class="soon">Wkrótce</span>
-      </article>
-
-      <article class="game-card coming-soon">
+      <a class="game-card active" id="duetCard" href="duet.html">
+        <div class="game-art dots-art" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="22" cy="32" r="11"/><path d="M42 19 53 32 42 45 31 32Z"/></svg></div>
+        <h3>Duet</h3><p>Rozmieść dwa symbole, zachowując równowagę w wierszach i kolumnach.</p><span class="play" id="duetStatus">Graj</span>
+      </a>
+      <a class="game-card active" id="blokiCard" href="bloki.html">
         <div class="game-art blocks-art" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="12" y="12" width="18" height="18" rx="4"/><rect x="34" y="12" width="18" height="18" rx="4"/><rect x="23" y="34" width="18" height="18" rx="4"/></svg></div>
-        <h3>Bloki</h3><p>Dopasuj kształty i wypełnij planszę.</p><span class="soon">Wkrótce</span>
-      </article>
-
-      <article class="game-card coming-soon">
-        <div class="game-art combo-art" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M18 15h28v12H18zM12 35h18v14H12zM34 35h18v14H34z"/></svg></div>
-        <h3>Kombi</h3><p>Znajdź ukryte kombinacje i wygraj.</p><span class="soon">Wkrótce</span>
-      </article>
+        <h3>Bloki</h3><p>Podziel planszę na prostokąty zgodnie ze wskazówkami.</p><span class="play" id="blokiStatus">Graj</span>
+      </a>
+      <a class="game-card active" id="latarnieCard" href="latarnie.html">
+        <div class="game-art combo-art" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="9"/><path d="M32 6v12M32 46v12M6 32h12M46 32h12M14 14l9 9M41 41l9 9M50 14l-9 9M23 41l-9 9"/></svg></div>
+        <h3>Latarnie</h3><p>Rozstaw latarnie tak, żeby oświetlić całą planszę.</p><span class="play" id="latarnieStatus">Graj</span>
+      </a>
+      <a class="game-card active" id="zipCard" href="zip.html">
+        <div class="game-art dots-art" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M13 49V17h18v16h20"/><circle cx="13" cy="49" r="5"/><circle cx="31" cy="17" r="5"/><circle cx="51" cy="33" r="5"/></svg></div>
+        <h3>Zip</h3><p>Poprowadź jedną linię przez planszę, łącząc liczby po kolei.</p><span class="play" id="zipStatus">Graj</span>
+      </a>
     </div>
+    <p class="games-hint">Przesuń karty w bok, aby zobaczyć wszystkie gry →</p>
 
     <div class="daily-cta">
       <div><span class="daily-kicker">DZISIEJSZY CEL</span><strong>Ukończ dzisiejszy zestaw i podbij swoją serię.</strong><span>Kilka minut dziennie. Satysfakcja zostaje na dłużej.</span></div>
@@ -125,17 +122,16 @@
     </div>
 
     <div class="motivation">
-      <div><span>JUTRO</span><strong>Regularność robi wynik.</strong><p>Wracaj jutro po nową porcję Figlo.</p></div>
+      <div><span>JUTRO</span><strong>Regularność robi wynik.</strong><p>Wracaj jutro po nową porcję PUZLI.</p></div>
     </div>
   </section>
 </main>
 
 <footer>
   <div class="footer-inner shell">
-    <div><a class="logo footer-logo" href="index.html">FIGLO</a><p>Codzienne łamigłówki, które wciągają.</p></div>
-    <div><b>Nawigacja</b><a href="#gry">Gry</a><a href="#statystyki">Statystyki</a><a href="#jak">Jak grać?</a><a href="index.html">O Figlo</a></div>
-    <div><b>Społeczność</b><span>X / Twitter</span><span>Discord</span><span>Kontakt</span></div>
-    <div><b>Bądź na bieżąco</b><p>Przypomnimy Ci o nowych grach.</p><form class="newsletter" onsubmit="return false"><label class="sr-only" for="newsletterEmail">Twój email</label><input id="newsletterEmail" type="email" placeholder="Twój email"><button type="submit" aria-label="Zapisz email">→</button></form></div>
+    <div><a class="logo footer-logo" href="index.html">PUZLI</a><p>Codzienne łamigłówki, które wciągają.</p></div>
+    <div><b>Nawigacja</b><a href="#gry">Gry</a><a href="#statystyki">Statystyki</a><a href="#jak">Jak grać?</a><a href="index.html">O PUZLI</a></div>
+    <div class="footer-note"><b>Twój postęp</b><p>Wyniki i serie są zapisywane lokalnie w tej przeglądarce. Nie potrzebujesz konta, żeby grać.</p></div>
   </div>
 </footer>
 
