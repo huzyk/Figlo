@@ -25,7 +25,7 @@ function markGame(id,cardId,statusId){
   if(!card||!status)return;
   card.classList.toggle('completed',done);
   card.href=done?`${gameLinks[id]}?mode=training`:gameLinks[id];
-  status.textContent=done?'Trening':'Graj';
+  status.textContent=done?'Zagraj ponownie':'Graj';
   card.setAttribute('aria-label',done?
     `${gameNames[id]} ukończone dzisiaj. Zagraj w trybie treningowym`:
     `${gameNames[id]}. Zagraj w dzisiejszą łamigłówkę`);
