@@ -85,7 +85,7 @@ body.game-duet .game-meta div{
 body.game-duet .game-meta span{color:#66868a}
 body.game-duet .game-meta strong{color:#1a545b}
 body.game-duet .duet-board{
-  background:#b4c7c0;border:3px solid #316a68;
+  background:#b4c7c0;border:2px solid #316a68;
   box-shadow:0 0 0 7px #fcfffb,0 10px 0 rgba(39,101,99,.1),0 22px 42px rgba(32,82,71,.14);
 }
 body.game-duet .duet-cell{
@@ -159,7 +159,7 @@ body.game-bloki .game-meta div{
 body.game-bloki .game-meta span{color:#8ebfc2;letter-spacing:.1em;font-size:11px}
 body.game-bloki .game-meta strong{font-family:ui-monospace,Consolas,monospace;color:#b9f8ef}
 body.game-bloki .bloki-board{
-  background:#195a66;border:3px solid #58bebc;border-radius:3px;
+  background:#195a66;border:2px solid #58bebc;border-radius:3px;
   box-shadow:0 0 0 5px #0c313d,0 0 0 6px #2f8994,0 24px 60px rgba(1,12,20,.5);
 }
 body.game-bloki .bloki-cell,body.game-bloki .bloki-cell:nth-child(odd){
