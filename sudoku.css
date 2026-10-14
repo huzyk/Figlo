@@ -44,3 +44,9 @@ body.game-sudoku .completion .primary{background:#27634c;color:#fff}body.game-su
 body.game-sudoku .completion-progress{background:#e3eee4;color:#27634c}
 @media(max-width:767px){.sudoku-header{height:62px;padding:0 14px;gap:12px}.sudoku-brand h1{font-size:23px}.sudoku-shell{display:block;padding:12px 12px 35px}.sudoku-heading{margin:10px 2px 12px}.sudoku-heading p{font-size:13px}.sudoku-meta{gap:6px;margin-bottom:10px}.sudoku-meta div{padding:8px 10px}.sudoku-meta strong{font-size:16px}.sudoku-board-wrap{width:100%;max-width:520px}.sudoku-cell{font-size:clamp(17px,5.4vw,25px)}.sudoku-notes{font-size:clamp(8px,2.4vw,12px);padding:1px}.sudoku-tools{gap:5px}.sudoku-tools button{flex-direction:column;gap:2px;min-height:54px;font-size:10px}.sudoku-keypad{gap:3px}.sudoku-keypad button{font-size:clamp(20px,6vw,28px);height:clamp(42px,12vw,56px);border-radius:8px}.sudoku-aside{margin-top:20px}.sudoku-aside-card{padding:18px}.sudoku-aside-card h2{font-size:23px}}
 @media(prefers-reduced-motion:reduce){.sudoku-cell,.sudoku-keypad button{transition:none}}
+
+/* On small screens use nine full-width, thumb-friendly number targets. */
+@media(max-width:767px){
+  .sudoku-keypad{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .sudoku-keypad button{height:46px;min-height:46px;font-size:24px}
+}
