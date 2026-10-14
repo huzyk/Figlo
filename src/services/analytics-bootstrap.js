@@ -78,7 +78,7 @@ function startGA4() {
 
 function currentPageOpened() {
   const gameId = location.pathname.split('/').pop()?.replace('.html', '');
-  if (['korony', 'duet', 'bloki', 'latarnie', 'zip'].includes(gameId)) {
+  if (['korony', 'duet', 'bloki', 'latarnie', 'zip', 'sudoku'].includes(gameId)) {
     track('game_opened', { gameId, mode: document.documentElement.dataset.gameMode || 'daily', date: currentDateKey() });
   } else {
     track('home_opened', { date: currentDateKey() });

@@ -43,3 +43,36 @@ test('visible streak expires after missing a whole day, but best streak remains'
   completeDay('2026-10-16');
   assert.equal(getUserStats('2026-10-16').streak,1);
 });
+
+test('Sudoku is added without deleting five-game saves, and full days require 6/6',()=>{
+  resetStorage();
+  const old=loadFigloState('2026-10-13');
+  old.daily={date:'2026-10-14',requiredGames:['korony','duet','bloki','latarnie','zip'],completedGames:[]};
+  delete old.games.sudoku;
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(old));
+  const migrated=loadFigloState('2026-10-14');
+  assert.equal(migrated.games.sudoku.completedCount,0);
+  assert.equal(migrated.daily.requiredGames.length,6);
+  for(const name of ['korony','duet','bloki','latarnie','zip'])complete(name,'2026-10-14');
+  assert.equal(isTodayComplete(loadFigloState('2026-10-14')),false);
+  const result=complete('sudoku','2026-10-14',120000);
+  assert.equal(result.firstDayCompletionToday,true);
+  assert.equal(result.state.games.sudoku.completedCount,1);
+  assert.equal(result.state.user.completedGames,6);
+  assert.equal(result.state.user.completedDays,1);
+});
+test('new sixth game does not count the same day twice for returning 5/5 players',()=>{
+  resetStorage();
+  const state=loadFigloState('2026-10-14');
+  state.daily.completedGames=['korony','duet','bloki','latarnie','zip'];
+  state.user={...state.user,streak:3,bestStreak:3,completedDays:3,
+    lastCompletedDate:'2026-10-14',completedDates:['2026-10-14']};
+  state.user.completedGames=5;
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  const result=complete('sudoku','2026-10-14');
+  assert.equal(result.firstDayCompletionToday,false);
+  assert.equal(result.state.user.completedDays,3);
+  assert.equal(result.state.user.streak,3);
+  assert.equal(result.state.user.completedGames,6);
+  assert.equal(isTodayComplete(result.state),true);
+});

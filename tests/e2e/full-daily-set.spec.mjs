@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const DATE = '2026-10-15';
-const games = ['korony', 'duet', 'bloki', 'latarnie', 'zip'];
+const games = ['korony', 'duet', 'bloki', 'latarnie', 'zip', 'sudoku'];
 async function recordFor(page, game) {
   return page.evaluate(async ({ game, date }) => {
     const { getDailyGame } = await import('/src/services/daily-service.js');
@@ -19,12 +19,12 @@ async function dragRect(page, rect) {
   await page.mouse.up();
 }
 
-test('all five games complete one day, training preserves totals, next day resets progress', async ({ page }) => {
+test('all six games complete one day, training preserves totals, next day resets progress', async ({ page }) => {
   test.setTimeout(120000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(`/index.html?date=${DATE}`);
-  await expect(page.locator('#progressRing')).toHaveText('0/5');
+  await expect(page.locator('#progressRing')).toHaveText('0/6');
   for (const [index, game] of games.entries()) {
     await page.goto(`/${game}.html?date=${DATE}`);
     await expect(page.locator('#gameLoader')).toBeHidden({ timeout: 30000 });
@@ -47,24 +47,30 @@ test('all five games complete one day, training preserves totals, next day reset
         for (const placement of record.solution) await dragRect(page, placement.rect);
       } else if (game === 'latarnie') {
         for (const cell of record.solution) await page.locator(`.latarnia-cell[data-index="${cell}"]`).click();
-      } else {
+      } else if (game === 'zip') {
         for (const cell of record.solution) await page.locator('.zip-cell').nth(cell).click();
+      } else if (game === 'sudoku') {
+        for (const [index,digit] of record.solution.entries()) {
+          if (record.puzzle[index]!==0) continue;
+          await page.locator('.sudoku-cell').nth(index).click();
+          await page.locator('.sudoku-keypad [data-digit="'+digit+'"]').click();
+        }
       }
     }
     await expect(page.locator('#done')).toBeVisible();
     await page.goto(`/index.html?date=${DATE}`);
-    await expect(page.locator('#progressRing')).toHaveText(`${index + 1}/5`);
-    await expect(page.locator('#statStreak')).toHaveText(index === 4 ? '1' : '0');
+    await expect(page.locator('#progressRing')).toHaveText(`${index + 1}/6`);
+    await expect(page.locator('#statStreak')).toHaveText(index === 5 ? '1' : '0');
   }
-  await expect(page.locator('#totalCompleted')).toHaveText('5');
+  await expect(page.locator('#totalCompleted')).toHaveText('6');
   for (const game of games) {
     await page.goto(`/${game}.html?date=${DATE}`);
     await expect(page.locator('#roundLabel')).toContainText('Trening', { timeout: 30000 });
     await expect(page.locator('#done')).toBeHidden();
   }
   await page.goto('/index.html?date=2026-10-16');
-  await expect(page.locator('#progressRing')).toHaveText('0/5');
-  await expect(page.locator('#totalCompleted')).toHaveText('5');
+  await expect(page.locator('#progressRing')).toHaveText('0/6');
+  await expect(page.locator('#totalCompleted')).toHaveText('6');
   await expect(page.locator('#statStreak')).toHaveText('1');
   expect(errors).toEqual([]);
 });

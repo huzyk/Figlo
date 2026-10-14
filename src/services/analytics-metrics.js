@@ -4,7 +4,7 @@ const EVENTS = new Set([
   'game_training_started', 'hint_used', 'game_completed', 'daily_completed',
   'game_load_failed', 'daily_visit', 'day_1_return', 'day_7_return'
 ]);
-const GAMES = new Set(['korony', 'duet', 'bloki', 'latarnie', 'zip']);
+const GAMES = new Set(['korony', 'duet', 'bloki', 'latarnie', 'zip', 'sudoku']);
 const MODES = new Set(['daily', 'training']);
 
 export function toGA4Event(event) {
