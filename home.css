@@ -22,3 +22,43 @@
   .games-hint{display:block;margin:4px 0 0;font-size:12px;color:var(--muted);text-align:center}
   .footer-inner{grid-template-columns:1fr 1fr}
 }
+
+/* SIX GAMES — one family of cards, six instantly recognizable worlds. */
+.games{grid-template-columns:repeat(3,minmax(0,1fr))}
+.game-card.active{border-width:1px;border-style:solid;box-shadow:0 6px 22px rgba(29,25,50,.06)}
+.game-card.active:hover{box-shadow:0 15px 34px rgba(29,25,50,.12)}
+.game-card .game-art{height:126px;overflow:hidden;position:relative}
+.game-card .game-art::after{content:"";pointer-events:none;position:absolute;inset:0;opacity:.14;background-image:linear-gradient(125deg,transparent 20%,rgba(255,255,255,.7) 50%,transparent 65%)}
+.game-card h3{font-size:21px;letter-spacing:-.035em}
+.game-card .play{border-radius:10px}
+#crownsCard{border-color:#dfc8b8;background:linear-gradient(180deg,#fffbfa,#faf5fb)}
+#crownsCard .crown-art{background:linear-gradient(135deg,#432343,#26162d);color:#ffdc8b}
+#crownsCard .play{background:#714265}
+#crownsCard h3{font-family:Georgia,serif}
+#duetCard{border-color:#bfded8;background:#f9fcf8}
+#duetCard .dots-art{background:#e0f4ee;color:#008f9d}
+#duetCard .play{background:#087c85}
+#blokiCard{border-color:#a8d6d8;background:#f3faf9}
+#blokiCard .blocks-art{background:repeating-linear-gradient(0deg,#0e3947 0 18px,#124453 18px 19px);color:#9af1e7}
+#blokiCard .play{background:#0b5668}
+#blokiCard h3{font-family:ui-monospace,Consolas,monospace;letter-spacing:-.05em}
+#latarnieCard{border-color:#d4d8e9;background:#f8f9ff}
+#latarnieCard .combo-art{background:radial-gradient(circle,#eecb78 0%,#0c2949 23%,#06152d 85%);color:#ffe799}
+#latarnieCard .play{background:#183c60}
+#latarnieCard h3{font-family:Georgia,serif}
+#zipCard{border-color:#d9baef;background:#fdfaff}
+#zipCard .dots-art{background:linear-gradient(135deg,#3f1760,#1c0b35);color:#c6ff68}
+#zipCard .play{background:#522076;color:#ebffc7}
+#zipCard h3{font-style:italic;font-weight:900}
+#sudokuCard{border-color:#c1d9c6;background:#f9faf6}
+#sudokuCard .sudoku-art{background:#e2eee3;color:#276b50}
+#sudokuCard .sudoku-art svg{stroke-width:2;stroke:#327c60}
+#sudokuCard .sudoku-art svg text{stroke:none;fill:#246c4f;font-weight:800;font-family:Georgia,serif}
+#sudokuCard .play{background:#27634c}
+#sudokuCard h3{font-family:Georgia,serif;font-weight:700}
+@media(max-width:1199px){.games{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:960px){.games{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){
+  .games{display:flex;grid-template-columns:none}
+  .game-card.active{flex:0 0 calc(100vw - 56px);min-width:calc(100vw - 56px)}
+}
