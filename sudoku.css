@@ -55,12 +55,12 @@ body.game-sudoku .completion-progress{background:#e3eee4;color:#27634c}
    Only typography changes: no board dimensions, geometry or hit-target changes. */
 /* These selectors must outrank body.game-sudoku button{font:inherit}
    so the actual rendered numbers don't fall back to 16px. */
-body.game-sudoku button.sudoku-cell{font-size:clamp(31px,4.4vw,42px);font-weight:800;line-height:1}
+body.game-sudoku button.sudoku-cell{font-size:clamp(27px,3.6vw,36px);font-weight:800;line-height:1}
 body.game-sudoku button.sudoku-cell.given{font-weight:850}
 body.game-sudoku .sudoku-notes{font-size:clamp(12px,1.5vw,16px)}
 body.game-sudoku .sudoku-keypad button{font-size:30px;font-weight:800}
 @media(max-width:767px){
-  body.game-sudoku button.sudoku-cell{font-size:clamp(28px,8.1vw,37px)}
+  body.game-sudoku button.sudoku-cell{font-size:clamp(20px,6vw,29px)}
   body.game-sudoku .sudoku-notes{font-size:clamp(12px,3.3vw,15px)}
   body.game-sudoku .sudoku-keypad button{font-size:30px}
 }
