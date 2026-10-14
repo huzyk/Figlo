@@ -367,3 +367,93 @@
     padding-bottom:calc(75px + env(safe-area-inset-bottom));
   }
 }
+
+/*
+ * Readable mobile hints: use the space above the fixed action bar.
+ * Earlier releases forced 44px and made explanations unreadable.
+ * The 9x9 and 6x6 boards shrink gently only while a hint is open,
+ * not during regular play. Never scroll or shift the document.
+ */
+@media (max-width:767px) {
+  body.game-korony:has(.feedback.hint-feedback) .app .board {
+    width:min(calc(100vw - 20px),calc(100dvh - 360px));
+  }
+  body.game-duet:has(.feedback.hint-feedback),
+  body.game-latarnie:has(.feedback.hint-feedback),
+  body.game-zip:has(.feedback.hint-feedback) {
+    --mobile-board-size:min(calc(100vw - 20px),calc(100dvh - 360px));
+  }
+  body.game-korony .app .feedback.hint-feedback,
+  body.game-duet .game-shell .feedback.hint-feedback,
+  body.game-latarnie .game-shell .feedback.hint-feedback,
+  body.game-zip .game-shell .feedback.hint-feedback {
+    display:block;
+    box-sizing:border-box;
+    width:100%;
+    min-height:clamp(152px,26dvh,208px);
+    height:clamp(152px,26dvh,208px);
+    max-height:clamp(152px,26dvh,208px);
+    margin:7px auto 0;
+    padding:9px 12px 10px;
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior:contain;
+    text-align:left;
+    font-size:13px;
+    line-height:1.35;
+    word-break:normal;
+    overflow-wrap:break-word;
+    border-left:4px solid #f2cb79;
+    border-radius:9px;
+    scrollbar-width:thin;
+  }
+  .mobile-hint-title {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    margin:0 0 3px;
+    font-size:13px;
+    font-weight:850;
+    letter-spacing:.035em;
+    line-height:1.2;
+    color:#f6d792;
+  }
+  .mobile-hint-copy {
+    display:block;
+    margin:4px 0 0;
+    line-height:1.35;
+    font-size:13px;
+    font-weight:500;
+  }
+  .mobile-hint-action {
+    padding-top:5px;
+    border-top:1px solid rgba(244,211,139,.24);
+  }
+  .mobile-hint-action strong {
+    font-weight:850;
+  }
+  button.mobile-hint-close {
+    display:grid;
+    place-items:center;
+    min-width:29px;
+    width:29px;
+    height:27px;
+    padding:0;
+    background:transparent;
+    border:1px solid currentColor;
+    border-radius:7px;
+    color:inherit;
+    font:700 20px/1 inherit;
+    cursor:pointer;
+    touch-action:manipulation;
+  }
+  button.mobile-hint-close:focus-visible {
+    outline:2px solid #f6d792;
+    outline-offset:2px;
+  }
+  body.game-duet .mobile-hint-title {color:#116970}
+  body.game-zip .mobile-hint-title {color:#d9ff94}
+  body.game-latarnie .mobile-hint-title {color:#ffe3a3}
+  body.game-korony .mobile-hint-title {color:#ffe2a7}
+}

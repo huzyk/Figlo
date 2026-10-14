@@ -88,3 +88,63 @@ test('Zip partition wall shows reflective highlight on both axes',async ({page},
   expect(walls.horizontal.content).not.toBe('none');
   expect(walls.horizontal.background).toContain('linear-gradient');
 });
+
+test('Korony and Duet hints are real readable panels instead of cropped 44px strips',async ({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='mobile-chromium');
+  test.setTimeout(100000);
+  for(const viewport of [{width:390,height:844},{width:360,height:640},{width:320,height:568}]){
+    await page.setViewportSize(viewport);
+    for(const id of ['korony','duet']){
+      await page.goto('/'+id+'.html?date=2026-10-15');
+      const board=page.locator('#board');
+      await expect.poll(()=>board.locator(':scope > *').count()).toBeGreaterThan(0);
+      const before=await board.boundingBox();
+      await page.locator('#mobileHint').click();
+      const feedback=page.locator('#feedback');
+      await expect(feedback).toHaveClass(/hint-feedback/);
+      await expect(feedback.locator('.mobile-hint-title')).toContainText('Podpowiedź');
+      await expect(feedback.locator('.mobile-hint-copy')).not.toHaveCount(0);
+      await expect(feedback.locator('.mobile-hint-close')).toBeVisible();
+      const measurements=await feedback.evaluate(el=>{
+        const b=el.getBoundingClientRect(),r=document.querySelector('#board').getBoundingClientRect();
+        return {height:b.height,top:b.top,bottom:b.bottom,
+          scrollHeight:el.scrollHeight,clientHeight:el.clientHeight,
+          fontSize:parseFloat(getComputedStyle(el).fontSize),
+          text:el.innerText,
+          boardBottom:r.bottom,controlsTop:document.querySelector('.mobile-controls').getBoundingClientRect().top,
+          scrollY:window.scrollY};
+      });
+      expect(measurements.height,'hint panel is still cropped '+id).toBeGreaterThanOrEqual(145);
+      expect(measurements.fontSize,'hint text tiny '+id).toBeGreaterThanOrEqual(13);
+      expect(measurements.text.length,'hint unexpectedly missing '+id).toBeGreaterThan(22);
+      expect(measurements.top,'hint overlaps board '+id).toBeGreaterThanOrEqual(measurements.boardBottom-1);
+      expect(measurements.bottom,'hint behind controls '+id+JSON.stringify(viewport)).toBeLessThanOrEqual(measurements.controlsTop-2);
+      expect(measurements.scrollY).toBe(0);
+      if(viewport.height>=640){
+        expect(measurements.scrollHeight,'hint text still needs scrolling '+id+' '+JSON.stringify(viewport)).toBeLessThanOrEqual(measurements.clientHeight+3);
+      }
+      await feedback.locator('.mobile-hint-close').click();
+      await expect(feedback).not.toHaveClass(/hint-feedback/);
+      await expect.poll(()=>board.evaluate(el=>el.getBoundingClientRect().width)).toBeGreaterThanOrEqual(before.width-1);
+    }
+  }
+});
+test('Crown hint reason and instruction have distinct readable paragraphs on a phone',async ({page},info)=>{
+  test.skip(info.project.name!=='mobile-chromium');
+  await page.goto('/korony.html?date=2026-10-15');
+  await expect.poll(()=>page.locator('#board .cell').count()).toBe(81);
+  const result=await page.evaluate(async()=>{
+    const {showMobileHint}=await import('/src/ui/mobile-hint.js');
+    const feedback=document.querySelector('#feedback');
+    showMobileHint(feedback,{
+      reason:'Wyróżnione trzy regiony mają dostępne pola tylko w kolumnach 1, 2 i 3. Ich korony muszą więc pozostać w tych kolumnach.',
+      action:'Pozostałe wyróżnione pola poza tymi regionami możesz oznaczyć X.'
+    });
+    return feedback.children.length;
+  });
+  expect(result).toBe(3);
+  await expect(page.locator('.mobile-hint-title')).toContainText('Podpowiedź');
+  await expect(page.locator('.mobile-hint-copy')).toHaveCount(2);
+  await expect(page.locator('.mobile-hint-action strong')).toHaveText('Co zrobić:');
+  await expect(page.locator('.mobile-hint-copy').first()).toContainText('Wyróżnione trzy regiony');
+});
