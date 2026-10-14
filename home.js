@@ -20,22 +20,64 @@ function syncAvailableCards(){
   }
 }
 function renderDate(){const formatted=new Intl.DateTimeFormat('pl-PL',{weekday:'long',day:'numeric',month:'long'}).format(todayDate);$('#todayDate').textContent=formatted.charAt(0).toUpperCase()+formatted.slice(1);}
-function markGame(id,cardId,statusId){const done=progress.completedGames.includes(id),card=$(cardId),status=$(statusId);if(done&&card&&status){status.textContent='Zagraj ponownie';card.href=`${gameLinks[id]}?mode=training`;card.classList.add('completed');card.setAttribute('aria-label',`${gameNames[id]||id} ukończone dzisiaj. Zagraj ponownie w trybie treningowym`);}}
-function renderDailyProgress(){syncAvailableCards();const completed=progress.completedGames.length,required=progress.requiredGames.length,remaining=Math.max(0,required-completed);$('#progressRing').textContent=`${completed}/${required}`;$('#progressRingVisual').style.background=`conic-gradient(var(--purple) 0 ${required?completed/required*100:0}%, var(--purple-light) ${required?completed/required*100:0}% 100%)`;if(progress.complete){$('#dailyStatusTitle').textContent='Dzisiejszy zestaw ukończony';$('#dailyStatusText').textContent='Świetna robota. Wróć jutro po nowe wyzwanie.';}else if(completed===0){$('#dailyStatusTitle').textContent=waitingLabel(required);$('#dailyStatusText').textContent=`Ukończ ${progress.requiredGames.map(id=>gameNames[id]||id).join(', ')}, żeby zaliczyć dzisiejszy dzień.`;}else{$('#dailyStatusTitle').textContent=remaining===1?'Jeszcze jedna gra':`Jeszcze ${remaining} gry`;$('#dailyStatusText').textContent='Dokończ dzisiejszy zestaw i utrzymaj serię.';}markGame('korony','#crownsCard','#crownsStatus');markGame('duet','#duetCard','#duetStatus');markGame('bloki','#blokiCard','#blokiStatus');markGame('latarnie','#latarnieCard','#latarnieStatus');markGame('zip','#zipCard','#zipStatus');markGame('sudoku','#sudokuCard','#sudokuStatus');const next=progress.requiredGames.find(id=>!progress.completedGames.includes(id)),cta=document.querySelector('.daily-cta .btn.white');if(cta&&next){cta.href=gameLinks[next];cta.textContent=`Zagraj w ${gameNames[next]} →`;}else if(cta&&progress.complete){cta.href='korony.html?mode=training';cta.textContent='Zagraj treningowo →';}}
+function markGame(id,cardId,statusId){
+  const done=progress.completedGames.includes(id),card=$(cardId),status=$(statusId);
+  if(!card||!status)return;
+  card.classList.toggle('completed',done);
+  card.href=done?`${gameLinks[id]}?mode=training`:gameLinks[id];
+  status.textContent=done?'Trening':'Graj';
+  card.setAttribute('aria-label',done?
+    `${gameNames[id]} ukończone dzisiaj. Zagraj w trybie treningowym`:
+    `${gameNames[id]}. Zagraj w dzisiejszą łamigłówkę`);
+}
+function renderDailyProgress(){
+  syncAvailableCards();
+  const completed=progress.completedGames.length,required=progress.requiredGames.length,remaining=Math.max(0,required-completed);
+  $('#progressRing').textContent=`${completed}/${required}`;
+  const percentage=required?completed/required*100:0;
+  $('#progressRingVisual').style.background=
+    `conic-gradient(var(--purple) 0 ${percentage}%, var(--purple-light) ${percentage}% 100%)`;
+  if(progress.complete){
+    $('#dailyStatusTitle').textContent='Zestaw ukończony!';
+    $('#dailyStatusText').textContent='Brawo! Wróć jutro po nowe łamigłówki.';
+  }else if(completed===0){
+    $('#dailyStatusTitle').textContent=waitingLabel(required);
+    $('#dailyStatusText').textContent='Wybierz dowolną grę. Twój postęp zapisze się automatycznie.';
+  }else{
+    $('#dailyStatusTitle').textContent=remaining===1?'Została 1 gra':`Zostały ${remaining} gry`;
+    $('#dailyStatusText').textContent=`Masz za sobą ${completed} z ${required}. Dokończ zestaw we własnym tempie.`;
+  }
+  for(const [id,card,status] of [
+    ['korony','#crownsCard','#crownsStatus'],['duet','#duetCard','#duetStatus'],
+    ['bloki','#blokiCard','#blokiStatus'],['latarnie','#latarnieCard','#latarnieStatus'],
+    ['zip','#zipCard','#zipStatus'],['sudoku','#sudokuCard','#sudokuStatus']
+  ])markGame(id,card,status);
+  const next=progress.requiredGames.find(id=>!progress.completedGames.includes(id));
+  const cta=$('.daily-cta .btn.white');
+  if(cta&&next){
+    cta.href=gameLinks[next];
+    cta.textContent=`Zagraj w ${gameNames[next]}`;
+  }else if(cta){
+    cta.href='korony.html?mode=training';
+    cta.textContent='Zagraj treningowo';
+  }
+}
 function renderStats(){$('#cardStreak').textContent=streakLabel(stats.streak);$('#statStreak').textContent=String(stats.streak);$('#bestStreak').textContent=`Najlepsza: ${stats.bestStreak}`;$('#activeDays').textContent=String(stats.completedDays);$('#totalCompleted').textContent=String(stats.completedGames);$('#averageTime').textContent=formatDuration(stats.averageGameTimeMs);}
 function renderWeek(){const root=$('#weekStrip'),labels=['P','W','Ś','C','P','S','N'],dates=getWeekDateKeys(todayDate);root.innerHTML='';dates.forEach((dateKey,index)=>{const item=document.createElement('div');item.className='week-day';const isToday=dateKey===today,isCompleted=stats.completedDates.includes(dateKey);if(isToday)item.classList.add('today');if(isCompleted)item.classList.add('completed');if(isToday)item.setAttribute('aria-current','date');const label=document.createElement('span');label.className='week-day-label';label.textContent=labels[index];const dot=document.createElement('span');dot.className='week-day-state';dot.textContent=isCompleted?'✓':isToday?'•':'·';item.setAttribute('aria-label',`${labels[index]}${isCompleted?', ukończony':''}${isToday?', dzisiaj':''}`);item.append(label,dot);root.appendChild(item);});}
 function renderGamesSummary(){const available=manifest?.games?.filter(game=>game.available).length||progress.requiredGames.length;$('#gamesSummary').textContent=gameCountLabel(available);}
 function wireMobileMenu(){
   const menu=$('.menu'),nav=document.querySelector('.nav-wrap nav');
   if(!menu||!nav)return;
-  const close=()=>{menu.setAttribute('aria-expanded','false');nav.classList.remove('nav-open');};
+  const close=()=>{menu.setAttribute('aria-expanded','false');menu.setAttribute('aria-label','Otwórz menu');nav.classList.remove('nav-open');};
   menu.addEventListener('click',()=>{
     const open=menu.getAttribute('aria-expanded')==='true';
     menu.setAttribute('aria-expanded',String(!open));
+    menu.setAttribute('aria-label',open?'Otwórz menu':'Zamknij menu');
     nav.classList.toggle('nav-open',!open);
   });
   nav.addEventListener('click',event=>{if(event.target.closest('a'))close();});
   document.addEventListener('keydown',event=>{if(event.key==='Escape')close();});
+  window.addEventListener('resize',()=>{if(window.innerWidth>600)close();});
 }
 function refreshProgress(){
   if(currentDateKey()!==today){location.reload();return;}
@@ -54,7 +96,7 @@ function wireGameSelection(){
   const cta=document.querySelector('.daily-cta .btn.white');
   cta?.addEventListener('click',()=>{
     const next=progress.requiredGames.find(id=>!progress.completedGames.includes(id));
-    if(next)track('game_selected',{gameId:next,date:today,mode:'daily'});
+    track('game_selected',{gameId:next||'korony',date:today,mode:next?'daily':'training'});
   });
 }
 async function start(){
