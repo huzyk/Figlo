@@ -8,7 +8,7 @@ import{requestedGameMode,setGameMode}from'../ui/game-mode.js';
 import{showGameLoader,hideGameLoader}from'../ui/game-loader.js';
 import{loadLatarnieDaily}from'./daily-loader.js';
 import{generateLatarnieAsync}from'./generator-async.js';
-import{litCells,conflictingBulbs,clueStatus,isSolved,latarnieProgress}from'./rules.js';
+import{litCells,conflictingBulbs,clueStatus,isSolved,latarnieProgress}from'./rules.js?v=20261014-latarnie-conflict';
 import{nextHumanStep}from'./human-solver.js';
 import{createLatarnieSession,loadLatarnieSession,saveLatarnieSession,clearLatarnieSession}from'./session.js';
 const $=s=>document.querySelector(s);const today=currentDateKey();const requestedMode=requestedGameMode();let record=null,puzzle=null,session=null,gameMode='daily',trainingNumber=0,timerTick=null,hintTimer=null,boardResizeObserver=null;
