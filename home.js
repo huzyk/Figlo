@@ -43,8 +43,22 @@ function refreshProgress(){
   stats=getUserStats(today);
   renderDailyProgress();renderStats();renderWeek();renderGamesSummary();
 }
+function wireGameSelection(){
+  const ids={crownsCard:'korony',duetCard:'duet',blokiCard:'bloki',latarnieCard:'latarnie',zipCard:'zip'};
+  const root=document.querySelector('.games');
+  root?.addEventListener('click',event=>{
+    const card=event.target.closest('a.game-card');
+    const gameId=card&&ids[card.id];
+    if(gameId)track('game_selected',{gameId,date:today,mode:progress.completedGames.includes(gameId)?'training':'daily'});
+  });
+  const cta=document.querySelector('.daily-cta .btn.white');
+  cta?.addEventListener('click',()=>{
+    const next=progress.requiredGames.find(id=>!progress.completedGames.includes(id));
+    if(next)track('game_selected',{gameId:next,date:today,mode:'daily'});
+  });
+}
 async function start(){
-  renderDate();refreshProgress();wireMobileMenu();
+  renderDate();refreshProgress();wireMobileMenu();wireGameSelection();
   window.addEventListener('pageshow',event=>{if(event.persisted)refreshProgress();});
   manifest=await getDailyManifest(today);
   renderGamesSummary();
