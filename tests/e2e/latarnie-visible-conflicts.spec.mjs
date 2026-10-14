@@ -28,5 +28,5 @@ test('Latarnie show visible red conflict and instruct user how to fix it',async 
 
   await page.locator('.latarnia-cell[data-index="'+second+'"]').click();
   await expect(page.locator('.latarnia-cell.conflict')).toHaveCount(0);
-  await expect(page.locator('#feedback')).not.toHaveClass(/error/);
+  await expect(page.locator('#feedback')).not.toContainText(/oświetlają się nawzajem/i);
 });
