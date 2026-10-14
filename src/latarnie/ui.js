@@ -33,6 +33,7 @@ const feedback=$('#feedback');
 if(!feedback.classList.contains('hint-feedback')){
   const status=latarnieProgress(puzzle,bulbs);
   feedback.textContent=status.message;
+  feedback.dataset.conflict=String(status.kind==='conflict');
   feedback.classList.toggle('error',status.kind==='conflict');
 }
 $('#bulbCounter').textContent=String(bulbs.size);$('#undo').disabled=!session.history.length||session.finished;$('#mobileUndo').disabled=!session.history.length||session.finished;$('#hint').disabled=session.finished;$('#mobileHint').disabled=session.finished;renderTimer();}
