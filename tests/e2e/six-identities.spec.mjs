@@ -102,3 +102,24 @@ test('Zip checkpoint circles and numbers are centered in cells, including walls'
     expect(p.overflow).toBe(false);
   }
 });
+
+test('Sudoku 6x6 shows legible large digits without changing cell geometry',async ({page})=>{
+  await page.goto('/sudoku.html?date=2026-10-15');
+  const cells=page.locator('.sudoku-cell');
+  await expect(cells).toHaveCount(36);
+  const sizes=await page.evaluate(()=>{
+    const board=document.querySelector('.sudoku-board');
+    const given=document.querySelector('.sudoku-cell.given');
+    const keypad=document.querySelector('.sudoku-keypad button');
+    const box=given.getBoundingClientRect(),parent=board.getBoundingClientRect();
+    return {digit:parseFloat(getComputedStyle(given).fontSize),
+      keypad:parseFloat(getComputedStyle(keypad).fontSize),
+      cellWidth:box.width,cellHeight:box.height,boardWidth:parent.width,
+      overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+2};
+  });
+  expect(sizes.digit).toBeGreaterThanOrEqual(32);
+  expect(sizes.digit).toBeLessThan(sizes.cellHeight);
+  expect(sizes.keypad).toBeGreaterThanOrEqual(29);
+  expect(Math.abs(sizes.cellWidth-sizes.cellHeight)).toBeLessThan(2);
+  expect(sizes.overflow).toBe(false);
+});
