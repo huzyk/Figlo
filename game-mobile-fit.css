@@ -285,7 +285,7 @@
   }
   body.game-sudoku .sudoku-board {width:100%;aspect-ratio:1}
   body.game-sudoku button.sudoku-cell{
-    font-size:clamp(21px,min(8.1vw,calc((100dvh - 315px)/9.2)),37px);
+    font-size:clamp(20px,min(6vw,calc((100dvh - 315px)/12)),29px);
     font-weight:800;
   }
   body.game-sudoku .sudoku-feedback {
