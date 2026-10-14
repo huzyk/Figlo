@@ -97,3 +97,39 @@ test('Sudoku never celebrates a full row if a different cell still conflicts',as
   await expect(page.locator('#feedback')).toHaveClass(/error/);
   await expect(page.locator('#feedback')).toContainText(/konflikt|powtarza/i);
 });
+
+test('Sudoku marks wrong 6 (without local conflict) red, even after reload, and hint targets the mistake',async ({page})=>{
+  await page.goto('/sudoku.html?date='+DATE);
+  await expect(page.locator('.sudoku-cell')).toHaveCount(36);
+  const move=await page.evaluate(async()=>{
+    const {getDailyGame}=await import('/src/services/daily-service.js');
+    const {candidates,hasConflict}=await import('/src/sudoku/engine.js');
+    const record=await getDailyGame('sudoku','2026-10-15');
+    for(let index=0;index<record.puzzle.length;index++){
+      if(record.puzzle[index])continue;
+      const wrong=candidates(record.puzzle,index).find(n=>n!==record.solution[index]);
+      if(wrong!==undefined){
+        const board=record.puzzle.slice();board[index]=wrong;
+        if(!hasConflict(board,index))return {index,wrong};
+      }
+    }
+    return null;
+  });
+  expect(move,'daily Sudoku should provide a non-conflicting incorrect candidate').not.toBeNull();
+
+  const cell=page.locator('.sudoku-cell').nth(move.index);
+  await cell.click();
+  await page.locator('#keypad [data-digit="'+move.wrong+'"]').click();
+  await expect(cell).toHaveClass(/mistake/);
+  await expect(cell).not.toHaveClass(/conflict/);
+  await expect(page.locator('#feedback')).toHaveClass(/error/);
+  await expect(page.locator('#feedback')).toContainText(/błędna/i);
+  await page.reload();
+  await expect(page.locator('.sudoku-cell').nth(move.index)).toHaveClass(/mistake/);
+  await page.locator('#hint').click();
+  await expect(page.locator('.sudoku-cell').nth(move.index)).toHaveClass(/hinted/);
+  await expect(page.locator('.sudoku-cell').nth(move.index)).toHaveClass(/mistake/);
+  await expect(page.locator('#feedback')).toContainText(/błędna/i);
+  await page.locator('#erase').click();
+  await expect(page.locator('.sudoku-cell').nth(move.index)).not.toHaveClass(/mistake/);
+});
