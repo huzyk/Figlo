@@ -279,13 +279,13 @@
   body.game-sudoku .sudoku-meta span {font-size:9px}
   body.game-sudoku .sudoku-board-wrap {
     flex:0 0 auto;
-    width:min(calc(100vw - 20px),calc(100dvh - 296px));
+    width:min(calc(100vw - 20px),calc(100dvh - 315px));
     max-width:100%;
     margin:0 auto;
   }
   body.game-sudoku .sudoku-board {width:100%;aspect-ratio:1}
   body.game-sudoku button.sudoku-cell{
-    font-size:clamp(24px,min(9.5vw,calc((100dvh - 296px)/8)),43px);
+    font-size:clamp(24px,min(9.5vw,calc((100dvh - 315px)/8)),43px);
     font-weight:800;
   }
   body.game-sudoku .sudoku-feedback {
