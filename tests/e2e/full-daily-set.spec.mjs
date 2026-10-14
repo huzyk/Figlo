@@ -69,8 +69,8 @@ test('all six games complete one day, training preserves totals, next day resets
     await expect(page.locator('#done')).toBeHidden();
   }
   await page.goto('/index.html?date=2026-10-16');
-  await expect(page.locator('#progressRing')).toHaveText('0/5');
-  await expect(page.locator('#totalCompleted')).toHaveText('5');
+  await expect(page.locator('#progressRing')).toHaveText('0/6');
+  await expect(page.locator('#totalCompleted')).toHaveText('6');
   await expect(page.locator('#statStreak')).toHaveText('1');
   expect(errors).toEqual([]);
 });
