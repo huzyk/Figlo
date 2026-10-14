@@ -6,7 +6,7 @@ import { track } from '../services/analytics-service.js';
 import { requestedGameMode, setGameMode } from '../ui/game-mode.js';
 import { SIZE, CELL_COUNT, BOX_ROWS, BOX_COLS, buildSudokuPuzzle, candidates, hasConflict, isSudokuSolved } from './engine.js';
 import { createSudokuSession, loadSudokuSession, saveSudokuSession, clearSudokuSession } from './session.js';
-import { findSudokuHint, newlyCompletedSudokuUnits, boardHasSudokuConflict } from './hints.js?v=20261014-conflict-fix';
+import { findSudokuHint, newlyCompletedSudokuUnits, boardHasSudokuConflict, sudokuMistakeIndices } from './hints.js?v=20261014-verify-entries';
 
 const $ = selector => document.querySelector(selector);
 const today = currentDateKey(), requestedMode = requestedGameMode();
@@ -78,9 +78,15 @@ function buildBoard() {
 function render() {
   if (!session || !record) return;
   const focusedDigit = selected != null ? session.values[selected] : 0;
+  const mistakes=new Set(sudokuMistakeIndices(session.values,record.puzzle,record.solution));
   let filled=0;
   const totalDigits = Array(SIZE+1).fill(0);
-  session.values.forEach(value => {if(value){filled++;totalDigits[value]++;}});
+  session.values.forEach((value,index) => {
+    if(value){
+      filled++;
+      if(value===record.solution[index])totalDigits[value]++;
+    }
+  });
   for(let i=0;i<CELL_COUNT;i++){
     const cell=cells[i],value=session.values[i],notes=session.notes[i];
     const cls=['sudoku-cell'];
@@ -91,6 +97,7 @@ function render() {
     if (focusedDigit && value===focusedDigit && selected!==i) cls.push('same-digit');
     if (selected===i) cls.push('selected');
     if (value && hasConflict(session.values,i)) cls.push('conflict');
+    if (mistakes.has(i)) cls.push('mistake');
     if (hinted!==null) {
       if (hinted===i) cls.push('hinted');
       else cls.push(isPeer(hinted,i)?'hint-context':'hint-muted');
@@ -141,7 +148,7 @@ function clearPendingWin(){
   winTimer=null;
 }
 function celebrateUnits(before){
-  const completed=newlyCompletedSudokuUnits(before,session.values);
+  const completed=newlyCompletedSudokuUnits(before,session.values,record.solution,record.puzzle);
   if(!completed.length)return false;
   for(const unit of completed)for(const index of unit.indices)flashingCells.add(index);
   for(const index of flashingCells)cells[index]?.classList.add('unit-complete');
@@ -201,6 +208,7 @@ function inputDigit(value) {
   hinted=null;
   startTimer();persist();render();
   const celebrated = !notesMode && value!==0 && celebrateUnits(before);
+  const mistakes=sudokuMistakeIndices(session.values,record.puzzle,record.solution);
   if(isSudokuSolved(session.values)){
     pauseTimer();
     if(celebrated){
@@ -212,7 +220,9 @@ function inputDigit(value) {
     }else finish();
     return;
   }
-  if(hasConflict(session.values,selected))announce('Ta cyfra powtarza się w wierszu, kolumnie lub bloku.',true);
+  if(!notesMode && value && mistakes.includes(selected))announce('Ta cyfra jest błędna — sprawdź czerwone pole.',true);
+  else if(mistakes.length)announce('Na planszy jest błędna cyfra — sprawdź czerwone pola.',true);
+  else if(hasConflict(session.values,selected))announce('Ta cyfra powtarza się w wierszu, kolumnie lub bloku.',true);
   else if(boardHasSudokuConflict(session.values))announce('Na planszy jest konflikt — sprawdź czerwone pola.',true);
   else if(celebrated)announce('Świetnie! Ukończony obszar zaznaczono na zielono.');
   else announce(notesMode?'Kandydat zapisany.':'Cyfra wpisana. Kontynuuj rozwiązywanie.');
@@ -233,7 +243,7 @@ function toggleNotes() {
 }
 function hint() {
   if(!session || session.finished)return;
-  const step=findSudokuHint(session.values,record.puzzle);
+  const step=findSudokuHint(session.values,record.puzzle,record.solution);
   if(!step){
     announce('Sprawdź, czy wszystkie wpisane cyfry są poprawne.');
     return;
@@ -245,7 +255,7 @@ function hint() {
   session.hintsUsed++;
   startTimer();persist();render();
   track('hint_used',{gameId:'sudoku',puzzleId:record.puzzleId,date:today,mode,hintsUsed:session.hintsUsed});
-  announce(step.reason);
+  announce(step.reason,step.kind==='mistake'||step.kind==='conflict'||step.kind==='blocked');
   $('#feedback').classList.add('hint-message');
 }
 function reset() {
