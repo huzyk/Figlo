@@ -335,3 +335,149 @@ body.game-zip button:focus-visible{outline-offset:2px}
     animation-duration:.001ms!important;transition-duration:.001ms!important;
   }
 }
+
+/* VISUAL REFINEMENT — LATARNIE: midnight observatory, brass and living light.
+   Visual changes only; cell sizing, tracks, gap and board hit targets are untouched. */
+body.game-latarnie{
+  background:
+    radial-gradient(circle at 12% 12%,rgba(206,236,237,.23) 0 1px,transparent 2px),
+    radial-gradient(circle at 82% 23%,rgba(234,216,179,.22) 0 1px,transparent 2px),
+    radial-gradient(circle at 63% 57%,rgba(203,232,236,.14) 0 1px,transparent 2px),
+    radial-gradient(ellipse at 52% 5%,rgba(28,136,145,.23),transparent 48%),
+    radial-gradient(ellipse at 97% 70%,rgba(140,108,57,.11),transparent 50%),
+    linear-gradient(162deg,#092d37 0%,#091f2d 40%,#071320 100%);
+  background-attachment:fixed;
+  color:#fff4dd;
+}
+body.game-latarnie .game-topbar{
+  border-bottom:1px solid rgba(227,191,119,.22);
+  background:linear-gradient(180deg,rgba(12,53,64,.6),rgba(7,27,42,.08));
+}
+body.game-latarnie .game-topbar h1{
+  color:#fff1d3;
+  font:700 27px/1 Georgia,'Times New Roman',serif;
+  letter-spacing:.006em;
+  text-shadow:0 2px 15px rgba(239,200,114,.16);
+}
+body.game-latarnie .game-topbar h1::before{
+  content:"✦";
+  display:inline-block;
+  color:#ffd179;
+  margin-right:.37em;
+  font-size:.72em;
+  filter:drop-shadow(0 0 9px rgba(255,204,111,.5));
+}
+body.game-latarnie .eyebrow{color:#9ed6ce;letter-spacing:.18em}
+body.game-latarnie .back,body.game-latarnie .icon-btn{
+  background:rgba(18,76,83,.54);
+  border:1px solid #477f81;
+  color:#ffe0a2;
+  box-shadow:inset 0 1px rgba(255,255,255,.09);
+}
+body.game-latarnie .game-meta div{
+  background:linear-gradient(145deg,rgba(22,76,81,.93),rgba(12,50,67,.95));
+  border:1px solid #537f80;
+  border-top:2px solid #d6b276;
+  box-shadow:0 7px 16px rgba(2,16,24,.16);
+}
+body.game-latarnie .game-meta span{color:#add5d1}
+body.game-latarnie .game-meta strong{color:#ffe9b7;letter-spacing:.02em}
+body.game-latarnie .latarnie-board{
+  background:#143b48;
+  border-color:#bb965c;
+  box-shadow:
+    0 0 0 3px #092935,
+    0 0 0 5px rgba(228,190,112,.48),
+    0 0 0 9px rgba(7,34,44,.68),
+    0 24px 68px rgba(0,8,19,.56),
+    0 0 40px rgba(244,200,119,.08);
+}
+body.game-latarnie .latarnia-cell{
+  background:radial-gradient(circle at 48% 40%,#235466 0%,#174354 63%,#123344 100%);
+  box-shadow:inset 0 0 0 1px rgba(173,224,213,.12),inset 0 -3px 8px rgba(0,13,29,.12);
+  color:#ffefb6;
+}
+body.game-latarnie .latarnia-cell:hover{
+  background:radial-gradient(circle at center,#376e72,#1d4b60);
+}
+body.game-latarnie .latarnia-cell.is-lit{
+  background:radial-gradient(circle at 50% 43%,#fffdf0 0%,#ffefac 27%,#f4cc6d 57%,#b18440 100%);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.63),
+    inset 0 0 14px rgba(255,249,190,.13),0 0 12px rgba(243,199,103,.16);
+  color:#4f3517;
+}
+body.game-latarnie .latarnia-cell.has-bulb{
+  background:radial-gradient(circle at center,#fffef1 0%,#ffdf8b 42%,#e8a84c 75%,#a06c2e 100%);
+  box-shadow:inset 0 0 13px rgba(255,255,255,.3),
+    0 0 0 1px rgba(255,230,153,.48),
+    0 0 21px rgba(255,201,89,.65),
+    0 0 40px rgba(255,189,67,.22);
+}
+body.game-latarnie .bulb{
+  color:#704315;
+  text-shadow:0 1px 0 rgba(255,255,255,.52),0 0 8px rgba(255,250,182,.6);
+}
+body.game-latarnie .cross{color:#86b1b4}
+body.game-latarnie .latarnia-wall{
+  background:linear-gradient(150deg,#061320 0%,#071b26 70%,#0a2934 100%);
+  color:#ffe3a3;
+  box-shadow:inset 0 1px 0 rgba(163,213,219,.13),inset 0 -3px 8px rgba(0,0,0,.31);
+}
+body.game-latarnie .latarnia-wall.satisfied{color:#86f1c7}
+body.game-latarnie .latarnia-wall.over{color:#ff8a83}
+body.game-latarnie .latarnia-cell.hint-target,body.game-latarnie .latarnia-wall.hint-target{
+  box-shadow:inset 0 0 0 3px #ffdc92,0 0 22px rgba(255,206,108,.45);
+}
+body.game-latarnie .feedback{
+  background:linear-gradient(95deg,rgba(29,82,78,.88),rgba(13,51,63,.9));
+  border:1px solid rgba(157,211,193,.28);
+  border-left:3px solid #e6be7b;
+  color:#e6f1e5;
+  text-align:left;
+}
+body.game-latarnie .panel-card{
+  background:linear-gradient(155deg,#154b50,#0e303d);
+  border:1px solid #528081;color:#e7f2e8;
+}
+body.game-latarnie .panel-card>button,body.game-latarnie .panel-card summary{
+  background:#1d555a;
+  border:1px solid #5c9290;
+  color:#ffe8bc;
+}
+body.game-latarnie .rules ol,body.game-latarnie .hint-card p{color:#d6e8e0}
+body.game-latarnie .hint-head button{color:#ffdc92}
+body.game-latarnie .mobile-controls{
+  background:linear-gradient(180deg,#103742,#0b2d39);
+  border-color:#487975;
+}
+body.game-latarnie .mobile-controls button{color:#f6e9ca}
+body.game-latarnie .mobile-controls span{color:#b9d9d3}
+body.game-latarnie .completion-card{
+  background:linear-gradient(150deg,#174c4d,#0c2d3a);
+  border:1px solid #d1b27c;
+  box-shadow:0 0 0 5px rgba(247,205,129,.1),0 26px 80px rgba(0,6,13,.54);
+}
+body.game-latarnie .completion .primary{background:#ffdf98;color:#234247}
+
+/* ZIP: exact geometric centering of every numbered token, regardless of cell borders.
+   The number's own slight optical adjustment affects the glyph, not the circle. */
+body.game-zip .zip-cell{position:relative}
+body.game-zip .checkpoint{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  line-height:1;
+  font-variant-numeric:lining-nums tabular-nums;
+  pointer-events:none;
+}
+body.game-zip .checkpoint-number{
+  display:block;
+  line-height:1;
+  transform:translateY(-.055em);
+  pointer-events:none;
+}
