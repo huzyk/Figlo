@@ -12,7 +12,7 @@ function defaultState(today = currentDateKey()) {
     version: 2,
     user: { streak: 0, bestStreak: 0, completedDays: 0, completedGames: 0, lastCompletedDate: null, completedDates: [] },
     daily: { date: today, requiredGames: requiredGamesForDate(today), completedGames: [] },
-    games: { korony: defaultGameStats(), duet: defaultGameStats(), bloki: defaultGameStats(), latarnie: defaultGameStats() },
+    games: { korony: defaultGameStats(), duet: defaultGameStats(), bloki: defaultGameStats(), latarnie: defaultGameStats(), zip: defaultGameStats() },
     settings: { autoX: false },
     sessions: { korony: defaultCrownSession(), duet: defaultDuetSession() }
   };
@@ -60,7 +60,8 @@ function normalizeState(raw, today) {
       korony: { ...fallback.games.korony, ...(raw.games?.korony || {}) },
       duet: { ...fallback.games.duet, ...(raw.games?.duet || {}) },
       bloki: { ...fallback.games.bloki, ...(raw.games?.bloki || {}) },
-      latarnie: { ...fallback.games.latarnie, ...(raw.games?.latarnie || {}) }
+      latarnie: { ...fallback.games.latarnie, ...(raw.games?.latarnie || {}) },
+      zip: { ...fallback.games.zip, ...(raw.games?.zip || {}) }
     },
     settings: { ...fallback.settings, ...(raw.settings || {}) },
     sessions: {
@@ -83,7 +84,7 @@ function normalizeState(raw, today) {
   if (!Array.isArray(state.sessions.duet.history)) state.sessions.duet.history = [];
   state.sessions.duet.elapsedMs = safeNumber(state.sessions.duet.elapsedMs);
   state.sessions.duet.runningSince = Number.isFinite(Number(state.sessions.duet.runningSince)) ? Number(state.sessions.duet.runningSince) : null;
-  for (const gameId of ['korony', 'duet', 'bloki', 'latarnie']) {
+  for (const gameId of ['korony', 'duet', 'bloki', 'latarnie', 'zip']) {
     state.games[gameId].completedCount = safeNumber(state.games[gameId].completedCount);
     state.games[gameId].totalTimeMs = safeNumber(state.games[gameId].totalTimeMs);
     state.games[gameId].timedCompletions = safeNumber(state.games[gameId].timedCompletions);

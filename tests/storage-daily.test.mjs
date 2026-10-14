@@ -4,6 +4,7 @@ class LocalStorageMock { constructor(){this.map=new Map();} getItem(k){return th
 globalThis.localStorage=new LocalStorageMock();
 const storage=await import('../src/storage.js');
 const progress=await import('../src/services/progress-service.js');
+const {getUserStats}=await import('../src/services/stats-service.js');
 const {requiredGamesForDate}=await import('../src/daily-games.js');
 const {STORAGE_KEY,isTodayComplete,loadFigloState,updateFigloSettings}=storage;
 const resetStorage=()=>localStorage.clear();
@@ -20,3 +21,25 @@ test('skipping a day resets streak after next full set',()=>{resetStorage();comp
 test('new date resets daily progress and switches to four games',()=>{resetStorage();completeDay('2026-08-24');const next=loadFigloState('2026-08-25');assert.deepEqual(next.daily.completedGames,[]);assert.deepEqual(next.daily.requiredGames,['korony','duet','bloki','latarnie']);assert.equal(next.user.streak,1);assert.equal(next.user.completedDays,1);assert.equal(next.user.completedGames,2);});
 test('dates before Duet launch remain Korony-only',()=>{resetStorage();const state=loadFigloState('2026-08-23');assert.deepEqual(state.daily.requiredGames,['korony']);const result=complete('korony','2026-08-23');assert.equal(result.firstDayCompletionToday,true);assert.equal(result.state.user.streak,1);});
 test('Auto-X setting persists in unified storage',()=>{resetStorage();updateFigloSettings({autoX:true});const state=loadFigloState('2026-08-24');assert.equal(state.settings.autoX,true);assert.ok(localStorage.getItem(STORAGE_KEY));});
+
+test('Zip starts with statistics and older states gain its entry',()=>{
+  resetStorage();
+  const state=loadFigloState('2026-10-14');
+  assert.equal(state.games.zip.completedCount,0);
+  delete state.games.zip;
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  assert.equal(loadFigloState('2026-10-14').games.zip.completedCount,0);
+  completeDay('2026-10-14');
+  assert.equal(loadFigloState('2026-10-14').games.zip.completedCount,1);
+});
+
+test('visible streak expires after missing a whole day, but best streak remains',()=>{
+  resetStorage();
+  completeDay('2026-10-14');
+  assert.equal(getUserStats('2026-10-14').streak,1);
+  assert.equal(getUserStats('2026-10-15').streak,1);
+  assert.equal(getUserStats('2026-10-16').streak,0);
+  assert.equal(getUserStats('2026-10-16').bestStreak,1);
+  completeDay('2026-10-16');
+  assert.equal(getUserStats('2026-10-16').streak,1);
+});
