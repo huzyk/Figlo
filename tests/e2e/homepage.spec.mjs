@@ -6,14 +6,15 @@ const games = [
   ['duet', 'duetCard'],
   ['bloki', 'blokiCard'],
   ['latarnie', 'latarnieCard'],
-  ['zip', 'zipCard']
+  ['zip', 'zipCard'],
+  ['sudoku', 'sudokuCard']
 ];
 
 test('PUZLI homepage lists the complete daily set and real destinations', async ({ page }) => {
   await page.goto('/index.html?date=' + DATE);
   await expect(page).toHaveTitle(/PUZLI/);
-  await expect(page.locator('#progressRing')).toHaveText('0/5');
-  await expect(page.locator('#gamesSummary')).toContainText('5 gier');
+  await expect(page.locator('#progressRing')).toHaveText('0/6');
+  await expect(page.locator('#gamesSummary')).toContainText('6 gier');
   for (const [game, id] of games) {
     const card = page.locator('#' + id);
     await expect(card).toBeVisible();
@@ -26,7 +27,7 @@ test('PUZLI homepage lists the complete daily set and real destinations', async 
 test('all five game cards exist in HTML if homepage JavaScript fails', async ({ page }) => {
   await page.route('**/home.js', route => route.abort());
   await page.goto('/index.html?date=' + DATE);
-  await expect(page.locator('.games > a.game-card')).toHaveCount(5);
+  await expect(page.locator('.games > a.game-card')).toHaveCount(6);
   await expect(page.locator('#duetCard')).toHaveAttribute('href', 'duet.html');
 });
 
@@ -50,7 +51,7 @@ test('only the released games are exposed for historical dates', async ({ page }
   await expect(page.locator('#progressRing')).toHaveText('0/2');
   await expect(page.locator('#crownsCard')).toBeVisible();
   await expect(page.locator('#duetCard')).toBeVisible();
-  for (const id of ['blokiCard', 'latarnieCard', 'zipCard']) {
+  for (const id of ['blokiCard', 'latarnieCard', 'zipCard','sudokuCard']) {
     await expect(page.locator('#' + id)).toBeHidden();
   }
 });
