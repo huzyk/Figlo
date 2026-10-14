@@ -67,7 +67,7 @@ body.game-sudoku .sudoku-keypad button{font-size:30px;font-weight:800}
 
 /* Guided Sudoku hints: intersection stays readable; unrelated cells recede. */
 body.game-sudoku .sudoku-cell.hint-context{background:#e3f4e9;color:#245d49}
-body.game-sudoku .sudoku-cell.hint-muted{background:#bdc7bc;color:#6c786d;opacity:.58}
+body.game-sudoku .sudoku-cell.hint-muted{background:#697e72;color:#bdcfc3;opacity:1}
 body.game-sudoku .sudoku-cell.hinted{
   background:#cbf3df!important;
   box-shadow:inset 0 0 0 3px #26986c;
