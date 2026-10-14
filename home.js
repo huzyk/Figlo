@@ -44,7 +44,7 @@ function renderDailyProgress(){
     $('#dailyStatusTitle').textContent=waitingLabel(required);
     $('#dailyStatusText').textContent='Wybierz dowolną grę. Twój postęp zapisze się automatycznie.';
   }else{
-    $('#dailyStatusTitle').textContent=remaining===1?'Została 1 gra':`Zostały ${remaining} gry`;
+    $('#dailyStatusTitle').textContent=remaining===1?'Została 1 gra':remaining<=4?`Zostały ${remaining} gry`:`Zostało ${remaining} gier`;
     $('#dailyStatusText').textContent=`Masz za sobą ${completed} z ${required}. Dokończ zestaw we własnym tempie.`;
   }
   for(const [id,card,status] of [
