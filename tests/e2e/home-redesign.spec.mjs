@@ -59,7 +59,7 @@ test('homepage completion state updates the start button and tiles without losin
   await expect(page.locator('#progressRing')).toHaveText('1/6');
   await expect(page.locator('#crownsCard')).toHaveClass(/completed/);
   await expect(page.locator('#crownsCard')).toHaveAttribute('href','korony.html?mode=training');
-  await expect(page.locator('#crownsStatus')).toHaveText('Trening');
+  await expect(page.locator('#crownsStatus')).toHaveText('Zagraj ponownie');
   await expect(page.locator('.daily-cta .btn.white')).toHaveAttribute('href','duet.html');
   await expect(page.locator('#duetCard')).not.toHaveClass(/completed/);
 });
