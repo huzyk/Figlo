@@ -12,7 +12,7 @@ function defaultState(today = currentDateKey()) {
     version: 2,
     user: { streak: 0, bestStreak: 0, completedDays: 0, completedGames: 0, lastCompletedDate: null, completedDates: [] },
     daily: { date: today, requiredGames: requiredGamesForDate(today), completedGames: [] },
-    games: { korony: defaultGameStats(), duet: defaultGameStats(), bloki: defaultGameStats(), latarnie: defaultGameStats(), zip: defaultGameStats() },
+    games: { korony: defaultGameStats(), duet: defaultGameStats(), bloki: defaultGameStats(), latarnie: defaultGameStats(), zip: defaultGameStats(), sudoku: defaultGameStats() },
     settings: { autoX: false },
     sessions: { korony: defaultCrownSession(), duet: defaultDuetSession() }
   };
@@ -61,7 +61,8 @@ function normalizeState(raw, today) {
       duet: { ...fallback.games.duet, ...(raw.games?.duet || {}) },
       bloki: { ...fallback.games.bloki, ...(raw.games?.bloki || {}) },
       latarnie: { ...fallback.games.latarnie, ...(raw.games?.latarnie || {}) },
-      zip: { ...fallback.games.zip, ...(raw.games?.zip || {}) }
+      zip: { ...fallback.games.zip, ...(raw.games?.zip || {}) },
+      sudoku: { ...fallback.games.sudoku, ...(raw.games?.sudoku || {}) }
     },
     settings: { ...fallback.settings, ...(raw.settings || {}) },
     sessions: {
@@ -84,7 +85,7 @@ function normalizeState(raw, today) {
   if (!Array.isArray(state.sessions.duet.history)) state.sessions.duet.history = [];
   state.sessions.duet.elapsedMs = safeNumber(state.sessions.duet.elapsedMs);
   state.sessions.duet.runningSince = Number.isFinite(Number(state.sessions.duet.runningSince)) ? Number(state.sessions.duet.runningSince) : null;
-  for (const gameId of ['korony', 'duet', 'bloki', 'latarnie', 'zip']) {
+  for (const gameId of ['korony', 'duet', 'bloki', 'latarnie', 'zip', 'sudoku']) {
     state.games[gameId].completedCount = safeNumber(state.games[gameId].completedCount);
     state.games[gameId].totalTimeMs = safeNumber(state.games[gameId].totalTimeMs);
     state.games[gameId].timedCompletions = safeNumber(state.games[gameId].timedCompletions);
@@ -138,7 +139,7 @@ export function completeDailyGame(gameId, { timeMs = null, today = currentDateKe
   state.user.completedGames += 1;
   const dayIsNowComplete = isTodayComplete(state);
   let firstDayCompletionToday = false;
-  if (!wasDayComplete && dayIsNowComplete) {
+  if (!wasDayComplete && dayIsNowComplete && state.user.lastCompletedDate !== today) {
     firstDayCompletionToday = true;
     const difference = dayDifference(state.user.lastCompletedDate, today);
     state.user.streak = difference === 1 ? state.user.streak + 1 : 1;
