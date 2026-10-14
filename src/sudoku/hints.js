@@ -20,6 +20,10 @@ const units = [
   })
 ];
 const validBoard=board=>Array.isArray(board)&&board.length===SIZE*SIZE;
+// A filled row can look correct while one of its values violates a different
+// column or box. Never celebrate an area on a board with unresolved conflicts.
+export const boardHasSudokuConflict=board=>
+  validBoard(board)&&board.some((value,index)=>value!==0&&hasConflict(board,index));
 const unitIsComplete=(board,indices)=>{
   const digits=indices.map(index=>board[index]);
   return digits.every(value=>Number.isInteger(value)&&value>=1&&value<=SIZE)
@@ -30,12 +34,12 @@ const label=unit=>unit.type==='row'?'wierszu '+(unit.index+1)
   :'bloku 2×3';
 
 export function completedSudokuUnits(board){
-  if(!validBoard(board))return [];
+  if(!validBoard(board)||boardHasSudokuConflict(board))return [];
   return units.filter(unit=>unitIsComplete(board,unit.indices));
 }
 
 export function newlyCompletedSudokuUnits(before,after){
-  if(!validBoard(before)||!validBoard(after))return [];
+  if(!validBoard(before)||!validBoard(after)||boardHasSudokuConflict(after))return [];
   return units.filter(unit=>
     unitIsComplete(after,unit.indices)&&!unitIsComplete(before,unit.indices));
 }
