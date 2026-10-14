@@ -4,7 +4,7 @@ import { completeGame } from '../services/progress-service.js';
 import { loadFigloState } from '../storage.js';
 import { track } from '../services/analytics-service.js';
 import { requestedGameMode, setGameMode } from '../ui/game-mode.js';
-import { buildSudokuPuzzle, candidates, hasConflict, isSudokuSolved } from './engine.js';
+import { SIZE, CELL_COUNT, BOX_ROWS, BOX_COLS, buildSudokuPuzzle, candidates, hasConflict, isSudokuSolved } from './engine.js';
 import { createSudokuSession, loadSudokuSession, saveSudokuSession, clearSudokuSession } from './session.js';
 
 const $ = selector => document.querySelector(selector);
@@ -47,20 +47,20 @@ function resetFocus() {
   if (selected < 0) selected = 0;
 }
 function isPeer(a,b) {
-  const ar=Math.floor(a/9),ac=a%9,br=Math.floor(b/9),bc=b%9;
-  return ar===br||ac===bc||(Math.floor(ar/3)===Math.floor(br/3)&&Math.floor(ac/3)===Math.floor(bc/3));
+  const ar=Math.floor(a/SIZE),ac=a%SIZE,br=Math.floor(b/SIZE),bc=b%SIZE;
+  return ar===br||ac===bc||(Math.floor(ar/BOX_ROWS)===Math.floor(br/BOX_ROWS)&&Math.floor(ac/BOX_COLS)===Math.floor(bc/BOX_COLS));
 }
 function buildBoard() {
   board.replaceChildren();
   cells.length = 0;
-  for(let i=0;i<81;i++){
+  for(let i=0;i<CELL_COUNT;i++){
     const el=document.createElement('button');
     el.type='button';
     el.className='sudoku-cell';
     el.dataset.index=String(i);
     el.setAttribute('role','gridcell');
-    el.setAttribute('aria-rowindex',String(Math.floor(i/9)+1));
-    el.setAttribute('aria-colindex',String(i%9+1));
+    el.setAttribute('aria-rowindex',String(Math.floor(i/SIZE)+1));
+    el.setAttribute('aria-colindex',String(i%SIZE+1));
     el.addEventListener('click',()=>{selected=i;render();});
     cells.push(el);
     board.appendChild(el);
@@ -70,13 +70,13 @@ function render() {
   if (!session || !record) return;
   const focusedDigit = selected != null ? session.values[selected] : 0;
   let filled=0;
-  const totalDigits = Array(10).fill(0);
+  const totalDigits = Array(SIZE+1).fill(0);
   session.values.forEach(value => {if(value){filled++;totalDigits[value]++;}});
-  for(let i=0;i<81;i++){
+  for(let i=0;i<CELL_COUNT;i++){
     const cell=cells[i],value=session.values[i],notes=session.notes[i];
     const cls=['sudoku-cell'];
-    if (i%9===2||i%9===5) cls.push('box-right');
-    if (Math.floor(i/9)===2||Math.floor(i/9)===5) cls.push('box-bottom');
+    if (i%SIZE===BOX_COLS-1) cls.push('box-right');
+    if (Math.floor(i/SIZE)%BOX_ROWS===BOX_ROWS-1 && Math.floor(i/SIZE)<SIZE-1) cls.push('box-bottom');
     if (record.puzzle[i]) cls.push('given');
     if (selected!=null && selected!==i && isPeer(selected,i)) cls.push('peer');
     if (focusedDigit && value===focusedDigit && selected!==i) cls.push('same-digit');
@@ -88,24 +88,24 @@ function render() {
     if(value) cell.textContent=String(value);
     else if(notes) {
       const grid=document.createElement('span');grid.className='sudoku-notes';
-      for(let n=1;n<=9;n++){
+      for(let n=1;n<=SIZE;n++){
         const marker=document.createElement('span');
         marker.textContent=notes&(1<<n)?String(n):'';
         grid.appendChild(marker);
       }
       cell.appendChild(grid);
     }
-    cell.setAttribute('aria-label','Wiersz '+(Math.floor(i/9)+1)+', kolumna '+(i%9+1)+
+    cell.setAttribute('aria-label','Wiersz '+(Math.floor(i/SIZE)+1)+', kolumna '+(i%SIZE+1)+
       (value?', '+value:' puste')+(record.puzzle[i]?', podana cyfra':''));
     cell.setAttribute('aria-selected',String(selected===i));
     cell.disabled = session.finished;
   }
-  $('#filledCounter').textContent=filled+'/81';
+  $('#filledCounter').textContent=filled+'/'+CELL_COUNT;
   $('#undo').disabled=session.finished || !session.history.length;
   $('#erase').disabled=session.finished || selected===null || !!record.puzzle[selected];
   $('#notes').setAttribute('aria-pressed',String(notesMode));
   for (const button of $('#keypad').querySelectorAll('[data-digit]')) {
-    button.classList.toggle('complete-digit',totalDigits[Number(button.dataset.digit)]>=9);
+    button.classList.toggle('complete-digit',totalDigits[Number(button.dataset.digit)]>=SIZE);
     button.disabled=session.finished;
   }
 }
@@ -176,7 +176,7 @@ function toggleNotes() {
 function hint() {
   if(!session || session.finished)return;
   let target=-1, value=0;
-  for(let i=0;i<81;i++){
+  for(let i=0;i<CELL_COUNT;i++){
     if(record.puzzle[i]||session.values[i]===record.solution[i])continue;
     const opts=candidates(session.values,i);
     if(opts.length===1 && opts[0]===record.solution[i]) {target=i;value=opts[0];break;}
@@ -208,7 +208,7 @@ async function loadRound(training) {
   try {
     if(training) {
       const seed=globalThis.crypto?.randomUUID?.()||Math.random().toString(36);
-      record=buildSudokuPuzzle('training:'+seed,{givens:38});
+      record=buildSudokuPuzzle('training:'+seed,{givens:17});
       record.puzzleId='sudoku-training:'+seed;
       mode='training';trainingCount++;
     } else {
@@ -229,7 +229,7 @@ async function loadRound(training) {
     track(mode==='daily'?'game_opened':'game_training_started',{
       gameId:'sudoku',puzzleId:record.puzzleId,date:today,mode
     });
-    announce('Wybierz pole i wpisz cyfrę 1–9. Możesz używać notatek.');
+    announce('Wybierz pole i wpisz cyfrę 1–6. Możesz używać notatek.');
   } catch(error) {
     console.error('Sudoku: puzzle loading failed',error);
     $('#loadError').hidden=false;
@@ -244,14 +244,14 @@ function handleKey(event) {
     if(event.key.toLowerCase()==='z'){event.preventDefault();undo();}
     return;
   }
-  const row=Math.floor(selected/9),col=selected%9;
-  const delta={ArrowUp:row>0?-9:null,ArrowDown:row<8?9:null,
-    ArrowLeft:col>0?-1:null,ArrowRight:col<8?1:null};
+  const row=Math.floor(selected/SIZE),col=selected%SIZE;
+  const delta={ArrowUp:row>0?-SIZE:null,ArrowDown:row<SIZE-1?SIZE:null,
+    ArrowLeft:col>0?-1:null,ArrowRight:col<SIZE-1?1:null};
   if(event.key in delta){
     event.preventDefault();if(delta[event.key]!=null)selected+=delta[event.key];
     render();cells[selected]?.focus({preventScroll:true});return;
   }
-  if(/^[1-9]$/.test(event.key)){event.preventDefault();inputDigit(Number(event.key));}
+  if(/^[1-6]$/.test(event.key)){event.preventDefault();inputDigit(Number(event.key));}
   else if(['Backspace','Delete','0'].includes(event.key)){event.preventDefault();clearCell();}
   else if(event.key.toLowerCase()==='n'){event.preventDefault();toggleNotes();}
 }
