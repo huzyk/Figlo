@@ -7,11 +7,13 @@ import { currentDateKey, dailyPuzzleSeed } from './daily.js';
 import { completeDailyGame, getCrownSession, loadFigloState, saveCrownSession, clearCrownSession, updateFigloSettings } from './storage.js';
 import { requestedGameMode, setGameMode } from './ui/game-mode.js';
 import { showGameLoader, hideGameLoader } from './ui/game-loader.js';
+import { track } from './services/analytics-service.js';
 
 const $=selector=>document.querySelector(selector);
 const board=$('#board'),timer=$('#timer'),undoBtn=$('#undo'),hintBtn=$('#hint'),hintCard=$('#hintCard'),hintText=$('#hintText'),autoXInput=$('#autoX'),done=$('#done'),finalTime=$('#finalTime'),nextPuzzleBtn=$('#nextPuzzle'),roundLabel=$('#roundLabel'),feedback=$('#feedback'),mobileAutoX=$('#mobileAutoX');
 const today=currentDateKey(),dailySeed=dailyPuzzleSeed('korony',today),dailyDifficulty=difficultyForGameDate('korony',today),requestedMode=requestedGameMode();
 const isLocalTest=location.hostname==='localhost'||location.hostname==='127.0.0.1';
+let activePuzzleId=dailySeed;
 let currentPuzzle=null,productState=loadFigloState(today),state=createGameState(),history=[],started=false,tick=null,finished=false,gameMode='daily',trainingNumber=0,autoXEnabled=Boolean(productState.settings.autoX),elapsedMs=0,runningSince=null;
 autoXInput.checked=autoXEnabled;
 mobileAutoX.setAttribute('aria-pressed',String(autoXEnabled));
@@ -21,7 +23,7 @@ const xMarkup='<span class="mark x-mark" aria-hidden="true">×</span>';
 function fmt(ms){const seconds=Math.floor(Math.max(0,ms)/1000);return`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}
 function currentElapsed(now=Date.now()){return elapsedMs+(runningSince?Math.max(0,now-runningSince):0);}
 function refreshTimer(){timer.textContent=fmt(currentElapsed());}
-function startTimer(){if(finished)return;if(!started)started=true;if(!runningSince)runningSince=Date.now();if(!tick)tick=setInterval(refreshTimer,250);}
+function startTimer(){if(finished)return;if(!started){started=true;track('game_started',{gameId:'korony',puzzleId:activePuzzleId,date:today,mode:gameMode});}if(!runningSince)runningSince=Date.now();if(!tick)tick=setInterval(refreshTimer,250);}
 function pauseTimer(now=Date.now()){if(runningSince){elapsedMs+=Math.max(0,now-runningSince);runningSince=null;}if(tick)clearInterval(tick);tick=null;refreshTimer();}
 function serializeHistory(){return history.map(item=>({crowns:[...(item.crowns||[])],manualXs:[...(item.manualXs||[])]}));}
 function persistSession(){if(gameMode!=='daily')return;saveCrownSession({date:today,seed:dailySeed,crowns:[...state.crowns],manualXs:[...state.manualXs],history:serializeHistory(),elapsedMs,runningSince,finished},today);}
@@ -74,9 +76,9 @@ function render(){
 }
 
 function handleCellKeys(event){const index=Number(event.currentTarget.dataset.index),[row,column]=rc(index);let next=null;if(event.key==='ArrowUp'&&row>0)next=index-N;if(event.key==='ArrowDown'&&row<N-1)next=index+N;if(event.key==='ArrowLeft'&&column>0)next=index-1;if(event.key==='ArrowRight'&&column<N-1)next=index+1;if(event.key==='Enter'||event.key===' '){event.preventDefault();makeMove(index);return;}if(next!==null){event.preventDefault();board.children[next]?.focus();}}
-function finishGame(ms){finished=true;pauseTimer();elapsedMs=ms;runningSince=null;timer.textContent=fmt(ms);finalTime.textContent=timer.textContent;if(gameMode==='daily'){const previousBest=productState.games.korony.bestTimeMs,result=completeDailyGame('korony',{timeMs:ms,today});productState=result.state;const currentBest=productState.games.korony.bestTimeMs,isNewRecord=Number.isFinite(currentBest)&&currentBest===ms&&(!previousBest||ms<previousBest);$('#recordBadge').hidden=!isNewRecord;persistSession();}else{$('#recordBadge').hidden=true;}refreshStats();}
+function finishGame(ms){finished=true;pauseTimer();elapsedMs=ms;runningSince=null;timer.textContent=fmt(ms);finalTime.textContent=timer.textContent;if(gameMode==='daily'){const previousBest=productState.games.korony.bestTimeMs,result=completeDailyGame('korony',{timeMs:ms,today});productState=result.state;const currentBest=productState.games.korony.bestTimeMs,isNewRecord=Number.isFinite(currentBest)&&currentBest===ms&&(!previousBest||ms<previousBest);$('#recordBadge').hidden=!isNewRecord;persistSession();if(result.firstGameCompletionToday)track('game_completed',{gameId:'korony',puzzleId:activePuzzleId,date:today,mode:'daily',elapsedMs:ms});if(result.firstDayCompletionToday)track('daily_completed',{date:today});}else{$('#recordBadge').hidden=true;track('game_completed',{gameId:'korony',puzzleId:activePuzzleId,date:today,mode:'training',elapsedMs:ms});}refreshStats();}
 function makeMove(index){if(finished)return;startTimer();clearHint();history.push(snapshot(state));state=cycleCell(state,index,{autoXEnabled});persistSession();if(isSolved(state))finishGame(currentElapsed());render();}
-function showHint(){if(finished)return;clearHint();const hint=getHint(state,history);if(!hint){hintText.textContent='Nie znalazłem teraz prostej, uczciwej dedukcji.';hintCard.classList.add('show');return;}for(const index of hint.area||[])board.children[index]?.classList.add('hint-area');for(const index of hint.focus||[])board.children[index]?.classList.add('hint-focus');for(const index of hint.cells||[])board.children[index]?.classList.add(hint.kind==='error'?'hint-error':'hint-candidate');for(const index of hint.eliminate||[])board.children[index]?.classList.add('hint-eliminate');const reason=hint.reason||hint.text;if(hint.action){hintText.innerHTML='<div class="hint-section"><span class="hint-label">Dlaczego</span><p class="hint-copy"></p></div><div class="hint-section"><span class="hint-label">Co zrobić</span><p class="hint-copy"></p></div>';const copies=hintText.querySelectorAll('.hint-copy');copies[0].textContent=reason;copies[1].textContent=hint.action;}else{hintText.innerHTML='<div class="hint-section"><p class="hint-copy"></p></div>';hintText.querySelector('.hint-copy').textContent=reason;}hintCard.classList.add('show');}
+function showHint(){if(finished)return;clearHint();const hint=getHint(state,history);if(!hint){hintText.textContent='Nie znalazłem teraz prostej, uczciwej dedukcji.';hintCard.classList.add('show');return;}track('hint_used',{gameId:'korony',puzzleId:activePuzzleId,date:today,mode:gameMode});for(const index of hint.area||[])board.children[index]?.classList.add('hint-area');for(const index of hint.focus||[])board.children[index]?.classList.add('hint-focus');for(const index of hint.cells||[])board.children[index]?.classList.add(hint.kind==='error'?'hint-error':'hint-candidate');for(const index of hint.eliminate||[])board.children[index]?.classList.add('hint-eliminate');const reason=hint.reason||hint.text;if(hint.action){hintText.innerHTML='<div class="hint-section"><span class="hint-label">Dlaczego</span><p class="hint-copy"></p></div><div class="hint-section"><span class="hint-label">Co zrobić</span><p class="hint-copy"></p></div>';const copies=hintText.querySelectorAll('.hint-copy');copies[0].textContent=reason;copies[1].textContent=hint.action;}else{hintText.innerHTML='<div class="hint-section"><p class="hint-copy"></p></div>';hintText.querySelector('.hint-copy').textContent=reason;}hintCard.classList.add('show');}
 function resetRound({persist=true}={}){state=createGameState();history=[];finished=false;started=false;pauseTimer();elapsedMs=0;runningSince=null;timer.textContent='00:00';finalTime.textContent='';$('#recordBadge').hidden=true;done.hidden=true;clearHint();if(persist)persistSession();render();}
 function trainingSeed(){return globalThis.crypto?.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random()}`;}
 function undo(){if(!history.length||finished)return;clearHint();const previous=history.pop();state=createGameState(previous.crowns,previous.manualXs);persistSession();render();}
@@ -90,7 +92,9 @@ async function loadTrainingPuzzle(){
   pauseTimer();
   board.setAttribute('aria-busy','true');
   try{
-    currentPuzzle=await generateCrownDailyAsync(trainingSeed());
+    const seed=trainingSeed();
+    currentPuzzle=await generateCrownDailyAsync(seed);
+    activePuzzleId='korony-training:'+seed;
     setRegions(currentPuzzle.regions);
     buildBoard();
     gameMode='training';
@@ -99,8 +103,11 @@ async function loadTrainingPuzzle(){
     roundLabel.textContent=`Trening #${trainingNumber}`;
     exposeTestHook();
     resetRound({persist:false});
+    track('game_training_started',{gameId:'korony',puzzleId:activePuzzleId,date:today});
+    track('game_opened',{gameId:'korony',puzzleId:activePuzzleId,date:today,mode:'training'});
   }catch(error){
     console.error('korony training generation failure',error);
+    track('game_load_failed',{gameId:'korony',date:today,mode:'training'});
     feedback.textContent='Nie udało się przygotować planszy treningowej. Spróbuj ponownie.';
     feedback.className='feedback error';
     throw error;
@@ -122,16 +129,19 @@ async function loadDailyPuzzle(){
   roundLabel.textContent='Dzisiaj';
   done.hidden=true;
   try{
+    activePuzzleId=dailySeed;
     currentPuzzle=await generateCrownDailyAsync(dailySeed,dailyDifficulty);
     setRegions(currentPuzzle.regions);
     buildBoard();
     exposeTestHook();
+    track('game_opened',{gameId:'korony',puzzleId:activePuzzleId,date:today,mode:'daily'});
     const session=getCrownSession({today,seed:dailySeed});
     if(session&&!session.finished){restoreSession(session);render();return;}
     if(session?.finished)clearCrownSession(today);
     resetRound({persist:true});
   }catch(error){
     console.error('korony daily generation failure',error);
+    track('game_load_failed',{gameId:'korony',date:today,mode:'daily'});
     feedback.textContent='Nie udało się przygotować dzisiejszych Koron. Odśwież stronę.';
     feedback.className='feedback error';
   }finally{
