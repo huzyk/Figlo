@@ -457,3 +457,18 @@
   body.game-latarnie .mobile-hint-title {color:#ffe3a3}
   body.game-korony .mobile-hint-title {color:#ffe2a7}
 }
+
+/*
+ * iOS Safari: prevent unwanted double-tap page zoom while rapidly placing
+ * digits or marking puzzle cells. This still allows native two-finger pinch
+ * zoom for accessibility. Do not disable user-scalable in the viewport tag.
+ * This stylesheet is loaded only by the six game pages.
+ */
+html,
+body,
+button,
+a,
+[role="gridcell"],
+[role="button"] {
+  touch-action: manipulation;
+}
