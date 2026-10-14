@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {completedSudokuUnits,newlyCompletedSudokuUnits,findSudokuHint,boardHasSudokuConflict} from '../src/sudoku/hints.js';
+import {completedSudokuUnits,newlyCompletedSudokuUnits,findSudokuHint,boardHasSudokuConflict,sudokuMistakeIndices} from '../src/sudoku/hints.js';
 
 const solved=[
   1,2,3,4,5,6,
@@ -90,4 +90,54 @@ test('do not celebrate even an unrelated correct row while the board has errors'
   after[0]=solved[0];
   assert.equal(boardHasSudokuConflict(after),true);
   assert.deepEqual(newlyCompletedSudokuUnits(before,after),[]);
+});
+
+test('wrong digit without duplicates is still a mistake and cannot produce a green row',()=>{
+  const puzzle=Array(36).fill(0);
+  const before=Array(36).fill(0);
+  const after=before.slice();
+  after.splice(0,6,1,2,3,4,6,5); // A full row with distinct digits 1–6 but swapped 5 and 6.
+  assert.equal(boardHasSudokuConflict(after),false);
+  assert.deepEqual(sudokuMistakeIndices(after,puzzle,solved),[4,5]);
+  assert.deepEqual(newlyCompletedSudokuUnits(before,after,solved,puzzle),[]);
+  assert.deepEqual(completedSudokuUnits(after,solved,puzzle),[]);
+});
+
+test('screenshot: several wrong entries have no duplicate but block empty cells',()=>{
+  const board=[
+    3,4,6,1,2,5,
+    2,1,5,4,3,6,
+    1,0,3,0,0,0,
+    5,6,2,0,1,3,
+    6,5,1,0,0,0,
+    4,3,0,0,6,1
+  ];
+  const verifiedSolution=[
+    3,4,6,1,2,5,
+    2,1,5,4,3,6,
+    1,6,3,5,4,2,
+    5,2,4,6,1,3,
+    6,3,1,2,5,4,
+    4,5,2,3,6,1
+  ];
+  const puzzle=verifiedSolution.map((value,index)=>
+    [0,2,3,4,5,6,8,9,10,11,22,23,24,26,30,34,35].includes(index)?value:0);
+  assert.equal(boardHasSudokuConflict(board),false);
+  assert.ok(sudokuMistakeIndices(board,puzzle,verifiedSolution).includes(19),
+    'The non-conflicting 6 in row 4 column 2 cannot be marked correct');
+  const hint=findSudokuHint(board,puzzle,verifiedSolution);
+  assert.equal(hint.kind,'mistake');
+  assert.equal(hint.value,null);
+  assert.ok(sudokuMistakeIndices(board,puzzle,verifiedSolution).includes(hint.index));
+  assert.match(hint.reason,/błędna/i);
+});
+
+test('original givens are not marked as user mistakes and hints remain logical for valid states',()=>{
+  const puzzle=solved.slice();
+  const board=solved.slice();
+  assert.deepEqual(sudokuMistakeIndices(board,puzzle,solved),[]);
+  board[0]=0;puzzle[0]=0;
+  const hint=findSudokuHint(board,puzzle,solved);
+  assert.equal(hint.kind,'single');
+  assert.equal(hint.value,1);
 });

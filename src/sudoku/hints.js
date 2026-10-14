@@ -20,6 +20,19 @@ const units = [
   })
 ];
 const validBoard=board=>Array.isArray(board)&&board.length===SIZE*SIZE;
+
+/**
+ * Uniquely generated PUZLI puzzles include their verified solution.
+ * A placed digit can violate that solution without yet creating a duplicate
+ * in its row/column/box; those moves must never be marked correct.
+ * Only editable values are checked; original clues are immutable.
+ */
+export function sudokuMistakeIndices(board,puzzle,solution){
+  if(!validBoard(board)||!validBoard(puzzle)||!validBoard(solution))return [];
+  return board.flatMap((value,index)=>
+    value && !puzzle[index] && value!==solution[index] ? [index] : []);
+}
+
 // A filled row can look correct while one of its values violates a different
 // column or box. Never celebrate an area on a board with unresolved conflicts.
 export const boardHasSudokuConflict=board=>
@@ -33,13 +46,15 @@ const label=unit=>unit.type==='row'?'wierszu '+(unit.index+1)
   :unit.type==='column'?'kolumnie '+(unit.index+1)
   :'bloku 2×3';
 
-export function completedSudokuUnits(board){
-  if(!validBoard(board)||boardHasSudokuConflict(board))return [];
+export function completedSudokuUnits(board,solution=null,puzzle=null){
+  if(!validBoard(board)||boardHasSudokuConflict(board)||
+      (solution && validBoard(puzzle) && sudokuMistakeIndices(board,puzzle,solution).length))return [];
   return units.filter(unit=>unitIsComplete(board,unit.indices));
 }
 
-export function newlyCompletedSudokuUnits(before,after){
-  if(!validBoard(before)||!validBoard(after)||boardHasSudokuConflict(after))return [];
+export function newlyCompletedSudokuUnits(before,after,solution=null,puzzle=null){
+  if(!validBoard(before)||!validBoard(after)||boardHasSudokuConflict(after)||
+      (solution && validBoard(puzzle) && sudokuMistakeIndices(after,puzzle,solution).length))return [];
   return units.filter(unit=>
     unitIsComplete(after,unit.indices)&&!unitIsComplete(before,unit.indices));
 }
@@ -48,8 +63,15 @@ export function newlyCompletedSudokuUnits(before,after){
  * Provide a logical next step, not a solution leak or an automatic entry.
  * Naked singles have priority, then hidden singles, then a candidate-based nudge.
  */
-export function findSudokuHint(board,puzzle=[]){
+export function findSudokuHint(board,puzzle=[],solution=null){
   if(!validBoard(board))return null;
+  // Correct the user's earlier wrong entry before analyzing now-impossible
+  // empty cells. A local candidate check alone cannot diagnose this.
+  const mistakes=sudokuMistakeIndices(board,puzzle,solution);
+  if(mistakes.length){
+    return {index:mistakes[0],kind:'mistake',value:null,
+      reason:'Ta cyfra jest błędna. Popraw zaznaczone pole — wcześniejszy wpis blokuje dalsze rozwiązanie.'};
+  }
   for(let i=0;i<board.length;i++){
     if(board[i]&&!puzzle[i]&&hasConflict(board,i)){
       return {index:i,kind:'conflict',value:null,

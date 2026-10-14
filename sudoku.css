@@ -118,3 +118,24 @@ body.game-sudoku .sudoku-cell.unit-complete{
     box-shadow:inset 0 0 0 2px #36976c
   }
 }
+
+/* A non-conflicting entry may still be wrong in a uniquely solvable Sudoku.
+   Do not use the normal green entered-digit treatment for those mistakes. */
+body.game-sudoku button.sudoku-cell.mistake{
+  background:#ffe6df!important;
+  color:#a9302b!important;
+  box-shadow:inset 0 0 0 2px #db6656!important;
+  z-index:4;
+}
+body.game-sudoku button.sudoku-cell.mistake.selected,
+body.game-sudoku button.sudoku-cell.mistake.hinted{
+  background:#ffded6!important;
+  color:#982b28!important;
+  box-shadow:inset 0 0 0 3px #bf4944!important;
+  z-index:5;
+}
+body.game-sudoku .sudoku-feedback.hint-message.error{
+  background:#ffe7df;
+  color:#9b3b31;
+  border-left-color:#cf5e4b;
+}
