@@ -1,12 +1,15 @@
+import { mkdir } from 'node:fs/promises';
 import { test, expect } from '@playwright/test';
 const DATE='2026-10-15';
 const boards={
   korony:'.board',duet:'.duet-board',bloki:'.bloki-board',
   latarnie:'.latarnie-board',zip:'.zip-board',sudoku:'.sudoku-board'
 };
-test('six identities load with distinct rendered board treatments and without JS errors',async ({page})=>{
+test('six identities load with distinct rendered board treatments and without JS errors',async ({page},testInfo)=>{
   test.setTimeout(140000);
   const errors=[],designs=[];
+  const screenshotDir='test-results/visual/'+testInfo.project.name;
+  await mkdir(screenshotDir,{recursive:true});
   page.on('pageerror',e=>errors.push(e.message));
   for(const [game,selector] of Object.entries(boards)){
     await page.goto('/'+game+'.html?date='+DATE);
@@ -27,6 +30,7 @@ test('six identities load with distinct rendered board treatments and without JS
     expect(style.size[0]).toBeGreaterThan(180);
     expect(style.size[1]).toBeGreaterThan(180);
     expect(style.overflow).toBeLessThanOrEqual(style.viewport+5);
+    await page.screenshot({path:screenshotDir+'/'+game+'.png',fullPage:true,animations:'disabled'});
     designs.push([game,style.board,style.body]);
   }
   expect(new Set(designs.map(x=>x[1])).size).toBe(6);
