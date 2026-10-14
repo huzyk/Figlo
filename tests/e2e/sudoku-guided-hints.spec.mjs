@@ -62,3 +62,38 @@ test('mobile Sudoku hint preserves board and keypad positions',async ({page},tes
   await expect(page.locator('#feedback')).toBeInViewport();
   expect(await page.evaluate(()=>scrollY)).toBe(0);
 });
+
+test('Sudoku never celebrates a full row if a different cell still conflicts',async ({page})=>{
+  await page.goto('/sudoku.html?date='+DATE);
+  await expect(page.locator('.sudoku-cell')).toHaveCount(36);
+  const record=await sudokuRecord(page);
+
+  let target=null;
+  for(let row=0;row<6&&!target;row++){
+    const missing=Array.from({length:6},(_,col)=>row*6+col)
+      .filter(index=>record.puzzle[index]===0);
+    if(missing.length<2)continue;
+    for(let col=0;col<6;col++){
+      const conflictIndex=Array.from({length:6},(_,other)=>other*6+col)
+        .find(index=>Math.floor(index/6)!==row&&record.puzzle[index]===0);
+      if(conflictIndex!==undefined){
+        target={row,missing,conflictIndex,wrongDigit:record.solution[row*6+col]};
+        break;
+      }
+    }
+  }
+  expect(target).not.toBeNull();
+
+  await page.locator('.sudoku-cell').nth(target.conflictIndex).click();
+  await page.locator('#keypad [data-digit="'+target.wrongDigit+'"]').click();
+  for(const index of target.missing){
+    await page.locator('.sudoku-cell').nth(index).click();
+    await page.locator('#keypad [data-digit="'+record.solution[index]+'"]').click();
+  }
+  for(let col=0;col<6;col++){
+    await expect(page.locator('.sudoku-cell').nth(target.row*6+col)).not.toHaveClass(/unit-complete/);
+  }
+  expect(await page.locator('.sudoku-cell.conflict').count()).toBeGreaterThanOrEqual(2);
+  await expect(page.locator('#feedback')).toHaveClass(/error/);
+  await expect(page.locator('#feedback')).toContainText(/konflikt|powtarza/i);
+});
