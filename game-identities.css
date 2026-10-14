@@ -532,7 +532,8 @@ body.game-latarnie .latarnia-cell.has-bulb.conflict .bulb{
   color:#852839;
   text-shadow:0 1px 0 rgba(255,255,255,.5);
 }
-body.game-latarnie .feedback.error:not(.hint-feedback){
+body.game-latarnie .feedback.error:not(.hint-feedback),
+body.game-latarnie .feedback[data-conflict="true"]:not(.hint-feedback){
   color:#ffe7e9;
   background:linear-gradient(95deg,rgba(91,38,48,.96),rgba(55,34,49,.96));
   border-color:#e17b87;
