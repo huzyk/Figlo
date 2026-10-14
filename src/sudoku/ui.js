@@ -6,11 +6,14 @@ import { track } from '../services/analytics-service.js';
 import { requestedGameMode, setGameMode } from '../ui/game-mode.js';
 import { SIZE, CELL_COUNT, BOX_ROWS, BOX_COLS, buildSudokuPuzzle, candidates, hasConflict, isSudokuSolved } from './engine.js';
 import { createSudokuSession, loadSudokuSession, saveSudokuSession, clearSudokuSession } from './session.js';
+import { findSudokuHint, newlyCompletedSudokuUnits } from './hints.js';
 
 const $ = selector => document.querySelector(selector);
 const today = currentDateKey(), requestedMode = requestedGameMode();
 let record = null, session = null, mode = 'daily', selected = null;
 let notesMode = false, hinted = null, tick = null, trainingCount = 0;
+let unitFlashTimer = null, winTimer = null;
+const flashingCells = new Set();
 const board = $('#board'), cells = [];
 const fmt = value => {
   const seconds = Math.floor(Math.max(0, value) / 1000);
@@ -61,7 +64,13 @@ function buildBoard() {
     el.setAttribute('role','gridcell');
     el.setAttribute('aria-rowindex',String(Math.floor(i/SIZE)+1));
     el.setAttribute('aria-colindex',String(i%SIZE+1));
-    el.addEventListener('click',()=>{selected=i;render();});
+    el.addEventListener('click',()=>{
+      if(hinted !== null && hinted !== i){
+        hinted=null;
+        announce('Wybierz cyfrę 1–6 lub skorzystaj z podpowiedzi.');
+      }
+      selected=i;render();
+    });
     cells.push(el);
     board.appendChild(el);
   }
@@ -82,7 +91,11 @@ function render() {
     if (focusedDigit && value===focusedDigit && selected!==i) cls.push('same-digit');
     if (selected===i) cls.push('selected');
     if (value && hasConflict(session.values,i)) cls.push('conflict');
-    if (hinted===i) cls.push('hinted');
+    if (hinted!==null) {
+      if (hinted===i) cls.push('hinted');
+      else cls.push(isPeer(hinted,i)?'hint-context':'hint-muted');
+    }
+    if (flashingCells.has(i)) cls.push('unit-complete');
     cell.className=cls.join(' ');
     cell.replaceChildren();
     if(value) cell.textContent=String(value);
@@ -117,6 +130,33 @@ function remember() {
   session.history.push({values:[...session.values],notes:[...session.notes]});
   if(session.history.length>80)session.history.shift();
 }
+function clearUnitFlash() {
+  if(unitFlashTimer)clearTimeout(unitFlashTimer);
+  unitFlashTimer=null;
+  flashingCells.clear();
+  for(const cell of cells)cell.classList.remove('unit-complete');
+}
+function clearPendingWin(){
+  if(winTimer)clearTimeout(winTimer);
+  winTimer=null;
+}
+function celebrateUnits(before){
+  const completed=newlyCompletedSudokuUnits(before,session.values);
+  if(!completed.length)return false;
+  for(const unit of completed)for(const index of unit.indices)flashingCells.add(index);
+  for(const index of flashingCells)cells[index]?.classList.add('unit-complete');
+  unitFlashTimer=setTimeout(()=>{
+    unitFlashTimer=null;
+    flashingCells.clear();
+    for(const cell of cells)cell.classList.remove('unit-complete');
+  },1150);
+  return true;
+}
+function settlePendingWin(){
+  if(!winTimer)return;
+  clearPendingWin();
+  if(session&&!session.finished&&isSudokuSolved(session.values))finish();
+}
 function finish() {
   if(session.finished)return;
   session.finished=true;
@@ -145,23 +185,40 @@ function finish() {
 }
 function inputDigit(value) {
   if(!session || session.finished || selected==null || record.puzzle[selected])return;
-  if(notesMode && value !== 0){
-    if(session.values[selected])return;
+  if(notesMode && value !== 0 && session.values[selected])return;
+  if(!notesMode && session.values[selected]===value && session.notes[selected]===0)return;
+  const before=[...session.values];
+  clearPendingWin();
+  clearUnitFlash();
+  if(notesMode && value!==0){
     remember();
     session.notes[selected] ^= (1<<value);
   }else{
-    if(session.values[selected]===value && session.notes[selected]===0)return;
     remember();
     session.values[selected]=value;
     session.notes[selected]=0;
   }
-  hinted=null;startTimer();persist();render();
-  if(isSudokuSolved(session.values)){finish();return;}
-  if (hasConflict(session.values,selected)) announce('Ta cyfra powtarza się w wierszu, kolumnie lub kwadracie.',true);
+  hinted=null;
+  startTimer();persist();render();
+  const celebrated = !notesMode && value!==0 && celebrateUnits(before);
+  if(isSudokuSolved(session.values)){
+    pauseTimer();
+    if(celebrated){
+      const solvedRound=session;
+      winTimer=setTimeout(()=>{
+        winTimer=null;
+        if(session===solvedRound&&!session.finished&&isSudokuSolved(session.values))finish();
+      },950);
+    }else finish();
+    return;
+  }
+  if(hasConflict(session.values,selected))announce('Ta cyfra powtarza się w wierszu, kolumnie lub bloku.',true);
+  else if(celebrated)announce('Świetnie! Ukończony obszar zaznaczono na zielono.');
   else announce(notesMode?'Kandydat zapisany.':'Dobrze. Kontynuuj rozwiązywanie.');
 }
 function undo() {
   if(!session || session.finished || !session.history.length)return;
+  clearPendingWin();clearUnitFlash();
   const state=session.history.pop();
   session.values=[...state.values];
   session.notes=[...state.notes];
@@ -175,32 +232,30 @@ function toggleNotes() {
 }
 function hint() {
   if(!session || session.finished)return;
-  let target=-1, value=0;
-  for(let i=0;i<CELL_COUNT;i++){
-    if(record.puzzle[i]||session.values[i]===record.solution[i])continue;
-    const opts=candidates(session.values,i);
-    if(opts.length===1 && opts[0]===record.solution[i]) {target=i;value=opts[0];break;}
+  const step=findSudokuHint(session.values,record.puzzle);
+  if(!step){
+    announce('Sprawdź, czy wszystkie wpisane cyfry są poprawne.');
+    return;
   }
-  if(target<0)target=session.values.findIndex((v,i)=>!record.puzzle[i]&&v!==record.solution[i]);
-  if(target<0)return;
-  value ||= record.solution[target];
-  if(session.values[target]!==value || session.notes[target]){
-    remember();session.values[target]=value;session.notes[target]=0;
-  }
-  selected=target;hinted=target;session.hintsUsed++;
+  clearPendingWin();clearUnitFlash();
+  notesMode=false;
+  selected=step.index;
+  hinted=step.index;
+  session.hintsUsed++;
   startTimer();persist();render();
   track('hint_used',{gameId:'sudoku',puzzleId:record.puzzleId,date:today,mode,hintsUsed:session.hintsUsed});
-  announce('Podpowiedź: wpisano poprawną cyfrę '+value+' w podświetlonym polu.');
-  if(isSudokuSolved(session.values))finish();
+  announce(step.reason);
+  $('#feedback').classList.add('hint-message');
 }
 function reset() {
   if(!session || session.finished)return;
-  pauseTimer();
+  clearPendingWin();clearUnitFlash();pauseTimer();
   if(mode==='daily')clearSudokuSession(today);
   session=createSudokuSession({date:today,seed:record.puzzleId,puzzle:record.puzzle});
   notesMode=false;hinted=null;resetFocus();persist();render();announce('Plansza wyczyszczona. Zacznij od nowa.');
 }
 async function loadRound(training) {
+  clearPendingWin();clearUnitFlash();
   $('#board').setAttribute('aria-busy','true');
   $('#done').hidden=true;
   $('#loadError').hidden=true;
@@ -248,7 +303,12 @@ function handleKey(event) {
   const delta={ArrowUp:row>0?-SIZE:null,ArrowDown:row<SIZE-1?SIZE:null,
     ArrowLeft:col>0?-1:null,ArrowRight:col<SIZE-1?1:null};
   if(event.key in delta){
-    event.preventDefault();if(delta[event.key]!=null)selected+=delta[event.key];
+    event.preventDefault();
+    const previous=selected;
+    if(delta[event.key]!=null)selected+=delta[event.key];
+    if(hinted!==null && previous!==selected){
+      hinted=null;announce('Wybierz cyfrę 1–6 lub skorzystaj z podpowiedzi.');
+    }
     render();cells[selected]?.focus({preventScroll:true});return;
   }
   if(/^[1-6]$/.test(event.key)){event.preventDefault();inputDigit(Number(event.key));}
@@ -278,12 +338,12 @@ $('#rulesTop').addEventListener('click',()=>{
 document.addEventListener('keydown',handleKey);
 document.addEventListener('visibilitychange',()=>{
   if(!session||session.finished)return;
-  if(document.hidden)pauseTimer();
+  if(document.hidden){settlePendingWin();pauseTimer();}
   else if(session.startedAt&&!session.runningSince){
     session.runningSince=Date.now();if(!tick)tick=setInterval(renderTimer,250);
   }
 });
-window.addEventListener('pagehide',pauseTimer);
+window.addEventListener('pagehide',()=>{settlePendingWin();pauseTimer();});
 const shouldTrain=requestedMode==='training'||
   loadFigloState(today).daily.completedGames.includes('sudoku');
 loadRound(shouldTrain);
