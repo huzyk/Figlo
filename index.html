@@ -44,11 +44,11 @@
       </header>
 
       <div class="progress-block">
-        <div class="ring" id="progressRingVisual" aria-hidden="true"><div><strong id="progressRing">0/5</strong><span>ukończonych</span></div></div>
+        <div class="ring" id="progressRingVisual" aria-hidden="true"><div><strong id="progressRing">0/6</strong><span>ukończonych</span></div></div>
         <div class="progress-copy">
           <small>DZISIEJSZY ZESTAW</small>
-          <strong id="dailyStatusTitle">5 gier czeka</strong>
-          <span id="dailyStatusText">Ukończ pięć dzisiejszych łamigłówek i utrzymaj serię.</span>
+          <strong id="dailyStatusTitle">6 gier czeka</strong>
+          <span id="dailyStatusText">Ukończ sześć dzisiejszych łamigłówek i utrzymaj serię.</span>
         </div>
       </div>
 
@@ -80,7 +80,7 @@
     <div class="section-head">
       <span class="section-kicker">NA DZIŚ</span>
       <h2>Dzisiejszy zestaw</h2>
-      <p id="gamesSummary">5 gier dostępnych dzisiaj.</p>
+      <p id="gamesSummary">6 gier dostępnych dzisiaj.</p>
     </div>
 
     <div class="games">
@@ -103,6 +103,12 @@
       <a class="game-card active" id="zipCard" href="zip.html">
         <div class="game-art dots-art" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M13 49V17h18v16h20"/><circle cx="13" cy="49" r="5"/><circle cx="31" cy="17" r="5"/><circle cx="51" cy="33" r="5"/></svg></div>
         <h3>Zip</h3><p>Poprowadź jedną linię przez planszę, łącząc liczby po kolei.</p><span class="play" id="zipStatus">Graj</span>
+      </a>
+      <a class="game-card active" id="sudokuCard" href="sudoku.html">
+        <div class="game-art sudoku-art" aria-hidden="true">
+          <svg viewBox="0 0 64 64"><path d="M9 9h46v46H9zM24 9v46M40 9v46M9 24h46M9 40h46" fill="none" stroke-width="3"/><text x="13" y="21" font-size="12">8</text><text x="44" y="37" font-size="12">3</text><text x="28" y="52" font-size="12">5</text></svg>
+        </div>
+        <h3>Sudoku</h3><p>Uzupełnij cyfry od 1 do 9 w każdym wierszu, kolumnie i kwadracie.</p><span class="play" id="sudokuStatus">Graj</span>
       </a>
     </div>
     <p class="games-hint">Przesuń karty w bok, aby zobaczyć wszystkie gry →</p>
