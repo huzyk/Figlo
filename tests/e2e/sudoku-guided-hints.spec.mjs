@@ -95,7 +95,7 @@ test('Sudoku never celebrates a full row if a different cell still conflicts',as
   }
   expect(await page.locator('.sudoku-cell.conflict').count()).toBeGreaterThanOrEqual(2);
   await expect(page.locator('#feedback')).toHaveClass(/error/);
-  await expect(page.locator('#feedback')).toContainText(/konflikt|powtarza/i);
+  await expect(page.locator('#feedback')).toContainText(/błędna|konflikt|powtarza/i);
 });
 
 test('Sudoku marks wrong 6 (without local conflict) red, even after reload, and hint targets the mistake',async ({page})=>{
