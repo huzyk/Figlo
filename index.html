@@ -3,153 +3,127 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#F6F3EC">
-  <meta name="description" content="PUZLI — sześć codziennych łamigłówek. Graj, zbieraj ukończone dni i wracaj jutro po nowy zestaw. Za darmo i bez konta.">
-  <title>PUZLI — 6 gier logicznych każdego dnia</title>
+  <meta name="theme-color" content="#FAFBFE">
+  <meta name="description" content="Sześć darmowych gier logicznych każdego dnia. Korony, Duet, Bloki, Latarnie, Zip i Sudoku. Bez logowania, bez pośpiechu.">
+  <title>PUZLI — codzienne gry logiczne</title>
   <link rel="stylesheet" href="home.css">
   <link rel="stylesheet" href="analytics.css">
 </head>
 <body>
   <a class="skip-link" href="#gry">Przejdź do gier</a>
-
   <header class="site-header">
     <div class="nav-wrap shell">
-      <a class="logo" href="index.html" aria-label="PUZLI — strona główna">
-        <span class="logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <span>PUZLI<span class="logo-dot">.</span></span>
-      </a>
+      <a class="logo" href="index.html" aria-label="PUZLI — strona główna"><span class="logo-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>puzli<span class="logo-period">.</span></span></a>
       <nav id="mainNav" aria-label="Główna nawigacja">
-        <a href="#gry">Dzisiejsze gry</a>
+        <a href="#gry">Gry</a>
         <a href="#statystyki">Statystyki</a>
-        <a href="#jak">Jak to działa</a>
+        <a href="#jak">Jak grać?</a>
       </nav>
-      <a class="header-cta" href="#gry">Zagraj <span aria-hidden="true">↗</span></a>
+      <a class="nav-action" href="#gry">Graj teraz <span aria-hidden="true">↗</span></a>
       <button class="menu" type="button" aria-label="Otwórz menu" aria-expanded="false" aria-controls="mainNav"><span aria-hidden="true">☰</span></button>
     </div>
   </header>
 
   <main>
-    <section class="hero shell" aria-labelledby="heroTitle">
-      <div class="hero-copy">
-        <span class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span> CODZIENNIE NOWE WYZWANIA</span>
-        <h1 id="heroTitle">Pomyśl chwilę.<br><em>Uśmiechnij się.</em></h1>
-        <p>Sześć krótkich łamigłówek. Jeden codzienny rytuał. Bez konta, bez pośpiechu — po prostu graj.</p>
-        <div class="hero-actions daily-cta">
-          <a class="btn white" href="korony.html">Zagraj w Korony</a>
-          <a class="quiet-link" href="#gry">Zobacz cały zestaw <span aria-hidden="true">↓</span></a>
+    <div class="shell">
+      <section class="hero" aria-labelledby="heroHeading">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> CODZIENNY ZESTAW</div>
+          <h1 id="heroHeading">Dzień dobry.<br><span>Rozruszaj głowę.</span></h1>
+          <p>Sześć krótkich gier logicznych. Każdego dnia nowe plansze, a po każdej — mała satysfakcja.</p>
+          <div class="hero-actions daily-cta">
+            <a class="btn white" href="korony.html">Zagraj w Korony</a>
+            <a class="hero-secondary" href="#gry">Zobacz wszystkie gry <span aria-hidden="true">↓</span></a>
+          </div>
         </div>
-        <span class="hero-note"><span aria-hidden="true">✳</span> Nowy zestaw codziennie</span>
-      </div>
+        <article class="day-card" aria-label="Dzisiejszy postęp">
+          <div class="day-card-head"><span class="card-kicker">TWÓJ DZIEŃ</span><strong id="todayDate">—</strong></div>
+          <div class="progress-block">
+            <div class="ring" id="progressRingVisual"><div><strong id="progressRing">0/6</strong><span>gier</span></div></div>
+            <div class="progress-copy"><small>DZISIEJSZY POSTĘP</small><strong id="dailyStatusTitle">6 gier czeka</strong><span id="dailyStatusText">Wybierz grę i zacznij w swoim tempie.</span></div>
+          </div>
+          <div class="day-card-footer">
+            <div class="day-streak"><span class="streak-icon" aria-hidden="true">✳</span><div><strong id="cardStreak">0 dni</strong><small>Twoja seria</small></div></div>
+            <a href="#statystyki">Statystyki <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+      </section>
 
-      <article class="day-card" aria-label="Twój dzisiejszy postęp">
-        <div class="day-card-head">
-          <div><span class="card-kicker">TWOJA CODZIENNA SERIA</span><strong id="todayDate">—</strong></div>
-          <span class="day-badge">DZIŚ</span>
+      <section class="games-section" id="gry" aria-labelledby="gamesHeading">
+        <div class="section-head">
+          <div><span class="section-kicker">01 — GRAJ</span><h2 id="gamesHeading">Dzisiejsze gry</h2></div>
+          <p id="gamesSummary">6 gier dostępnych dzisiaj.</p>
         </div>
-        <div class="progress-block">
-          <div class="ring" id="progressRingVisual" aria-hidden="true"><div><strong id="progressRing">0/6</strong><span>ukończonych</span></div></div>
-          <div class="progress-copy">
-            <small>TWÓJ WYNIK</small>
-            <strong id="dailyStatusTitle">6 gier czeka</strong>
-            <span id="dailyStatusText">Ukończ dzisiejszy zestaw i wróć jutro po kolejny.</span>
-          </div>
+        <div class="games">
+      <a class="game-card game-korony active" id="crownsCard" href="korony.html">
+        <div class="game-card-top"><span class="game-number">01</span><span class="game-state" aria-hidden="true"></span></div>
+        <div class="game-art" aria-hidden="true"><svg viewBox="0 0 120 96" aria-hidden="true"><g stroke="#C9D4E5" stroke-width="1"><path d="M24 13V83 M24 13H94"/><path d="M38 13V83 M24 27H94"/><path d="M52 13V83 M24 41H94"/><path d="M66 13V83 M24 55H94"/><path d="M80 13V83 M24 69H94"/><path d="M94 13V83 M24 83H94"/></g><g fill="#E4EDFF"><path d="M25 14h28v28H25z"/><path d="M53 42h28v28H53z"/></g><g fill="#3D57C8"><path d="M30 28l4 4 5-8 5 8 4-4-2 11H32z"/><path d="M61 58l4 4 5-8 5 8 4-4-2 11H63z"/></g></svg></div>
+        <div class="game-card-body"><h3>Korony</h3><p>Jedna korona w każdym regionie.</p></div>
+        <span class="play" id="crownsStatus">Graj</span>
+      </a>
+      <a class="game-card game-duet active" id="duetCard" href="duet.html">
+        <div class="game-card-top"><span class="game-number">02</span><span class="game-state" aria-hidden="true"></span></div>
+        <div class="game-art" aria-hidden="true"><svg viewBox="0 0 120 96" aria-hidden="true"><g stroke="#CBD5E1" stroke-width="1"><path d="M24 12V84 M24 12H96"/><path d="M36 12V84 M24 24H96"/><path d="M48 12V84 M24 36H96"/><path d="M60 12V84 M24 48H96"/><path d="M72 12V84 M24 60H96"/><path d="M84 12V84 M24 72H96"/><path d="M96 12V84 M24 84H96"/></g><g fill="#1E4B70"><circle cx="30" cy="18" r="4"/><circle cx="66" cy="42" r="4"/><circle cx="42" cy="66" r="4"/><circle cx="90" cy="78" r="4"/></g><g fill="#FFF" stroke="#236BA8" stroke-width="2"><path d="M48 13l5 5-5 5-5-5z"/><path d="M78 49l5 5-5 5-5-5z"/><path d="M42 37l5 5-5 5-5-5z"/></g></svg></div>
+        <div class="game-card-body"><h3>Duet</h3><p>Dwa symbole. Jedna równowaga.</p></div>
+        <span class="play" id="duetStatus">Graj</span>
+      </a>
+      <a class="game-card game-bloki active" id="blokiCard" href="bloki.html">
+        <div class="game-card-top"><span class="game-number">03</span><span class="game-state" aria-hidden="true"></span></div>
+        <div class="game-art" aria-hidden="true"><svg viewBox="0 0 120 96" aria-hidden="true"><g fill="none" stroke-width="2.6" stroke-linejoin="round"><rect x="24" y="12" width="72" height="72" rx="2" stroke="#ABB9CA"/><rect x="24" y="12" width="36" height="24" fill="#EBF0F9" stroke="#3D5876"/><rect x="60" y="12" width="36" height="36" fill="#DDE9F3" stroke="#3D5876"/><rect x="24" y="36" width="36" height="48" fill="#F6F8FD" stroke="#3D5876"/><rect x="60" y="48" width="36" height="36" fill="#E5F1F4" stroke="#3D5876"/></g><g font-size="10" text-anchor="middle" font-weight="750" fill="#344963"><text x="42" y="27">2</text><text x="78" y="32">3</text><text x="42" y="65">4</text><text x="78" y="69">3</text></g></svg></div>
+        <div class="game-card-body"><h3>Bloki</h3><p>Podziel planszę na prostokąty.</p></div>
+        <span class="play" id="blokiStatus">Graj</span>
+      </a>
+      <a class="game-card game-latarnie active" id="latarnieCard" href="latarnie.html">
+        <div class="game-card-top"><span class="game-number">04</span><span class="game-state" aria-hidden="true"></span></div>
+        <div class="game-art" aria-hidden="true"><svg viewBox="0 0 120 96" aria-hidden="true"><g stroke="#CDD8E7" stroke-width="1"><path d="M24 12V84 M24 12H96"/><path d="M36 12V84 M24 24H96"/><path d="M48 12V84 M24 36H96"/><path d="M60 12V84 M24 48H96"/><path d="M72 12V84 M24 60H96"/><path d="M84 12V84 M24 72H96"/><path d="M96 12V84 M24 84H96"/></g><g fill="#E9F5D8"><path d="M36 24h36v12H36z"/><path d="M48 36h12v36H48z"/></g><g fill="#426754"><circle cx="42" cy="30" r="6"/><circle cx="78" cy="54" r="6"/><circle cx="54" cy="66" r="6"/></g><g stroke="#E0A04D" stroke-width="2" stroke-linecap="round"><path d="M42 19v-4M31 30h-4M53 30h4M78 43v-4M89 54h4M66 54h-4M54 55v-4M54 78v-3"/></g></svg></div>
+        <div class="game-card-body"><h3>Latarnie</h3><p>Oświetl każde pole.</p></div>
+        <span class="play" id="latarnieStatus">Graj</span>
+      </a>
+      <a class="game-card game-zip active" id="zipCard" href="zip.html">
+        <div class="game-card-top"><span class="game-number">05</span><span class="game-state" aria-hidden="true"></span></div>
+        <div class="game-art" aria-hidden="true"><svg viewBox="0 0 120 96" aria-hidden="true"><g stroke="#CED6E5" stroke-width="1"><path d="M24 12V84 M24 12H96"/><path d="M36 12V84 M24 24H96"/><path d="M48 12V84 M24 36H96"/><path d="M60 12V84 M24 48H96"/><path d="M72 12V84 M24 60H96"/><path d="M84 12V84 M24 72H96"/><path d="M96 12V84 M24 84H96"/></g><path d="M30 30H66V54H90V78H54" fill="none" stroke="#335BCB" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/><g stroke="#335BCB" stroke-width="2" fill="#fff"><circle cx="30" cy="30" r="9"/><circle cx="66" cy="54" r="9"/><circle cx="54" cy="78" r="9"/></g><g font-family="Arial" font-size="9" text-anchor="middle" font-weight="700" fill="#2547A8"><text x="30" y="33">1</text><text x="66" y="57">2</text><text x="54" y="81">3</text></g></svg></div>
+        <div class="game-card-body"><h3>Zip</h3><p>Połącz liczby jedną ścieżką.</p></div>
+        <span class="play" id="zipStatus">Graj</span>
+      </a>
+      <a class="game-card game-sudoku active" id="sudokuCard" href="sudoku.html">
+        <div class="game-card-top"><span class="game-number">06</span><span class="game-state" aria-hidden="true"></span></div>
+        <div class="game-art" aria-hidden="true"><svg viewBox="0 0 120 96" aria-hidden="true"><rect x="24" y="12" width="72" height="72" fill="#fff" stroke="#1F4C54" stroke-width="2"/><g stroke="#BACBCF" stroke-width=".9"><path d="M36 12V84 M24 24H96"/><path d="M48 12V84 M24 36H96"/><path d="M60 12V84 M24 48H96"/><path d="M72 12V84 M24 60H96"/><path d="M84 12V84 M24 72H96"/></g><g stroke="#1F4C54" stroke-width="2.2"><path d="M60 12V84 M24 36H96 M24 60H96"/></g><g font-size="10" text-anchor="middle" font-weight="750" fill="#235C60"><text x="30" y="22">5</text><text x="54" y="34">2</text><text x="78" y="46">4</text><text x="90" y="70">1</text><text x="42" y="82">3</text><text x="66" y="58">6</text></g></svg></div>
+        <div class="game-card-body"><h3>Sudoku</h3><p>Wpisz cyfry od 1 do 6.</p></div>
+        <span class="play" id="sudokuStatus">Graj</span>
+      </a>
         </div>
-        <div class="week-wrap">
-          <span class="week-title">OSTATNIE DNI TYGODNIA</span>
-          <div class="week" id="weekStrip" aria-label="Postęp bieżącego tygodnia"></div>
-        </div>
-        <div class="day-card-footer">
-          <div class="day-streak"><span class="streak-symbol" aria-hidden="true">✦</span><div><strong id="cardStreak">0 dni</strong><small>Aktualna seria</small></div></div>
-          <a href="#statystyki">Moje statystyki <span aria-hidden="true">↗</span></a>
-        </div>
-      </article>
-    </section>
+      </section>
 
-    <section class="section games-section shell" id="gry" aria-labelledby="gamesHeading">
-      <div class="section-head">
-        <div><span class="section-kicker"><span class="section-line" aria-hidden="true"></span> TWÓJ ZESTAW NA DZIŚ</span><h2 id="gamesHeading">W co dziś gramy?</h2></div>
-        <p id="gamesSummary">6 gier dostępnych dzisiaj.</p>
-      </div>
-      <div class="games">
-        <a class="game-card game-korony active" id="crownsCard" href="korony.html">
-          <div class="game-card-head"><span class="game-index">01 / 06</span><span class="game-status" aria-hidden="true">●</span></div>
-          <div class="game-art crown-art" aria-hidden="true">
-            <svg viewBox="0 0 120 100"><rect x="18" y="10" width="84" height="80" rx="15" fill="rgba(255,255,255,.26)"/><path d="M30 69h60l-5 11H35zM32 31l17 15 11-25 12 25 17-15-7 32H39z" fill="#6940BD"/><circle cx="60" cy="17" r="4" fill="#EEC64A"/></svg>
-          </div>
-          <div class="game-details"><span class="game-label">LOGIKA</span><h3>Korony</h3><p>Jedna korona w każdym regionie.</p></div>
-          <span class="play" id="crownsStatus">Graj</span>
-        </a>
-        <a class="game-card game-duet active" id="duetCard" href="duet.html">
-          <div class="game-card-head"><span class="game-index">02 / 06</span><span class="game-status" aria-hidden="true">●</span></div>
-          <div class="game-art duet-art" aria-hidden="true">
-            <svg viewBox="0 0 120 100"><circle cx="34" cy="28" r="15" fill="#1E7768"/><path d="M75 13l18 15-18 15-18-15z" fill="#FDFCF7"/><path d="M34 58l16 14-16 14-16-14z" fill="#FDFCF7"/><circle cx="80" cy="73" r="15" fill="#1E7768"/></svg>
-          </div>
-          <div class="game-details"><span class="game-label">DEDUKCJA</span><h3>Duet</h3><p>Dwa symbole, jedna równowaga.</p></div>
-          <span class="play" id="duetStatus">Graj</span>
-        </a>
-        <a class="game-card game-bloki active" id="blokiCard" href="bloki.html">
-          <div class="game-card-head"><span class="game-index">03 / 06</span><span class="game-status" aria-hidden="true">●</span></div>
-          <div class="game-art blocks-art" aria-hidden="true">
-            <svg viewBox="0 0 120 100"><rect x="18" y="17" width="43" height="30" rx="5" fill="#CF5644"/><rect x="65" y="17" width="37" height="30" rx="5" fill="#FFF3E8"/><rect x="18" y="51" width="29" height="32" rx="5" fill="#FFF3E8"/><rect x="51" y="51" width="51" height="32" rx="5" fill="#CF5644"/></svg>
-          </div>
-          <div class="game-details"><span class="game-label">UKŁADANKA</span><h3>Bloki</h3><p>Każdy prostokąt ma swoje miejsce.</p></div>
-          <span class="play" id="blokiStatus">Graj</span>
-        </a>
-        <a class="game-card game-latarnie active" id="latarnieCard" href="latarnie.html">
-          <div class="game-card-head"><span class="game-index">04 / 06</span><span class="game-status" aria-hidden="true">●</span></div>
-          <div class="game-art lantern-art" aria-hidden="true">
-            <svg viewBox="0 0 120 100"><path d="M60 9v15M60 76v15M19 50h15M86 50h15M31 21l10 11M79 69l10 11M89 21L79 32M41 69L31 80" stroke="#B67525" stroke-width="6" stroke-linecap="round"/><circle cx="60" cy="50" r="24" fill="#F4C759"/><circle cx="60" cy="50" r="10" fill="#FFF8DB"/></svg>
-          </div>
-          <div class="game-details"><span class="game-label">STRATEGIA</span><h3>Latarnie</h3><p>Rozświetl każdy zakątek planszy.</p></div>
-          <span class="play" id="latarnieStatus">Graj</span>
-        </a>
-        <a class="game-card game-zip active" id="zipCard" href="zip.html">
-          <div class="game-card-head"><span class="game-index">05 / 06</span><span class="game-status" aria-hidden="true">●</span></div>
-          <div class="game-art zip-art" aria-hidden="true">
-            <svg viewBox="0 0 120 100"><path d="M29 25H68V48H91V75H45" fill="none" stroke="#225B96" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="29" cy="25" r="12" fill="#F6FBFF" stroke="#225B96" stroke-width="5"/><circle cx="91" cy="48" r="12" fill="#F6FBFF" stroke="#225B96" stroke-width="5"/><circle cx="45" cy="75" r="12" fill="#F6FBFF" stroke="#225B96" stroke-width="5"/></svg>
-          </div>
-          <div class="game-details"><span class="game-label">ŚCIEŻKA</span><h3>Zip</h3><p>Połącz liczby jedną linią.</p></div>
-          <span class="play" id="zipStatus">Graj</span>
-        </a>
-        <a class="game-card game-sudoku active" id="sudokuCard" href="sudoku.html">
-          <div class="game-card-head"><span class="game-index">06 / 06</span><span class="game-status" aria-hidden="true">●</span></div>
-          <div class="game-art sudoku-art" aria-hidden="true">
-            <svg viewBox="0 0 120 100"><rect x="22" y="9" width="76" height="82" rx="5" fill="#F9FBEF"/><path d="M47 9v82M72 9v82M22 36h76M22 63h76" stroke="#72924C" stroke-width="2.5"/><text x="33" y="30">1</text><text x="59" y="57">6</text><text x="82" y="83">3</text></svg>
-          </div>
-          <div class="game-details"><span class="game-label">KLASYKA</span><h3>Sudoku</h3><p>Cyfry 1–6. Czysta logika.</p></div>
-          <span class="play" id="sudokuStatus">Graj</span>
-        </a>
-      </div>
-      <p class="after-games">Wszystkie gry są bezpłatne. Ukończony zestaw zapisuje się w Twojej przeglądarce.</p>
-    </section>
+      <section class="lower-grid" aria-label="Postępy i wskazówki">
+        <section class="week-card" aria-labelledby="weekHeading">
+          <div class="lower-head"><span class="section-kicker">02 — WRACAJ</span><h2 id="weekHeading">Mały nawyk, duży efekt.</h2><p>Każdy ukończony zestaw to kolejny dzień w Twojej serii.</p></div>
+          <div class="week" id="weekStrip" aria-label="Postęp tygodnia"></div>
+          <p class="week-note">Zaliczasz dzień, gdy ukończysz cały dzisiejszy zestaw.</p>
+        </section>
+        <section class="how-card" id="jak" aria-labelledby="howHeading">
+          <div class="lower-head"><span class="section-kicker">03 — ODKRYWAJ</span><h2 id="howHeading">Jak to działa?</h2></div>
+          <ol class="how-list"><li><span>1</span>Wybierz dowolną grę.</li><li><span>2</span>Rozwiąż łamigłówkę, z podpowiedzią lub bez.</li><li><span>3</span>Wróć jutro po nowe plansze.</li></ol>
+          <p class="how-note">Bez konta. Bez instalacji. Bez opłat.</p>
+        </section>
+      </section>
 
-    <section class="how-section" id="jak" aria-labelledby="howHeading">
-      <div class="shell how-grid">
-        <div><span class="section-kicker">MAŁE RZECZY, DUŻA FRAJDA</span><h2 id="howHeading">To tylko kilka minut.<br><em>Ale codziennie inaczej.</em></h2></div>
-        <div class="how-steps">
-          <div><span>01</span><p><strong>Wybierz grę</strong><small>Sześć wyzwań, dowolna kolejność.</small></p></div>
-          <div><span>02</span><p><strong>Rozwiąż po swojemu</strong><small>Podpowiedzi są pod ręką.</small></p></div>
-          <div><span>03</span><p><strong>Wróć jutro</strong><small>Nowy zestaw czeka każdego dnia.</small></p></div>
+      <section class="stats-section" id="statystyki" aria-labelledby="statsHeading">
+        <div class="section-head"><div><span class="section-kicker">04 — TWÓJ WYNIK</span><h2 id="statsHeading">Twoje statystyki</h2></div><p>Postęp zapisany w tej przeglądarce.</p></div>
+        <div class="stats">
+          <article><span>AKTUALNA SERIA</span><b id="statStreak">0</b><small id="bestStreak">Najlepsza: 0</small></article>
+          <article><span>UKOŃCZONE DNI</span><b id="activeDays">0</b><small>Wszystkie pełne zestawy</small></article>
+          <article><span>ROZWIĄZANE GRY</span><b id="totalCompleted">0</b><small>Łącznie</small></article>
+          <article><span>ŚREDNI CZAS GRY</span><b id="averageTime">—</b><small>Jedna łamigłówka</small></article>
         </div>
-      </div>
-    </section>
-
-    <section class="section stats-section shell" id="statystyki" aria-labelledby="statsHeading">
-      <div class="section-head"><div><span class="section-kicker"><span class="section-line" aria-hidden="true"></span> TWOJE OSIĄGNIĘCIA</span><h2 id="statsHeading">Zbieraj dobre dni.</h2></div><p>Małe postępy robią różnicę.</p></div>
-      <div class="stats">
-        <article><span class="stat-icon" aria-hidden="true">✦</span><b id="statStreak">0</b><strong>Aktualna seria</strong><small id="bestStreak">Najlepsza: 0</small></article>
-        <article><span class="stat-icon" aria-hidden="true">✓</span><b id="activeDays">0</b><strong>Ukończone dni</strong><small>Łącznie</small></article>
-        <article><span class="stat-icon" aria-hidden="true">▦</span><b id="totalCompleted">0</b><strong>Ukończone gry</strong><small>Wszystkie razem</small></article>
-        <article><span class="stat-icon" aria-hidden="true">◷</span><b id="averageTime">—</b><strong>Średni czas</strong><small>Na grę</small></article>
-      </div>
-    </section>
+      </section>
+    </div>
   </main>
 
   <footer class="site-footer">
-    <div class="footer-inner shell">
-      <div><a class="footer-logo" href="index.html">PUZLI<span>.</span></a><p>Mała przerwa. Duża satysfakcja.</p></div>
-      <div class="footer-links"><a href="#gry">Gry</a><a href="#statystyki">Statystyki</a><a href="#jak">Jak to działa</a></div>
-      <div class="footer-note"><p>Postęp zapisuje się lokalnie na tym urządzeniu. Nie musisz zakładać konta.</p><button id="analyticsSettings" type="button" hidden>Ustawienia statystyk</button></div>
+    <div class="shell footer-inner">
+      <div><a href="index.html" class="footer-logo">puzli<span>.</span></a><p>Chwila dla głowy, codziennie.</p></div>
+      <div class="footer-links"><a href="#gry">Gry</a><a href="#statystyki">Statystyki</a><a href="#jak">Jak grać?</a></div>
+      <div class="footer-note"><p>Wyniki i serie przechowujemy lokalnie w przeglądarce. Nie potrzebujesz konta, żeby grać.</p><button id="analyticsSettings" type="button" hidden>Ustawienia statystyk</button></div>
     </div>
   </footer>
   <script type="module" src="src/services/analytics-bootstrap.js"></script>
