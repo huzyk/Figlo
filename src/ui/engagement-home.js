@@ -117,8 +117,8 @@ async function shareResult() {
     else {
       const box = element('textarea'); box.value = message + '\n' + url.href;
       box.style.position = 'fixed'; box.style.opacity = '0'; document.body.append(box);
-      box.select(); document.execCommand('copy'); box.remove();
-      setStatus('Link skopiowany. Wyślij go znajomym!');
+      box.select(); const copied = document.execCommand('copy'); box.remove();
+      setStatus(copied ? 'Link skopiowany. Wyślij go znajomym!' : 'Nie można skopiować linku w tej przeglądarce.');
     }
   } catch(error) {
     if (error?.name !== 'AbortError') setStatus('Nie udało się udostępnić linku. Spróbuj ponownie.');
