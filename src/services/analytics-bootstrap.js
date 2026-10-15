@@ -13,6 +13,8 @@ const configured = /^G-[A-Z0-9]{6,}$/.test(GA4_MEASUREMENT_ID);
 const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
 let enabled = false;
 let banner = null;
+// Deduplicate page opens within this document, while allowing new training rounds.
+const openedInDocument = new Set();
 
 function read(key) {
   try { return localStorage.getItem(key); } catch { return null; }
@@ -75,9 +77,17 @@ function startGA4() {
   setAnalyticsAdapter(event => {
     const normalized = toGA4Event(event);
     if (!normalized || !sendUnique(event, normalized)) return;
+    if (event.eventName === 'home_opened' || event.eventName === 'game_opened') {
+      const p = event.payload || {};
+      const key = event.eventName === 'home_opened' ? 'home' :
+        [p.gameId, p.mode, p.puzzleId || document.documentElement.dataset.gamePuzzleId || ''].join(':');
+      if (openedInDocument.has(key)) return;
+      openedInDocument.add(key);
+    }
     window.gtag('event', normalized.name, normalized.params);
-    if (event.eventName === 'game_completed' && event.payload?.mode === 'daily') {
-      const today = event.payload.date || currentDateKey();
+    // Activation means all six Daily games, never just the first solved game.
+    if (event.eventName === 'daily_completed') {
+      const today = currentDateKey();
       const firstCompletionDay = read(ACTIVATED_KEY);
       for (const name of activationEvents({ firstCompletionDay, lastActiveDay: read(ACTIVE_DAY_KEY), today })) {
         window.gtag('event', name, { puzzle_date: today });
@@ -94,10 +104,16 @@ function startGA4() {
 }
 
 function currentPageOpened() {
-  const gameId = location.pathname.split('/').pop()?.replace('.html', '');
+  const page = location.pathname.split('/').pop() || 'index.html';
+  const gameId = page.replace(/\.html$/, '');
   if (['korony', 'duet', 'bloki', 'latarnie', 'zip', 'sudoku'].includes(gameId)) {
-    track('game_opened', { gameId, mode: document.documentElement.dataset.gameMode || 'daily', date: currentDateKey() });
-  } else {
+    // Do not count an unfinished or failed board as a successfully opened game.
+    const board = document.querySelector('#board');
+    const puzzleId = document.documentElement.dataset.gamePuzzleId;
+    if (!puzzleId || !board?.children.length || board.getAttribute('aria-disabled') === 'true') return;
+    track('game_opened', { gameId, puzzleId, mode: document.documentElement.dataset.gameMode || 'daily', date: document.documentElement.dataset.gameDate || currentDateKey() });
+  } else if (page === 'index.html') {
+    // privacy.html and other utility pages are not a home visit.
     track('home_opened', { date: currentDateKey() });
   }
 }
