@@ -4,8 +4,8 @@ import { N, allCells, rc, regionAt, setRegions } from './puzzle.js';
 import { clearManualXs, conflicts, createGameState, cycleCell, isSolved, snapshot, visibleXs } from './game.js';
 import { getHint } from './hints.js';
 import { generateCrownDailyAsync } from './korony/daily-generator.js';
-import { difficultyForGameDate } from './difficulty-schedule.js';
-import { currentDateKey, dailyPuzzleSeed } from './daily.js';
+import { crownDailyConfig } from './korony/difficulty.js';
+import { currentDateKey } from './daily.js';
 import { getCrownSession, loadFigloState, saveCrownSession, clearCrownSession, updateFigloSettings } from './storage.js';
 import { requestedGameMode, setGameMode, requestedPuzzleDate, validateChallengeRecord, showChallengeError, challengeRoundLabel } from './ui/game-mode.js';
 import { showGameLoader, hideGameLoader } from './ui/game-loader.js';
@@ -14,7 +14,7 @@ import { completeGame } from './services/progress-service.js';
 
 const $=selector=>document.querySelector(selector);
 const board=$('#board'),timer=$('#timer'),undoBtn=$('#undo'),hintBtn=$('#hint'),hintCard=$('#hintCard'),hintText=$('#hintText'),autoXInput=$('#autoX'),done=$('#done'),finalTime=$('#finalTime'),nextPuzzleBtn=$('#nextPuzzle'),roundLabel=$('#roundLabel'),feedback=$('#feedback'),mobileAutoX=$('#mobileAutoX');
-const today=requestedPuzzleDate(),dailySeed=dailyPuzzleSeed('korony',today),dailyDifficulty=difficultyForGameDate('korony',today),requestedMode=requestedGameMode();
+const today=requestedPuzzleDate(),{seed:dailySeed,difficulty:dailyDifficulty}=crownDailyConfig(today),requestedMode=requestedGameMode();
 const isLocalTest=location.hostname==='localhost'||location.hostname==='127.0.0.1';
 let activePuzzleId=dailySeed;
 let currentPuzzle=null,productState=loadFigloState(currentDateKey()),state=createGameState(),history=[],started=false,tick=null,finished=false,gameMode='daily',trainingNumber=0,autoXEnabled=Boolean(productState.settings.autoX),elapsedMs=0,runningSince=null,hintsUsed=0,resets=0,startedAt=null;
@@ -96,7 +96,7 @@ async function loadTrainingPuzzle(){
   board.setAttribute('aria-busy','true');
   try{
     const seed=trainingSeed();
-    currentPuzzle=await generateCrownDailyAsync(seed);
+    currentPuzzle=await generateCrownDailyAsync(seed,'easy',2);
     activePuzzleId='korony-training:'+seed;
     setRegions(currentPuzzle.regions);
     buildBoard();

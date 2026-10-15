@@ -5,8 +5,8 @@ import{loadLatarnieDaily}from'../latarnie/daily-loader.js';
 import{loadZipDaily}from'../zip/daily-loader.js';
 import{requiredGamesForDate}from'../daily-games.js';
 import{puzzleIdFor}from'../domain/completion.js';
-import{dailyPuzzleSeed}from'../daily.js';
-export async function getDailyGame(gameId,dateKey){if(gameId==='duet'){const record=await loadDuetDaily(dateKey);return{...record,puzzleId:record.puzzleId||puzzleIdFor('duet',dateKey,record.version||1)};}if(gameId==='bloki'){const record=await loadBlokiDaily(dateKey);return{...record,puzzleId:record.puzzleId||puzzleIdFor('bloki',dateKey,record.version||1)};}if(gameId==='latarnie'){const record=await loadLatarnieDaily(dateKey);return{...record,puzzleId:record.puzzleId||puzzleIdFor('latarnie',dateKey,record.version||1)};}if(gameId==='zip'){const record=await loadZipDaily(dateKey);return{...record,puzzleId:record.puzzleId||puzzleIdFor('zip',dateKey,record.version||1)};}if(gameId==='sudoku'){const record=buildSudokuPuzzle('puzli:sudoku:'+dateKey+':v2',{givens:18});return{...record,date:dateKey,puzzleId:puzzleIdFor('sudoku',dateKey,2),version:2};}if(gameId==='korony')return{game:'korony',date:dateKey,version:1,puzzleId:dailyPuzzleSeed('korony',dateKey)};throw new Error(`Nieznana gra Daily: ${gameId}`);}
+import{crownDailyConfig}from'../korony/difficulty.js';
+export async function getDailyGame(gameId,dateKey){if(gameId==='duet'){const record=await loadDuetDaily(dateKey);return{...record,puzzleId:record.puzzleId||puzzleIdFor('duet',dateKey,record.version||1)};}if(gameId==='bloki'){const record=await loadBlokiDaily(dateKey);return{...record,puzzleId:record.puzzleId||puzzleIdFor('bloki',dateKey,record.version||1)};}if(gameId==='latarnie'){const record=await loadLatarnieDaily(dateKey);return{...record,puzzleId:record.puzzleId||puzzleIdFor('latarnie',dateKey,record.version||1)};}if(gameId==='zip'){const record=await loadZipDaily(dateKey);return{...record,puzzleId:record.puzzleId||puzzleIdFor('zip',dateKey,record.version||1)};}if(gameId==='sudoku'){const record=buildSudokuPuzzle('puzli:sudoku:'+dateKey+':v2',{givens:18});return{...record,date:dateKey,puzzleId:puzzleIdFor('sudoku',dateKey,2),version:2};}if(gameId==='korony'){const {seed,version}=crownDailyConfig(dateKey);return{game:'korony',date:dateKey,version,puzzleId:seed};}throw new Error(`Nieznana gra Daily: ${gameId}`);}
 // Version comes from the actual record; never invent v1 for a newer puzzle.
 export async function getDailyManifest(dateKey,{fetchImpl=globalThis.fetch}={}) {
   const activeGames=requiredGamesForDate(dateKey);
@@ -29,7 +29,7 @@ export async function getDailyManifest(dateKey,{fetchImpl=globalThis.fetch}={}) 
       } catch {return {id,puzzleId:null,available:false};}
     }
     const version=['zip','sudoku'].includes(id)?2:1;
-    return {id,puzzleId:id==='korony'?dailyPuzzleSeed(id,dateKey):puzzleIdFor(id,dateKey,version),available:metadata.available!==false};
+    return {id,puzzleId:id==='korony'?crownDailyConfig(dateKey).seed:puzzleIdFor(id,dateKey,version),available:metadata.available!==false};
   }));
   return {date:dateKey,games};
 }
