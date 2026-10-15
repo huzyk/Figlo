@@ -6,12 +6,12 @@ import { track } from '../services/analytics-service.js';
 import { requestedGameMode, setGameMode } from '../ui/game-mode.js';
 import { SIZE, CELL_COUNT, BOX_ROWS, BOX_COLS, buildSudokuPuzzle, candidates, hasConflict, isSudokuSolved } from './engine.js';
 import { createSudokuSession, loadSudokuSession, saveSudokuSession, clearSudokuSession } from './session.js';
-import { findSudokuHint, newlyCompletedSudokuUnits, boardHasSudokuConflict, sudokuMistakeIndices } from './hints.js?v=20261014-verify-entries';
+import { findSudokuHint, newlyCompletedSudokuUnits, boardHasSudokuConflict, sudokuMistakeIndices } from './hints.js?v=20261015-optin-hints';
 
 const $ = selector => document.querySelector(selector);
 const today = currentDateKey(), requestedMode = requestedGameMode();
 let record = null, session = null, mode = 'daily', selected = null;
-let notesMode = false, hinted = null, tick = null, trainingCount = 0;
+let notesMode = false, hinted = null, hintError = false, tick = null, trainingCount = 0;
 let unitFlashTimer = null, winTimer = null;
 const flashingCells = new Set();
 const board = $('#board'), cells = [];
@@ -67,6 +67,7 @@ function buildBoard() {
     el.addEventListener('click',()=>{
       if(hinted !== null && hinted !== i){
         hinted=null;
+        hintError=false;
         announce('Wybierz cyfrę 1–6 lub skorzystaj z podpowiedzi.');
       }
       selected=i;render();
@@ -78,15 +79,8 @@ function buildBoard() {
 function render() {
   if (!session || !record) return;
   const focusedDigit = selected != null ? session.values[selected] : 0;
-  const mistakes=new Set(sudokuMistakeIndices(session.values,record.puzzle,record.solution));
   let filled=0;
-  const totalDigits = Array(SIZE+1).fill(0);
-  session.values.forEach((value,index) => {
-    if(value){
-      filled++;
-      if(value===record.solution[index])totalDigits[value]++;
-    }
-  });
+  session.values.forEach(value => {if(value)filled++;});
   for(let i=0;i<CELL_COUNT;i++){
     const cell=cells[i],value=session.values[i],notes=session.notes[i];
     const cls=['sudoku-cell'];
@@ -97,7 +91,8 @@ function render() {
     if (focusedDigit && value===focusedDigit && selected!==i) cls.push('same-digit');
     if (selected===i) cls.push('selected');
     if (value && hasConflict(session.values,i)) cls.push('conflict');
-    if (mistakes.has(i)) cls.push('mistake');
+    // Never compare an ordinary move with the answer key or reveal a hidden error.
+    if (hinted===i && hintError) cls.push('hint-error');
     if (hinted!==null) {
       if (hinted===i) cls.push('hinted');
       else cls.push(isPeer(hinted,i)?'hint-context':'hint-muted');
@@ -125,7 +120,8 @@ function render() {
   $('#erase').disabled=session.finished || selected===null || !!record.puzzle[selected];
   $('#notes').setAttribute('aria-pressed',String(notesMode));
   for (const button of $('#keypad').querySelectorAll('[data-digit]')) {
-    button.classList.toggle('complete-digit',totalDigits[Number(button.dataset.digit)]>=SIZE);
+    // A count of six does not imply six correct placements: do not mark a digit solved.
+    button.classList.remove('complete-digit');
     button.disabled=session.finished;
   }
 }
@@ -148,7 +144,8 @@ function clearPendingWin(){
   winTimer=null;
 }
 function celebrateUnits(before){
-  const completed=newlyCompletedSudokuUnits(before,session.values,record.solution,record.puzzle);
+  // A completed group is a rules-based milestone, not an answer-key check.
+  const completed=newlyCompletedSudokuUnits(before,session.values);
   if(!completed.length)return false;
   for(const unit of completed)for(const index of unit.indices)flashingCells.add(index);
   for(const index of flashingCells)cells[index]?.classList.add('unit-complete');
@@ -205,10 +202,9 @@ function inputDigit(value) {
     session.values[selected]=value;
     session.notes[selected]=0;
   }
-  hinted=null;
+  hinted=null;hintError=false;
   startTimer();persist();render();
   const celebrated = !notesMode && value!==0 && celebrateUnits(before);
-  const mistakes=sudokuMistakeIndices(session.values,record.puzzle,record.solution);
   if(isSudokuSolved(session.values)){
     pauseTimer();
     if(celebrated){
@@ -220,11 +216,9 @@ function inputDigit(value) {
     }else finish();
     return;
   }
-  if(!notesMode && value && mistakes.includes(selected))announce('Ta cyfra jest błędna — sprawdź czerwone pole.',true);
-  else if(mistakes.length)announce('Na planszy jest błędna cyfra — sprawdź czerwone pola.',true);
-  else if(hasConflict(session.values,selected))announce('Ta cyfra powtarza się w wierszu, kolumnie lub bloku.',true);
+  if(hasConflict(session.values,selected))announce('Ta cyfra powtarza się w wierszu, kolumnie lub bloku.',true);
   else if(boardHasSudokuConflict(session.values))announce('Na planszy jest konflikt — sprawdź czerwone pola.',true);
-  else if(celebrated)announce('Świetnie! Ukończony obszar zaznaczono na zielono.');
+  else if(celebrated)announce('Uzupełniono wiersz, kolumnę lub blok.');
   else announce(notesMode?'Kandydat zapisany.':'Cyfra wpisana. Kontynuuj rozwiązywanie.');
 }
 function undo() {
@@ -233,7 +227,7 @@ function undo() {
   const state=session.history.pop();
   session.values=[...state.values];
   session.notes=[...state.notes];
-  hinted=null;persist();render();announce('Cofnięto ostatni ruch.');
+  hinted=null;hintError=false;persist();render();announce('Cofnięto ostatni ruch.');
 }
 function clearCell() { if(!session?.finished)inputDigit(0); }
 function toggleNotes() {
@@ -252,6 +246,7 @@ function hint() {
   notesMode=false;
   selected=step.index;
   hinted=step.index;
+  hintError=['mistake','conflict','blocked'].includes(step.kind);
   session.hintsUsed++;
   startTimer();persist();render();
   track('hint_used',{gameId:'sudoku',puzzleId:record.puzzleId,date:today,mode,hintsUsed:session.hintsUsed});
@@ -263,7 +258,7 @@ function reset() {
   clearPendingWin();clearUnitFlash();pauseTimer();
   if(mode==='daily')clearSudokuSession(today);
   session=createSudokuSession({date:today,seed:record.puzzleId,puzzle:record.puzzle});
-  notesMode=false;hinted=null;resetFocus();persist();render();announce('Plansza wyczyszczona. Zacznij od nowa.');
+  notesMode=false;hinted=null;hintError=false;resetFocus();persist();render();announce('Plansza wyczyszczona. Zacznij od nowa.');
 }
 async function loadRound(training) {
   clearPendingWin();clearUnitFlash();
@@ -287,7 +282,7 @@ async function loadRound(training) {
       :createSudokuSession({date:today,seed:record.puzzleId,puzzle:record.puzzle});
     if(session.finished)session=createSudokuSession({date:today,seed:record.puzzleId,puzzle:record.puzzle});
     $('#roundLabel').textContent=mode==='daily'?'Dzisiaj':'Trening #'+trainingCount;
-    notesMode=false;hinted=null;buildBoard();resetFocus();render();renderTimer();
+    notesMode=false;hinted=null;hintError=false;buildBoard();resetFocus();render();renderTimer();
     if(session.startedAt&&!session.finished&&!document.hidden){
       session.runningSince=Date.now();
       tick=setInterval(renderTimer,250);
@@ -318,7 +313,7 @@ function handleKey(event) {
     const previous=selected;
     if(delta[event.key]!=null)selected+=delta[event.key];
     if(hinted!==null && previous!==selected){
-      hinted=null;announce('Wybierz cyfrę 1–6 lub skorzystaj z podpowiedzi.');
+      hinted=null;hintError=false;announce('Wybierz cyfrę 1–6 lub skorzystaj z podpowiedzi.');
     }
     render();cells[selected]?.focus({preventScroll:true});return;
   }
