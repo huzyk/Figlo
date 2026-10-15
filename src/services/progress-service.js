@@ -8,11 +8,11 @@ export function getDailyProgress(dateKey) {
   return { date: state.daily.date, completedGames: [...state.daily.completedGames], requiredGames: [...state.daily.requiredGames], complete: isTodayComplete(state), state };
 }
 
-export function completeGame({ gameId, puzzleId, date, elapsedMs = null, mode = 'daily', startedAt = null }) {
+export function completeGame({ gameId, puzzleId, date, elapsedMs = null, mode = 'daily', startedAt = null, hintsUsed = null }) {
   const event = createCompletionEvent({ gameId, puzzleId, date, elapsedMs, mode, startedAt });
   if (mode !== 'daily') return { state: loadFigloState(date), firstGameCompletionToday: false, firstDayCompletionToday: false, event };
   const state=loadFigloState(date);
   if(!state.games[gameId]){state.games[gameId]=emptyGameStats();saveFigloState(state);}
-  const result = completeDailyGame(gameId, { timeMs: elapsedMs, today: date });
+  const result = completeDailyGame(gameId, { timeMs: elapsedMs, hintsUsed, today: date });
   return { ...result, event };
 }
