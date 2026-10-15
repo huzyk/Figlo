@@ -1,0 +1,57 @@
+/* PUZLI engagement — components below the daily games */
+.engagement-section{padding:0 0 54px;scroll-margin-top:80px}
+.engagement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.iq-panel,.badge-panel,.friends-panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px;min-width:0}
+.iq-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.iq-top>div:first-child{display:flex;flex-direction:column;align-items:flex-start}
+.engagement-kicker{font-size:11px;font-weight:850;color:var(--blue);letter-spacing:.12em}
+.iq-value{font-size:78px;font-weight:850;line-height:1.2;letter-spacing:-.07em;font-variant-numeric:tabular-nums}
+.iq-emblem{display:grid;place-items:center;width:86px;height:86px;border-radius:24px;background:#EBF1FF;color:#3355B4;font-size:48px}
+.rank-label{padding:5px 11px;background:#EDF2FF;color:#2C51B4;border-radius:999px;font-size:12px;font-weight:800}
+.iq-panel>p{color:var(--muted);font-size:13px;line-height:1.6;margin:22px 0}
+.rank-track{height:8px;background:#E8EDF6;border-radius:999px;overflow:hidden}
+.rank-track>div{width:0;height:100%;background:var(--blue);border-radius:999px;transition:width .3s}
+.rank-progress-copy{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:11px;margin-top:10px}
+.iq-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;border-top:1px solid var(--line);margin-top:25px;padding-top:21px}
+.iq-details>div{display:flex;flex-direction:column;gap:6px}
+.iq-details strong{font-size:22px;line-height:1;font-weight:800;font-variant-numeric:tabular-nums}
+.iq-details span{font-size:10px;color:var(--muted)}
+.badge-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}
+.badge-head h3{font-size:19px;letter-spacing:-.03em;margin:0}
+.badge-head>span{color:var(--muted);font-size:11px}
+.badge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.puzli-badge{min-width:0;border:1px solid #E0E6EE;border-radius:10px;padding:12px 7px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px;background:#F8FAFD}
+.puzli-badge.earned{background:#F0F5FF;border-color:#C8D8F5}
+.puzli-badge .badge-icon{font-size:28px;color:#A0A8B5;line-height:1.3}
+.puzli-badge.earned .badge-icon{color:#3B61BE}
+.puzli-badge strong{font-size:11px;font-weight:750;line-height:1.25;overflow-wrap:anywhere}
+.puzli-badge small{color:var(--muted);font-size:9px;line-height:1.35}
+.puzli-badge:not(.earned){opacity:.62}
+.friend-section{padding-bottom:72px}
+.friends-intro{display:flex;justify-content:space-between;align-items:center;gap:18px;border-bottom:1px solid var(--line);padding-bottom:19px}
+.friends-intro>div{display:flex;flex-direction:column;gap:4px}
+.friends-intro strong{font-size:15px}
+.friends-intro>strong{font-size:24px;color:var(--blue);font-variant-numeric:tabular-nums;white-space:nowrap}
+.friends-intro span{font-size:11px;color:var(--muted)}
+.friend-name-label{display:block;font-size:12px;font-weight:750;margin:21px 0 9px}
+.friends-actions{display:flex;gap:9px}
+.friends-actions input{min-width:0;flex:1;border:1px solid #CDD7E4;border-radius:8px;padding:12px 14px;font:inherit;font-size:14px}
+.friends-actions button{background:var(--blue);border:0;border-radius:8px;color:#fff;padding:12px 18px;font-size:12px;font-weight:800}
+.friend-status{min-height:19px;font-size:12px;color:var(--green);margin:10px 0}
+.friends-ranking{list-style:none;padding:0;margin:17px 0 0;display:flex;flex-direction:column;gap:8px}
+.friend-row{display:flex;align-items:center;gap:13px;padding:14px 15px;border:1px solid var(--line);border-radius:9px}
+.friend-row.is-me{background:#F0F5FF;border-color:#C9D9F7}
+.friend-place{width:28px;color:var(--muted);font-weight:850}
+.friend-player{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.friend-player strong{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.friend-player small{font-size:10px;color:var(--muted)}
+.friend-points{font-size:17px;font-weight:850;white-space:nowrap;font-variant-numeric:tabular-nums}
+.friend-disclaimer{font-size:11px;line-height:1.6;color:var(--muted);margin:17px 0}
+.clear-friends{border:0;background:transparent;text-decoration:underline;text-underline-offset:3px;color:var(--muted);font-size:11px;padding:0}
+.iq-link{font-size:12px;font-weight:750;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.iq-link strong{color:var(--blue);font-size:16px;font-variant-numeric:tabular-nums}
+.completion-rewards-link{display:block;text-align:center;margin-top:13px;padding:9px;color:#3156B3;font-weight:750;font-size:13px}
+@media(max-width:850px){.engagement-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.engagement-section{padding-bottom:40px}.iq-panel,.badge-panel,.friends-panel{padding:18px}.iq-value{font-size:62px}.iq-emblem{width:66px;height:66px;font-size:39px}.badge-grid{gap:7px}.puzli-badge{padding:9px 4px}.puzli-badge .badge-icon{font-size:25px}.puzli-badge strong{font-size:10px}.friends-actions{flex-direction:column}.friends-actions button{min-height:45px}}
+@media(max-width:350px){.friend-row{padding:12px 8px}.friend-points{font-size:15px}.day-card-footer{gap:5px}.iq-link{font-size:10px}.iq-link strong{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.rank-track>div{transition:none}}

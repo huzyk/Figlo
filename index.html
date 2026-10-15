@@ -8,6 +8,7 @@
   <title>PUZLI — codzienne gry logiczne</title>
   <link rel="stylesheet" href="home.css?v=20261014-clean4">
   <link rel="stylesheet" href="analytics.css">
+  <link rel="stylesheet" href="rewards.css?v=20261015">
 </head>
 <body>
   <a class="skip-link" href="#gry">Przejdź do gier</a>
@@ -44,7 +45,7 @@
           </div>
           <div class="day-card-footer">
             <div class="day-streak"><span class="streak-icon" aria-hidden="true">✳</span><div><strong id="cardStreak">0 dni</strong><small>Twoja seria</small></div></div>
-            <a href="#statystyki">Statystyki <span aria-hidden="true">↗</span></a>
+            <a class="iq-link" href="#osiagniecia">PUZLI IQ <strong id="quickIq">100</strong> <span aria-hidden="true">↗</span></a>
           </div>
         </article>
       </section>
@@ -96,9 +97,9 @@
 
       <section class="lower-grid" aria-label="Postępy i wskazówki">
         <section class="week-card" aria-labelledby="weekHeading">
-          <div class="lower-head"><span class="section-kicker">02 — WRACAJ</span><h2 id="weekHeading">Mały nawyk, duży efekt.</h2><p>Każdy ukończony zestaw to kolejny dzień w Twojej serii.</p></div>
+          <div class="lower-head"><span class="section-kicker">02 — WRACAJ</span><h2 id="weekHeading">Mały nawyk, duży efekt.</h2><p>Codziennie choć jedna gra. Komplet to dodatkowy sukces.</p></div>
           <div class="week" id="weekStrip" aria-label="Postęp tygodnia"></div>
-          <p class="week-note">Zaliczasz dzień, gdy ukończysz cały dzisiejszy zestaw.</p>
+          <p class="week-note">Dzień zaliczasz po pierwszej grze. Pełny komplet zdobywasz za wszystkie 6.</p>
         </section>
         <section class="how-card" id="jak" aria-labelledby="howHeading">
           <div class="lower-head"><span class="section-kicker">03 — ODKRYWAJ</span><h2 id="howHeading">Jak to działa?</h2></div>
@@ -114,6 +115,34 @@
           <article><span>UKOŃCZONE DNI</span><b id="activeDays">0</b><small>Wszystkie pełne zestawy</small></article>
           <article><span>ROZWIĄZANE GRY</span><b id="totalCompleted">0</b><small>Łącznie</small></article>
           <article><span>ŚREDNI CZAS GRY</span><b id="averageTime">—</b><small>Jedna łamigłówka</small></article>
+        </div>
+      </section>
+      <section class="engagement-section" id="osiagniecia" aria-labelledby="engagementHeading">
+        <div class="section-head"><div><span class="section-kicker">05 — ROZWIJAJ SIĘ</span><h2 id="engagementHeading">Twoje PUZLI IQ</h2></div><p>Wskaźnik postępu w PUZLI — nie wynik testu inteligencji.</p></div>
+        <div class="engagement-grid">
+          <article class="iq-panel">
+            <div class="iq-top"><div><span class="engagement-kicker">PUZLI IQ</span><strong id="puzliIq" class="iq-value">100</strong><span id="puzliRank" class="rank-label">Nowicjusz</span></div><div class="iq-emblem" aria-hidden="true">✦</div></div>
+            <p id="iqMessage">Rozwiązuj dzienne gry, aby rozwijać swój wynik.</p>
+            <div class="rank-track" aria-label="Postęp do kolejnej rangi"><div id="rankProgress"></div></div>
+            <div class="rank-progress-copy"><span id="rankCurrent">Nowicjusz</span><span id="rankNext">Do rangi Logik: 8 pkt</span></div>
+            <div class="iq-details"><div><strong id="totalPuzliPoints">0</strong><span>Punkty łącznie</span></div><div><strong id="weekPuzliPoints">0</strong><span>Ten tydzień</span></div><div><strong id="perfectSets">0</strong><span>Perfekcyjne komplety</span></div></div>
+          </article>
+          <article class="badge-panel">
+            <div class="badge-head"><h3>Twoje odznaki</h3><span id="badgesCount">0/9 zdobytych</span></div>
+            <div id="badgesGrid" class="badge-grid" aria-label="Odznaki PUZLI"></div>
+          </article>
+        </div>
+      </section>
+      <section class="engagement-section friend-section" id="rywalizacja" aria-labelledby="friendsHeading">
+        <div class="section-head"><div><span class="section-kicker">06 — RYWALIZUJ</span><h2 id="friendsHeading">Ranking znajomych</h2></div><p>Porównuj tygodniowe wyniki z linków przesłanych przez znajomych.</p></div>
+        <div class="friends-panel">
+          <div class="friends-intro"><div><strong>Twój wynik w tym tygodniu</strong><span id="weekHeadingLabel"></span></div><strong id="shareWeekPoints">0 pkt</strong></div>
+          <label class="friend-name-label" for="playerNickname">Twoja nazwa w rankingu</label>
+          <div class="friends-actions"><input id="playerNickname" type="text" maxlength="24" placeholder="Np. Logiczny Lis" autocomplete="nickname"><button id="sharePuzliResult" type="button">Udostępnij wynik ↗</button></div>
+          <p class="friend-status" id="friendStatus" role="status" aria-live="polite"></p>
+          <ol id="friendsRanking" class="friends-ranking" aria-label="Wyniki tygodnia"></ol>
+          <p class="friend-disclaimer">Wyniki znajomych pojawiają się po otwarciu udostępnionych linków. Są nieweryfikowane i nie aktualizują się automatycznie. Globalny ranking wymaga serwera.</p>
+          <button id="clearFriendResults" class="clear-friends" type="button">Wyczyść wyniki znajomych</button>
         </div>
       </section>
     </div>
