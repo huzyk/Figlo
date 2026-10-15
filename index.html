@@ -9,6 +9,16 @@
   <link rel="stylesheet" href="home.css?v=20261014-clean4">
   <link rel="stylesheet" href="analytics.css">
   <link rel="stylesheet" href="rewards.css?v=20261015">
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PUZLI">
+  <meta property="og:title" content="PUZLI — codzienne gry logiczne">
+  <meta property="og:description" content="Sześć codziennych gier logicznych. Jedna gra zalicza dzień, komplet daje dodatkową satysfakcję. Zagraj i zaproś znajomych.">
+  <meta property="og:image" content="https://huzyk.github.io/Figlo/social-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
   <a class="skip-link" href="#gry">Przejdź do gier</a>
@@ -99,6 +109,7 @@
         <section class="week-card" aria-labelledby="weekHeading">
           <div class="lower-head"><span class="section-kicker">02 — WRACAJ</span><h2 id="weekHeading">Mały nawyk, duży efekt.</h2><p>Codziennie choć jedna gra. Komplet to dodatkowy sukces.</p></div>
           <div class="week" id="weekStrip" aria-label="Postęp tygodnia"></div>
+          <p class="week-goal" id="weeklyGoal" role="status">0/5 aktywnych dni w tym tygodniu</p>
           <p class="week-note">Dzień zaliczasz po pierwszej grze. Pełny komplet zdobywasz za wszystkie 6.</p>
         </section>
         <section class="how-card" id="jak" aria-labelledby="howHeading">
@@ -112,7 +123,7 @@
         <div class="section-head"><div><span class="section-kicker">04 — TWÓJ WYNIK</span><h2 id="statsHeading">Twoje statystyki</h2></div><p>Postęp zapisany w tej przeglądarce.</p></div>
         <div class="stats">
           <article><span>AKTUALNA SERIA</span><b id="statStreak">0</b><small id="bestStreak">Najlepsza: 0</small></article>
-          <article><span>UKOŃCZONE DNI</span><b id="activeDays">0</b><small>Wszystkie pełne zestawy</small></article>
+          <article><span>PEŁNE ZESTAWY</span><b id="activeDays">0</b><small>Wszystkie komplety 6/6</small></article>
           <article><span>ROZWIĄZANE GRY</span><b id="totalCompleted">0</b><small>Łącznie</small></article>
           <article><span>ŚREDNI CZAS GRY</span><b id="averageTime">—</b><small>Jedna łamigłówka</small></article>
         </div>
@@ -141,7 +152,7 @@
           <div class="friends-actions"><input id="playerNickname" type="text" maxlength="24" placeholder="Np. Logiczny Lis" autocomplete="nickname"><button id="sharePuzliResult" type="button">Udostępnij wynik ↗</button></div>
           <p class="friend-status" id="friendStatus" role="status" aria-live="polite"></p>
           <ol id="friendsRanking" class="friends-ranking" aria-label="Wyniki tygodnia"></ol>
-          <p class="friend-disclaimer">Wyniki znajomych pojawiają się po otwarciu udostępnionych linków. Są nieweryfikowane i nie aktualizują się automatycznie. Globalny ranking wymaga serwera.</p>
+          <p class="friend-disclaimer">Wyniki z linków są deklarowane przez graczy i nie aktualizują się automatycznie. Wyślij nowy link, gdy poprawisz wynik.</p>
           <button id="clearFriendResults" class="clear-friends" type="button">Wyczyść wyniki znajomych</button>
         </div>
       </section>
@@ -151,7 +162,7 @@
   <footer class="site-footer">
     <div class="shell footer-inner">
       <div><a href="index.html" class="footer-logo">puzli<span>.</span></a><p>Chwila dla głowy, codziennie.</p></div>
-      <div class="footer-links"><a href="#gry">Gry</a><a href="#statystyki">Statystyki</a><a href="#jak">Jak grać?</a></div>
+      <div class="footer-links"><a href="#gry">Gry</a><a href="privacy.html">Dane i prywatność</a><a href="https://github.com/huzyk/Figlo/issues/new">Zgłoś problem</a></div>
       <div class="footer-note"><p>Wyniki i serie przechowujemy lokalnie w przeglądarce. Nie potrzebujesz konta, żeby grać.</p><button id="analyticsSettings" type="button" hidden>Ustawienia statystyk</button></div>
     </div>
   </footer>
@@ -159,3 +170,4 @@
   <script type="module" src="home.js"></script>
 </body>
 </html>
+

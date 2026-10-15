@@ -6,3 +6,11 @@
 .completion-reward-summary .completion-new-badge{font-weight:850;color:#7E550E}
 .completion-reward-summary[hidden]{display:none}
 .completion-rewards-link{display:block;text-align:center;margin-top:11px;padding:8px;color:#3156B3;font-weight:750;font-size:12px}
+
+
+.completion{overflow-y:auto}.completion-card{max-height:calc(100dvh - 40px);overflow-y:auto}
+.completion-share{width:100%;min-height:48px;margin-top:12px;padding:11px 16px;border:1px solid #b9c9ef;border-radius:12px;background:#edf3ff;color:#264fad;font:inherit;font-weight:800;cursor:pointer}
+.completion-share:disabled{opacity:.6;cursor:wait}.completion-share[hidden]{display:none}
+.completion-share-status{margin:7px 0 0;font-size:12px;line-height:1.45;color:inherit}.completion-share-status:empty{display:none}
+.share-manual-fallback{margin:12px 0;text-align:left;min-width:0}.share-manual-fallback[hidden]{display:none}.share-manual-fallback label{display:block;margin-bottom:7px;font-size:12px;font-weight:700}
+.share-manual-fallback textarea{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:120px;padding:10px;border:1px solid #b9c9ef;border-radius:8px;background:#fff;color:#17264a;font:inherit;font-size:12px;line-height:1.5;resize:vertical;overflow-wrap:anywhere}

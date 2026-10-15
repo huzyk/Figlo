@@ -38,6 +38,10 @@ test('no Google script before consent, then allowed events, then full opt-out', 
   expect(events.some(x => x.name === 'daily_visit')).toBe(true);
   expect(events.every(x => !Object.hasOwn(x.params, 'localId'))).toBe(true);
   expect(await page.evaluate(() => localStorage.getItem('puzli_analytics_consent_v1'))).toBe('accepted');
+  const context = await page.evaluate(() => window.dataLayer.find(x => x[0] === 'config')?.[2]);
+  expect(context.page_location).toBe('http://127.0.0.1:4173/index.html');
+  expect(context.page_location).not.toContain('?');
+  expect(context.page_location).not.toContain('#');
 
   await page.locator('#analyticsSettings').click();
   await page.getByRole('button', { name: 'Bez statystyk' }).click();
@@ -56,3 +60,4 @@ test('refusing analytics never injects an external tracking script', async ({ pa
   await expect(page.getByRole('region', { name: 'Ustawienia statystyk' })).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem('puzli_analytics_consent_v1'))).toBe('declined');
 });
+

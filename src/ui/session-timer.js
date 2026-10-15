@@ -6,3 +6,16 @@ export function resumeSessionTimer(session, now = Date.now()) {
   session.runningSince ||= now;
   return true;
 }
+
+// Persist a stopped snapshot, keeping the active in-memory clock untouched.
+// Reloading after a killed browser must never include the time it was closed.
+export function snapshotSessionTimer(session, now = Date.now()) {
+  const elapsedMs = Number.isFinite(session.elapsedMs) ? Math.max(0, session.elapsedMs) : 0;
+  const runningSince = Number(session.runningSince);
+  return {
+    ...session,
+    elapsedMs: elapsedMs + (session.runningSince != null && Number.isFinite(runningSince) ? Math.max(0, now - runningSince) : 0),
+    runningSince: null
+  };
+}
+

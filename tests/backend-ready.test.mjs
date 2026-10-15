@@ -20,11 +20,21 @@ test('puzzle ids are stable and versioned',()=>{
 });
 
 test('completion event is backend-ready and idempotency-ready',()=>{
-  const event=createCompletionEvent({gameId:'duet',puzzleId:'duet:2026-08-24:v2',date:'2026-08-24',elapsedMs:12345,eventId:'evt-test'});
+  const event=createCompletionEvent({gameId:'duet',puzzleId:'duet:2026-08-24:v2',date:'2026-08-24',elapsedMs:12345,eventId:'evt-test',hintsUsed:2,resets:1,attemptNo:2});
   assert.equal(event.eventId,'evt-test');
   assert.equal(event.gameId,'duet');
   assert.equal(event.puzzleId,'duet:2026-08-24:v2');
   assert.equal(event.elapsedMs,12345);
+  assert.equal(event.hintsUsed,2);
+  assert.equal(event.resets,1);
+  assert.equal(event.attemptNo,2);
+});
+
+test('completion events distinguish unknown help from a clean result',()=>{
+  const event=createCompletionEvent({gameId:'duet',puzzleId:'puzzle',date:'2026-08-24'});
+  assert.equal(event.hintsUsed,null);
+  assert.equal(event.resets,null);
+  assert.equal(event.attemptNo,null);
 });
 
 test('streak calculation is pure and handles consecutive days',()=>{
@@ -41,3 +51,4 @@ test('daily manifest service accepts static manifest',async()=>{
   const manifest=await getDailyManifest('2026-08-24',{fetchImpl:async()=>({ok:true,json:async()=>({date:'2026-08-24',games:[{id:'korony',available:true}]})})});
   assert.equal(manifest.games[0].id,'korony');
 });
+
