@@ -13,6 +13,10 @@ node tests/server.mjs
 
 Otwórz `http://127.0.0.1:4173`. Stan gry jest przechowywany w przeglądarce. Data zestawu jest liczona według strefy `Europe/Warsaw`.
 
+## Pilotaż
+
+Przed zaproszeniem pierwszych testerów przejdź przez [listę startową bety](BETA.md). Konfiguracja statystyk: [ANALYTICS.md](ANALYTICS.md).
+
 ## Sprawdzenie zmian
 
 ```sh
