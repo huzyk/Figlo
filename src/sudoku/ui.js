@@ -1,3 +1,4 @@
+import {watchDayRollover} from '../ui/day-rollover.js';
 import { currentDateKey } from '../daily.js';
 import { getDailyGame } from '../services/daily-service.js';
 import { completeGame } from '../services/progress-service.js';
@@ -145,7 +146,7 @@ function clearPendingWin(){
 }
 function celebrateUnits(before){
   // A completed group is a rules-based milestone, not an answer-key check.
-  const completed=newlyCompletedSudokuUnits(before,session.values);
+  const completed=newlyCompletedSudokuUnits(before,session.values,record.solution,record.puzzle);
   if(!completed.length)return false;
   for(const unit of completed)for(const index of unit.indices)flashingCells.add(index);
   for(const index of flashingCells)cells[index]?.classList.add('unit-complete');
@@ -353,3 +354,5 @@ window.addEventListener('pagehide',()=>{settlePendingWin();pauseTimer();});
 const shouldTrain=requestedMode==='training'||
   loadFigloState(today).daily.completedGames.includes('sudoku');
 loadRound(shouldTrain);
+
+watchDayRollover(today);
