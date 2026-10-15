@@ -51,7 +51,19 @@
 .iq-link{font-size:12px;font-weight:750;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .iq-link strong{color:var(--blue);font-size:16px;font-variant-numeric:tabular-nums}
 .completion-rewards-link{display:block;text-align:center;margin-top:13px;padding:9px;color:#3156B3;font-weight:750;font-size:13px}
-@media(max-width:850px){.engagement-grid{grid-template-columns:1fr}}
+@media(max-width:850px){.engagement-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:600px){.engagement-section{padding-bottom:40px}.iq-panel,.badge-panel,.friends-panel{padding:18px}.iq-value{font-size:62px}.iq-emblem{width:66px;height:66px;font-size:39px}.badge-grid{gap:7px}.puzli-badge{padding:9px 4px}.puzli-badge .badge-icon{font-size:25px}.puzli-badge strong{font-size:10px}.friends-actions{flex-direction:column}.friends-actions button{min-height:45px}}
 @media(max-width:350px){.friend-row{padding:12px 8px}.friend-points{font-size:15px}.day-card-footer{gap:5px}.iq-link{font-size:10px}.iq-link strong{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.rank-track>div{transition:none}}
+
+/* Avoid intrinsic min-content expansion in the dense mobile profile grid. */
+.engagement-section,.engagement-grid,.iq-panel,.badge-panel,.friends-panel{min-width:0;max-width:100%}
+.iq-top>div,.iq-details>div,.rank-progress-copy>span,.friends-intro>div,.friend-player{min-width:0}
+.iq-details span,.friend-player small,.rank-progress-copy span{overflow-wrap:anywhere}
+@media(max-width:600px){
+ .engagement-grid{grid-template-columns:minmax(0,1fr)}
+ .iq-details{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .badge-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .friends-panel{overflow-wrap:anywhere}
+ .day-card-footer{flex-wrap:wrap}
+}
