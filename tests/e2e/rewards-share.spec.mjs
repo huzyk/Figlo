@@ -81,6 +81,25 @@ test('engagement sections never cause horizontal overflow on narrow devices', as
         return {tag:el.tagName.toLowerCase(),id:el.id,cls:typeof el.className==='string'?el.className.slice(0,70):'',left:Math.round(box.left),right:Math.round(box.right),width:Math.round(box.width),display:style.display,whiteSpace:style.whiteSpace};
       }).filter(x=>x.right>document.documentElement.clientWidth+2).sort((a,b)=>b.right-a.right).slice(0,18));
       console.log('OVERFLOW_DEBUG '+width+' '+JSON.stringify(offenders));
+      const overflowContainers=await page.evaluate(()=>{
+        const nodes=[document.body,document.documentElement,...document.querySelectorAll('body *')];
+        return nodes.map(el=>{
+          const s=getComputedStyle(el),r=el.getBoundingClientRect();
+          return {el:el.id?'#'+el.id:el.tagName.toLowerCase()+'.'+(typeof el.className==='string'?el.className.slice(0,42):''),sw:el.scrollWidth,cw:el.clientWidth,right:Math.round(r.right),overflow:s.overflowX,whitespace:s.whiteSpace,text:(el.children.length===0?el.textContent.trim().slice(0,45):'')};
+        }).filter(item=>item.sw>item.cw+5).sort((a,b)=>(b.sw-b.cw)-(a.sw-a.cw)).slice(0,18);
+      });
+      console.log('OVERFLOW_CONTAINERS '+width+' '+JSON.stringify(overflowContainers));
+      const textOverflows=await page.evaluate(()=>{
+        const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+        const data=[];
+        for(let node=walker.nextNode();node;node=walker.nextNode()){
+          if(!node.nodeValue.trim())continue;
+          const range=document.createRange();range.selectNodeContents(node);const rect=range.getBoundingClientRect();
+          if(rect.right>document.documentElement.clientWidth+2)data.push({text:node.nodeValue.trim().slice(0,55),right:Math.round(rect.right)});
+        }
+        return data.slice(0,15);
+      });
+      console.log('OVERFLOW_TEXT '+width+' '+JSON.stringify(textOverflows));
     }
     expect(documentWidth, 'scroll overflow at '+width).toBeLessThanOrEqual(viewport+2);
   }
