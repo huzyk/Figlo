@@ -13,7 +13,7 @@
 - [ ] Nie ma krytycznych błędów konsoli ani nieobsłużonych błędów załadowania.
 - [ ] Ustawiono i zweryfikowano zgodę na GA4, jeśli chcemy mierzyć retencję podczas bety.
 
-**Ważne:** obecnie identyfikator `GA4_MEASUREMENT_ID` w `src/services/analytics-config.js` jest pusty. Dopóki właściciel nie utworzy strumienia GA4 i nie uzupełni poprawnego identyfikatora `G-...`, nie będzie danych z analityki. Nie zastępować go losowym identyfikatorem. Sprawdzić także konfigurację prywatności strumienia opisną w `ANALYTICS.md`.
+**Ważne:** obecnie identyfikator `GA4_MEASUREMENT_ID` w `src/services/analytics-config.js` jest pusty. Dopóki właściciel nie utworzy strumienia GA4 i nie uzupełni poprawnego identyfikatora `G-...`, nie będzie danych z analityki. Nie zastępować go losowym identyfikatorem. Sprawdzić także konfigurację prywatności strumienia opisaną w `ANALYTICS.md`.
 
 ## 2. Plan pilotażu
 
