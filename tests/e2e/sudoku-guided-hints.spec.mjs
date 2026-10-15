@@ -98,7 +98,7 @@ test('Sudoku never celebrates a full row if a different cell still conflicts',as
   await expect(page.locator('#feedback')).toContainText(/błędna|konflikt|powtarza/i);
 });
 
-test('Sudoku marks wrong 6 (without local conflict) red, even after reload, and hint targets the mistake',async ({page})=>{
+test('Sudoku does not disclose a locally legal wrong entry until the player requests a hint',async ({page})=>{
   await page.goto('/sudoku.html?date='+DATE);
   await expect(page.locator('.sudoku-cell')).toHaveCount(36);
   const move=await page.evaluate(async()=>{
@@ -115,21 +115,41 @@ test('Sudoku marks wrong 6 (without local conflict) red, even after reload, and 
     }
     return null;
   });
-  expect(move,'daily Sudoku should provide a non-conflicting incorrect candidate').not.toBeNull();
+  expect(move,'daily puzzle must include a plausible but incorrect candidate').not.toBeNull();
 
   const cell=page.locator('.sudoku-cell').nth(move.index);
   await cell.click();
   await page.locator('#keypad [data-digit="'+move.wrong+'"]').click();
-  await expect(cell).toHaveClass(/mistake/);
-  await expect(cell).not.toHaveClass(/conflict/);
-  await expect(page.locator('#feedback')).toHaveClass(/error/);
-  await expect(page.locator('#feedback')).toContainText(/błędna/i);
+  await expect(cell).not.toHaveClass(/mistake|hint-error|conflict/);
+  await expect(page.locator('#feedback')).not.toHaveClass(/error/);
+  await expect(page.locator('#feedback')).not.toContainText(/błędn|czerwon/);
+
   await page.reload();
-  await expect(page.locator('.sudoku-cell').nth(move.index)).toHaveClass(/mistake/);
+  await expect(page.locator('.sudoku-cell').nth(move.index)).toHaveText(String(move.wrong));
+  await expect(page.locator('.sudoku-cell').nth(move.index)).not.toHaveClass(/mistake|hint-error|conflict/);
+
+  // Clicking "Podpowiedź" is an explicit request to check the puzzle.
   await page.locator('#hint').click();
   await expect(page.locator('.sudoku-cell').nth(move.index)).toHaveClass(/hinted/);
-  await expect(page.locator('.sudoku-cell').nth(move.index)).toHaveClass(/mistake/);
+  await expect(page.locator('.sudoku-cell').nth(move.index)).toHaveClass(/hint-error/);
   await expect(page.locator('#feedback')).toContainText(/błędna/i);
+
+  // The hint is temporary: ordinary gameplay returns to a neutral grid.
+  await page.locator('.sudoku-cell').nth(move.index).click();
   await page.locator('#erase').click();
-  await expect(page.locator('.sudoku-cell').nth(move.index)).not.toHaveClass(/mistake/);
+  await expect(page.locator('.sudoku-cell').nth(move.index)).not.toHaveClass(/hint-error/);
+});
+
+test('Six entered copies of a digit are not automatically marked solved',async ({page})=>{
+  await page.goto('/sudoku.html?date='+DATE);
+  await expect(page.locator('.sudoku-cell')).toHaveCount(36);
+  // The keypad is for entry, not an answer-key indicator.
+  await expect(page.locator('#keypad .complete-digit')).toHaveCount(0);
+  const record=await sudokuRecord(page);
+  const editable=record.puzzle.map((value,index)=>value?null:index).filter(index=>index!==null);
+  for(const index of editable.slice(0,4)){
+    await page.locator('.sudoku-cell').nth(index).click();
+    await page.locator('#keypad [data-digit="6"]').click();
+  }
+  await expect(page.locator('#keypad .complete-digit')).toHaveCount(0);
 });
