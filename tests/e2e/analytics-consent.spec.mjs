@@ -61,3 +61,57 @@ test('refusing analytics never injects an external tracking script', async ({ pa
   expect(await page.evaluate(() => localStorage.getItem('puzli_analytics_consent_v1'))).toBe('declined');
 });
 
+
+test('Daily activation requires the whole set and is sent once per day', async ({ page }) => {
+  await enableAnalyticsFixture(page);
+  await page.goto('/index.html');
+  await page.getByRole('button', { name: 'Włącz statystyki' }).click();
+
+  await page.evaluate(async () => {
+    const { track } = await import('/src/services/analytics-service.js');
+    track('game_completed', { gameId: 'korony', mode: 'daily', date: '2026-10-15', puzzleId: 'korony:test' });
+  });
+  const eventCount = async (name) => page.evaluate(name =>
+    window.dataLayer.filter(row => row[0] === 'event' && row[1] === name).length, name
+  );
+  expect(await eventCount('player_activated')).toBe(0);
+
+  await page.evaluate(async () => {
+    const { track } = await import('/src/services/analytics-service.js');
+    track('daily_completed', { date: '2026-10-15' });
+    track('daily_completed', { date: '2026-10-15' });
+    track('game_completed', { gameId: 'duet', mode: 'daily', date: '2026-10-15', puzzleId: 'duet:test' });
+  });
+  expect(await eventCount('daily_completed')).toBe(1);
+  expect(await eventCount('player_activated')).toBe(1);
+  const activatedOn = await page.evaluate(() => localStorage.getItem('puzli_analytics_activated_v1'));
+  expect(activatedOn).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+});
+
+test('home and game openings are deduplicated without hiding new training rounds', async ({ page }) => {
+  await enableAnalyticsFixture(page);
+  await page.goto('/index.html');
+  await page.getByRole('button', { name: 'Włącz statystyki' }).click();
+  await page.evaluate(async () => {
+    const { track } = await import('/src/services/analytics-service.js');
+    track('home_opened', { date: '2026-10-15' });
+    track('home_opened', { date: '2026-10-15' });
+    track('game_opened', { gameId: 'zip', mode: 'daily', date: '2026-10-15', puzzleId: 'zip:daily' });
+    track('game_opened', { gameId: 'zip', mode: 'daily', date: '2026-10-15', puzzleId: 'zip:daily' });
+    track('game_opened', { gameId: 'zip', mode: 'training', date: '2026-10-15', puzzleId: 'zip:training-1' });
+    track('game_opened', { gameId: 'zip', mode: 'training', date: '2026-10-15', puzzleId: 'zip:training-2' });
+  });
+  const names = await page.evaluate(() => window.dataLayer.filter(row => row[0] === 'event').map(row => row[1]));
+  expect(names.filter(name => name === 'home_opened')).toHaveLength(1);
+  expect(names.filter(name => name === 'game_opened')).toHaveLength(3);
+});
+
+test('privacy page does not count as a home visit after opt-in', async ({ page }) => {
+  await enableAnalyticsFixture(page);
+  await page.goto('/privacy.html');
+  await page.getByRole('button', { name: 'Włącz statystyki' }).click();
+  const homeEvents = await page.evaluate(() =>
+    window.dataLayer.filter(row => row[0] === 'event' && row[1] === 'home_opened').length
+  );
+  expect(homeEvents).toBe(0);
+});
