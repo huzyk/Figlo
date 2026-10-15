@@ -1,3 +1,4 @@
+import {watchDayRollover} from './src/ui/day-rollover.js';
 import { initEngagementUI, renderEngagementUI } from './src/ui/engagement-home.js';
 import{currentDateKey,dateFromKey,getWeekDateKeys}from'./src/daily.js';
 import{getDailyManifest}from'./src/services/daily-service.js';
@@ -111,3 +112,5 @@ async function start(){
 }
 start().catch(error=>console.error('Nie udało się uruchomić strony PUZLI:',error));
 
+
+watchDayRollover(today);

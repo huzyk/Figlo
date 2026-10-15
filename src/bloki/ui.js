@@ -1,3 +1,4 @@
+import {watchDayRollover} from '../ui/day-rollover.js';
 import {resumeSessionTimer} from '../ui/session-timer.js';
 import {currentDateKey} from '../daily.js';
 import {getDailyGame} from '../services/daily-service.js';
@@ -64,3 +65,5 @@ async function start(){const state=loadFigloState(today);if(requestedMode!=='cha
 boardEl.addEventListener('pointerdown',onPointerDown);boardEl.addEventListener('pointermove',onPointerMove);boardEl.addEventListener('pointerup',onPointerUp);boardEl.addEventListener('pointercancel',()=>{drag=null;clearDragFrame();renderDragPreview();});
 $('#undo').addEventListener('click',undo);$('#mobileUndo').addEventListener('click',undo);$('#hint').addEventListener('click',showHint);$('#mobileHint').addEventListener('click',showHint);$('#reset').addEventListener('click',reset);$('#mobileReset').addEventListener('click',reset);$('#rulesTop').addEventListener('click',()=>{$('#rules').open=true;if(matchMedia('(min-width: 768px)').matches)$('#rules').scrollIntoView({behavior:'smooth'});});$('#replay').addEventListener('click',()=>loadTraining().catch(()=>{}));document.addEventListener('visibilitychange',()=>{if(document.hidden){clearHint();pauseTimer();}else if(resumeSessionTimer(session)){save();timerTick||=setInterval(renderTimer,500);}});window.addEventListener('pagehide',pauseTimer);start();
 
+
+watchDayRollover(today);

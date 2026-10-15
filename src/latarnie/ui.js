@@ -1,3 +1,4 @@
+import {watchDayRollover} from '../ui/day-rollover.js';
 import {showMobileHint,dismissMobileHint} from '../ui/mobile-hint.js';
 import {resumeSessionTimer} from '../ui/session-timer.js';
 import {track} from '../services/analytics-service.js';
@@ -46,3 +47,5 @@ async function loadTraining(){showGameLoader('Przygotowuję planszę treningową
 async function start(){const state=loadFigloState(today);if(requestedMode!=='challenge'&&(requestedMode==='training'||state.daily.completedGames.includes('latarnie')))return loadTraining();return loadDaily();}
 $('#undo').addEventListener('click',undo);$('#mobileUndo').addEventListener('click',undo);$('#reset').addEventListener('click',reset);$('#mobileReset').addEventListener('click',reset);$('#hint').addEventListener('click',showHint);$('#mobileHint').addEventListener('click',showHint);$('#hintClose').addEventListener('click',clearHint);$('#rulesTop').addEventListener('click',()=>{$('#rules').open=true;if(matchMedia('(min-width: 768px)').matches)$('#rules').scrollIntoView({behavior:'smooth'});});$('#replay').addEventListener('click',()=>loadTraining().catch(console.error));window.addEventListener('resize',syncBoardCellSize);window.addEventListener('pagehide',pauseTimer);document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseTimer();else if(resumeSessionTimer(session)){save();timerTick||=setInterval(renderTimer,250);}});start().catch(error=>{console.error('Latarnie start failure',error);track('game_load_failed',{gameId:'latarnie',date:session?.date||puzzleDate,mode:gameMode});hideGameLoader();if(!showChallengeError(error))$('#loadError').hidden=false;});
 
+
+watchDayRollover(today);

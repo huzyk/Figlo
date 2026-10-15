@@ -1,3 +1,4 @@
+import {watchDayRollover} from '../ui/day-rollover.js';
 import {showMobileHint,dismissMobileHint} from '../ui/mobile-hint.js';
 import {resumeSessionTimer} from '../ui/session-timer.js';
 import{getDailyGame}from'../services/daily-service.js';
@@ -47,3 +48,5 @@ async function loadDaily(){showGameLoader('Przygotowuję dzisiejszy Zip…');boa
 async function start(){if(requestedMode==='challenge'){await loadDaily();return;}const state=loadFigloState(today);if(requestedMode==='training'||state.daily.completedGames.includes('zip')||!state.daily.requiredGames.includes('zip'))await loadTraining();else await loadDaily();}
 boardEl.addEventListener('pointerdown',onPointerDown);boardEl.addEventListener('pointermove',onPointerMove);boardEl.addEventListener('pointerup',finishGesture);boardEl.addEventListener('pointercancel',finishGesture);$('#undo').addEventListener('click',undo);$('#mobileUndo').addEventListener('click',undo);$('#hint').addEventListener('click',showHint);$('#mobileHint').addEventListener('click',showHint);$('#reset').addEventListener('click',reset);$('#mobileReset').addEventListener('click',reset);$('#hintClose').addEventListener('click',clearHint);$('#rulesTop').addEventListener('click',()=>{$('#rules').open=true;if(matchMedia('(min-width: 768px)').matches)$('#rules').scrollIntoView({behavior:'smooth'});});$('#replay').addEventListener('click',()=>loadTraining().catch(()=>{}));document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseTimer();else if(resumeSessionTimer(session)){save();timerTick||=setInterval(renderTimer,250);}});window.addEventListener('pagehide',pauseTimer);start();
 
+
+watchDayRollover(today);
