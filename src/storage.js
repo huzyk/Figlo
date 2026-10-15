@@ -1,6 +1,6 @@
 import { dayDifference, currentDateKey } from './daily.js';
 import { requiredGamesForDate } from './daily-games.js';
-import { awardDailyGame, createRewardsState } from './domain/rewards.js';
+import { awardDailyGame, createRewardsState, getBadges } from './domain/rewards.js';
 
 export const STORAGE_KEY = 'figlo_user_state_v2';
 
@@ -140,6 +140,7 @@ export function completeDailyGame(gameId, { timeMs = null, hintsUsed = null, tod
   gameState.completedCount += 1;
   gameState.lastCompletedDate = today;
   if (Number.isFinite(timeMs) && timeMs > 0) { gameState.totalTimeMs += timeMs; gameState.timedCompletions += 1; }
+  const oldBadges = new Set(getBadges(state).filter(b => b.earned).map(b => b.id));
   state.user.completedGames += 1;
   if (!state.user.activeDates.includes(today)) {
     const activityGap = dayDifference(state.user.lastActiveDate, today);
@@ -162,6 +163,8 @@ export function completeDailyGame(gameId, { timeMs = null, hintsUsed = null, tod
     state.user.lastCompletedDate = today;
     if (!state.user.completedDates.includes(today)) { state.user.completedDates.push(today); state.user.completedDates = state.user.completedDates.slice(-120); }
   }
+  const newBadges = getBadges(state).filter(b => b.earned && !oldBadges.has(b.id)).map(b => b.name);
+  state.rewards.lastAward = { date: today, gameId, badges: newBadges };
   saveFigloState(state);
   return { state, firstGameCompletionToday: true, firstDayCompletionToday };
 }
