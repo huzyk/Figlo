@@ -25,7 +25,7 @@ test('podpowiedź ignoruje historyczny błąd, którego nie ma już na planszy',
   assert.equal(hint.kind, 'error');
   assert.deepEqual(hint.cells, [solution[0]]);
   assert.equal(current.manualXs.has(hint.cells[0]), true);
-  assert.match(hint.text, /To X/);
+  assert.match(hint.text, /Ten znak X/);
   assert.doesNotMatch(hint.text, /Ta korona/);
 });
 
@@ -39,7 +39,7 @@ test('przy kilku aktywnych błędach podpowiedź wskazuje najnowszy z nich', () 
   assert.equal(hint.kind, 'error');
   assert.deepEqual(hint.cells, [solution[1]]);
   assert.equal(current.manualXs.has(hint.cells[0]), true);
-  assert.match(hint.text, /To X/);
+  assert.match(hint.text, /Ten znak X/);
 });
 
 test('po usunięciu najnowszego błędu podpowiedź wskazuje kolejny aktywny błąd', () => {

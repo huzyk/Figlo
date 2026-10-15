@@ -79,7 +79,7 @@ test('aktywny błędny znak jest wskazywany zamiast historycznego ruchu', () => 
   const hint = findMistake(current, [snapshot(initial)]);
   assert.equal(hint.kind, 'error');
   assert.deepEqual(hint.cells, [solution[0]]);
-  assert.match(hint.text, /To X/);
+  assert.match(hint.text, /Ten znak X/);
 });
 
 test('human hint daje konkretny logiczny krok', () => {
