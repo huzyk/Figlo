@@ -6,7 +6,7 @@ import { track } from '../services/analytics-service.js';
 import { requestedGameMode, setGameMode } from '../ui/game-mode.js';
 import { SIZE, CELL_COUNT, BOX_ROWS, BOX_COLS, buildSudokuPuzzle, candidates, hasConflict, isSudokuSolved } from './engine.js';
 import { createSudokuSession, loadSudokuSession, saveSudokuSession, clearSudokuSession } from './session.js';
-import { findSudokuHint, newlyCompletedSudokuUnits, boardHasSudokuConflict, sudokuMistakeIndices } from './hints.js?v=20261015-optin-hints';
+import { findSudokuHint, newlyCompletedSudokuUnits, boardHasSudokuConflict } from './hints.js?v=20261015-optin-hints';
 
 const $ = selector => document.querySelector(selector);
 const today = currentDateKey(), requestedMode = requestedGameMode();
