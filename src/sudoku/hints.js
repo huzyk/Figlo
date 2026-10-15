@@ -88,7 +88,7 @@ export function findSudokuHint(board,puzzle=[],solution=null){
     if(options[i].length===1){
       const value=options[i][0];
       return {index:i,kind:'single',value,
-        reason:'W tym polu tylko '+value+' pasuje do wiersza, kolumny i bloku.'};
+        reason:'W tym polu pasuje tylko cyfra '+value+' — pozostałe już występują w jego wierszu, kolumnie lub bloku.'};
     }
   }
   for(const unit of units){

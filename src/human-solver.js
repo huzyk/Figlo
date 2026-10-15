@@ -173,10 +173,11 @@ function regionSubsetElimination(state, regions) {
           return possibleAxes.has(axis === 'row' ? row : col);
         });
         const axisWord = axis === 'row' ? (k === 1 ? 'wierszu' : 'wierszach') : (k === 1 ? 'kolumnie' : 'kolumnach');
-        const regionWord = k === 1 ? 'Ten region musi mieć koronę' : `Te ${k} regiony muszą mieć korony`;
+        const regionWord = k === 1 ? 'Ten region musi mieć koronę' : `${['','Jeden','Dwa','Trzy','Cztery'][k]} regiony muszą mieć korony`;
 
         return {
           rule:'region-subset',
+          regionGroup,
           action:'cross',
           cells:eliminate,
           area,
@@ -220,7 +221,7 @@ function axisSubsetElimination(state, regions) {
         if (!eliminate.length) continue;
 
         const axisWord = axis === 'row' ? (k === 1 ? 'wiersz' : 'wiersze') : (k === 1 ? 'kolumna' : 'kolumny');
-        const regionWord = k === 1 ? 'jeden region' : `${k} regiony`;
+        const regionWord = k === 1 ? 'jednym regionie' : `${k} regionach`;
         const area = allCells(size).filter(cell => {
           const [row,col] = rc(cell,size);
           return coordinateSet.has(axis === 'row' ? row : col);
@@ -230,7 +231,7 @@ function axisSubsetElimination(state, regions) {
           action:'cross',
           cells:eliminate,
           area,
-          reason:`${axisWord[0].toUpperCase()+axisWord.slice(1)} ${formatNumbers(groupValues)} mogą korzystać tylko z ${regionWord}. Korony tych regionów muszą zostać w tym obszarze, więc wyróżnione pola poza nim możesz oznaczyć X.`
+          reason:`${axisWord[0].toUpperCase()+axisWord.slice(1)} ${formatNumbers(groupValues)} ${k===1?'może zawierać koronę':'mogą zawierać korony'} tylko w ${regionWord}. Korony tych regionów muszą zostać w tym obszarze, więc wyróżnione pola poza nim możesz oznaczyć X.`
         };
       }
     }

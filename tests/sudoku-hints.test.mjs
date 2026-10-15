@@ -43,7 +43,7 @@ test('hint identifies single without modifying the board',()=>{
   assert.equal(hint.index,0);
   assert.equal(hint.value,1);
   assert.equal(hint.kind,'single');
-  assert.match(hint.reason,/wiersza, kolumny i bloku/);
+  assert.match(hint.reason,/wierszu, kolumnie lub bloku/);
   assert.deepEqual(board,snapshot);
 });
 

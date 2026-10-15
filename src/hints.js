@@ -56,7 +56,7 @@ export function findMistake(state, history = []) {
     return {
       kind:'error',
       cells:[mistake.index],
-      text:'To X wyklucza pole potrzebne do rozwiązania.'
+      text:'Ten znak X wyklucza pole potrzebne do rozwiązania.'
     };
   }
 
@@ -128,7 +128,7 @@ function presentDeduction(deduction, state) {
 
     const needed = info.values.length;
     const sources = confinedRegions.slice(0, needed);
-    const sourceRegions = new Set(sources.map(source => source.region));
+    const sourceRegions = new Set(deduction.regionGroup || sources.map(source => source.region));
     result.focus = allCells.filter(index => sourceRegions.has(regionAt(index)));
     const numbers = formatNumbers(info.values);
 
@@ -142,7 +142,7 @@ function presentDeduction(deduction, state) {
       }
     } else {
       const axisName = info.axis === 'row' ? 'wierszach' : 'kolumnach';
-      result.reason = `Wyróżnione ${needed} regiony mają dostępne pola tylko w ${axisName} ${numbers}. Ich korony muszą pozostać w tych ${axisName}.`;
+      result.reason = `${['', 'Jeden', 'Dwa', 'Trzy', 'Cztery'][needed] || needed} wyróżnione regiony mają dostępne pola tylko w ${axisName} ${numbers}. Ich korony muszą pozostać w tych ${axisName}.`;
       result.instruction = `Pozostałe wyróżnione pola poza tymi regionami możesz oznaczyć X.`;
     }
     return result;
