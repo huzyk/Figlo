@@ -74,6 +74,14 @@ test('engagement sections never cause horizontal overflow on narrow devices', as
       viewport: document.documentElement.clientWidth,
       documentWidth: document.documentElement.scrollWidth
     }));
+    if(documentWidth>viewport+2) {
+      const offenders=await page.evaluate(() => [...document.querySelectorAll('body *')].map(el=>{
+        const box=el.getBoundingClientRect();
+        const style=getComputedStyle(el);
+        return {tag:el.tagName.toLowerCase(),id:el.id,cls:typeof el.className==='string'?el.className.slice(0,70):'',left:Math.round(box.left),right:Math.round(box.right),width:Math.round(box.width),display:style.display,whiteSpace:style.whiteSpace};
+      }).filter(x=>x.right>document.documentElement.clientWidth+2).sort((a,b)=>b.right-a.right).slice(0,18));
+      console.log('OVERFLOW_DEBUG '+width+' '+JSON.stringify(offenders));
+    }
     expect(documentWidth, 'scroll overflow at '+width).toBeLessThanOrEqual(viewport+2);
   }
 });
