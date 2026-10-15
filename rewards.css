@@ -67,3 +67,6 @@
  .friends-panel{overflow-wrap:anywhere}
  .day-card-footer{flex-wrap:wrap}
 }
+
+/* Home's .section-head p uses nowrap. These new longer descriptions must wrap. */
+.engagement-section .section-head p{white-space:normal;overflow-wrap:anywhere;max-width:100%}
