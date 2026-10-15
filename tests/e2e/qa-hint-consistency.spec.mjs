@@ -82,7 +82,7 @@ test('Zip correction consumes a hint without changing the visual board',async({p
   await hintButton(page,info).click();
   await expect(page.locator('#filledCounter')).toHaveText(
     String(wrongMove.prefix.length)+'/36');
-  await expect(page.locator('#feedback')).toContainText(/podpowiedź/i);
+  await expect(page.locator('#feedback')).toContainText(/podpowiedzią|podpowiedź/i);
   const state=await stateOf(page);
   expect(state.rewards.hintCounts.zip).toBe(1);
 });
