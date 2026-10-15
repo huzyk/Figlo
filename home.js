@@ -45,8 +45,8 @@ function renderDailyProgress(){
     $('#dailyStatusTitle').textContent=waitingLabel(required);
     $('#dailyStatusText').textContent='Wybierz dowolną grę. Twój postęp zapisze się automatycznie.';
   }else{
-    $('#dailyStatusTitle').textContent=remaining===1?'Została 1 gra':remaining<=4?`Zostały ${remaining} gry`:`Zostało ${remaining} gier`;
-    $('#dailyStatusText').textContent=`Masz za sobą ${completed} z ${required}. Dokończ zestaw we własnym tempie.`;
+    $('#dailyStatusTitle').textContent='Dzień zaliczony!';
+    $('#dailyStatusText').textContent=`${completed}/${required} gier. Chwila dla głowy już za Tobą. Masz ochotę na kolejną?`;
   }
   for(const [id,card,status] of [
     ['korony','#crownsCard','#crownsStatus'],['duet','#duetCard','#duetStatus'],
@@ -63,7 +63,7 @@ function renderDailyProgress(){
     cta.textContent='Zagraj treningowo';
   }
 }
-function renderStats(){$('#cardStreak').textContent=streakLabel(stats.activityStreak);$('#statStreak').textContent=String(stats.activityStreak);$('#bestStreak').textContent=`Najlepsza: ${stats.bestActivityStreak}`;$('#activeDays').textContent=String(stats.completedDays);$('#totalCompleted').textContent=String(stats.completedGames);$('#averageTime').textContent=formatDuration(stats.averageGameTimeMs);}
+function renderStats(){$('#cardStreak').textContent=streakLabel(stats.activityStreak);$('#statStreak').textContent=String(stats.activityStreak);$('#bestStreak').textContent=`Najlepsza: ${stats.bestActivityStreak}`;$('#activeDays').textContent=String(stats.completedDays);$('#totalCompleted').textContent=String(stats.completedGames);$('#averageTime').textContent=formatDuration(stats.averageGameTimeMs);const dates=getWeekDateKeys(todayDate),active=dates.filter(date=>date<=today&&stats.activeDates.includes(date)).length;const goal=$('#weeklyGoal');if(goal)goal.textContent=active>=5?`Cel tygodnia osiągnięty — ${active} aktywnych dni!`:`${active}/5 aktywnych dni w tym tygodniu`;}
 function renderWeek(){const root=$('#weekStrip'),labels=['P','W','Ś','C','P','S','N'],dates=getWeekDateKeys(todayDate);root.innerHTML='';dates.forEach((dateKey,index)=>{const item=document.createElement('div');item.className='week-day';const isToday=dateKey===today,isCompleted=stats.activeDates.includes(dateKey);if(isToday)item.classList.add('today');if(isCompleted)item.classList.add('completed');if(isToday)item.setAttribute('aria-current','date');const label=document.createElement('span');label.className='week-day-label';label.textContent=labels[index];const dot=document.createElement('span');dot.className='week-day-state';dot.textContent=isCompleted?'✓':isToday?'•':'·';item.setAttribute('aria-label',`${labels[index]}${isCompleted?', ukończony':''}${isToday?', dzisiaj':''}`);item.append(label,dot);root.appendChild(item);});}
 function renderGamesSummary(){const available=manifest?.games?.filter(game=>game.available).length||progress.requiredGames.length;$('#gamesSummary').textContent=gameCountLabel(available);}
 function wireMobileMenu(){
@@ -103,8 +103,11 @@ function wireGameSelection(){
 async function start(){
   renderDate();refreshProgress();wireMobileMenu();wireGameSelection();initEngagementUI(today);
   window.addEventListener('pageshow',event=>{if(event.persisted)refreshProgress();});
+  window.addEventListener('storage',event=>{if(event.key==='figlo_user_state_v2')refreshProgress();});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshProgress();});
   manifest=await getDailyManifest(today);
   renderGamesSummary();
   track('home_opened',{date:today,localId:identity.localId,games:manifest.games.map(game=>game.id)});
 }
 start().catch(error=>console.error('Nie udało się uruchomić strony PUZLI:',error));
+

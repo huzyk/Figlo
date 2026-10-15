@@ -6,9 +6,10 @@ import { validateDuetDailyRecord } from '../src/duet/daily-loader.js';
 import { countSolutions } from '../src/duet/solver.js';
 import { solveLikeHuman } from '../src/duet/human-solver.js';
 import { isSolved } from '../src/duet/rules.js';
+import { puzzleIdFor } from '../src/domain/completion.js';
 
 export async function checkDuetBuffer({ start = figloDateKey(), days = 14, directory = fileURLToPath(new URL('../data/duet/', import.meta.url)) } = {}) {
-  if (!dateFromKey(start) || !Number.isInteger(days) || days < 1) throw new Error('Invalid start date or buffer length.');
+  if (!dateFromKey(start) || !Number.isInteger(days) || days < 1 || days > 730) throw new Error('Invalid start date or buffer length (1–730 days).');
   const failures = [];
   const [year, month, day] = start.split('-').map(Number);
   for (let offset = 0; offset < days; offset++) {
@@ -16,6 +17,7 @@ export async function checkDuetBuffer({ start = figloDateKey(), days = 14, direc
     try {
       const record = JSON.parse(await fs.readFile(path.join(directory, `${date}.json`), 'utf8'));
       if (!validateDuetDailyRecord(record, date) || !isSolved(record.solution, record.puzzle) || countSolutions(record.puzzle, 2) !== 1) throw new Error('Invalid or non-unique puzzle');
+      if (record.puzzleId !== puzzleIdFor('duet', date, record.version)) throw new Error('Invalid published puzzle identity');
       const human = solveLikeHuman(record.puzzle);
       if (!human.solved || human.steps.some(step => ['guess', 'lookahead'].includes(step.rule))) throw new Error('Puzzle requires guessing');
     } catch (error) {
@@ -36,3 +38,4 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const result = await checkDuetBuffer(options);
   console.log(`Duet buffer OK: ${result.days} days from ${result.start}`);
 }
+

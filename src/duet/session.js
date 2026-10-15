@@ -4,7 +4,7 @@ import { getDuetSession, saveDuetSession, clearDuetSession } from '../storage.js
 export function createDuetSession({ date, seed, givens = [] }) {
   const board = Array(SIZE * SIZE).fill(EMPTY);
   for (const given of givens) board[given.index] = given.value;
-  return { date, seed, board, history: [], elapsedMs: 0, runningSince: null, finished: false };
+  return { date, seed, board, history: [], elapsedMs: 0, runningSince: null, finished: false, hintsUsed: 0, resets: 0, startedAt: null };
 }
 
 export function restoreOrCreateDuetSession({ date, seed, givens }) {
@@ -12,3 +12,4 @@ export function restoreOrCreateDuetSession({ date, seed, givens }) {
 }
 
 export { saveDuetSession, clearDuetSession };
+

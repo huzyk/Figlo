@@ -2,10 +2,13 @@
 const EVENTS = new Set([
   'home_opened', 'game_selected', 'game_opened', 'game_started',
   'game_training_started', 'hint_used', 'game_completed', 'daily_completed',
-  'game_load_failed', 'daily_visit', 'day_1_return', 'day_7_return'
+  'game_load_failed', 'daily_visit', 'day_1_return', 'day_7_return',
+  'player_activated', 'activation_day_1_return', 'activation_day_7_return',
+  'share_started', 'share_native_completed', 'share_copied', 'share_cancelled',
+  'share_manual_fallback', 'shared_result_opened'
 ]);
 const GAMES = new Set(['korony', 'duet', 'bloki', 'latarnie', 'zip', 'sudoku']);
-const MODES = new Set(['daily', 'training']);
+const MODES = new Set(['daily', 'training', 'challenge']);
 
 export function toGA4Event(event) {
   if (!event || !EVENTS.has(event.eventName)) return null;
@@ -33,3 +36,21 @@ export function visitEvents({ firstDay = null, lastDay = null, today }) {
   if (daysSinceFirst === 7) events.push('day_7_return');
   return events;
 }
+
+// These events require an actual daily completion, not merely a page visit.
+export function activationEvents({ firstCompletionDay = null, lastActiveDay = null, today }) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(today || '')) || lastActiveDay === today) return [];
+  if (!firstCompletionDay) return ['player_activated'];
+  const gap = Math.round((Date.parse(today + 'T00:00:00Z') - Date.parse(firstCompletionDay + 'T00:00:00Z')) / 86400000);
+  if (gap === 1) return ['activation_day_1_return'];
+  if (gap === 7) return ['activation_day_7_return'];
+  return [];
+}
+
+export function analyticsPageUrl(value) {
+  try {
+    const url = new URL(value);
+    return ['https:', 'http:'].includes(url.protocol) ? url.origin + url.pathname : '';
+  } catch { return ''; }
+}
+

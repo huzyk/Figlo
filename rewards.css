@@ -70,3 +70,10 @@
 
 /* Home's .section-head p uses nowrap. These new longer descriptions must wrap. */
 .engagement-section .section-head p{white-space:normal;overflow-wrap:anywhere;max-width:100%}
+
+
+.daily-share-summary{padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.daily-share-summary>strong{font-size:15px}.daily-share-summary>p{font-size:12px;line-height:1.5;color:var(--muted)}
+.friends-actions button:disabled{opacity:.55;cursor:default}
+.share-manual-fallback{margin:12px 0;min-width:0}.share-manual-fallback[hidden]{display:none}.share-manual-fallback label{display:block;margin-bottom:7px;font-size:12px;font-weight:700}
+.share-manual-fallback textarea{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:120px;padding:10px;border:1px solid #b9c9ef;border-radius:8px;background:#fff;color:#17264a;font:inherit;font-size:12px;line-height:1.5;resize:vertical;overflow-wrap:anywhere}

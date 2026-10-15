@@ -1,9 +1,10 @@
+import {snapshotSessionTimer} from '../ui/session-timer.js';
 import {SIZE,CELL_COUNT} from './engine.js';
 const KEY = 'puzli_sudoku_session_v2:';
 const emptyNotes = () => Array(CELL_COUNT).fill(0);
 export function createSudokuSession({date,seed,puzzle}) {
   return {date,seed,values:[...puzzle],notes:emptyNotes(),history:[],elapsedMs:0,
-    runningSince:null,startedAt:null,finished:false,hintsUsed:0};
+    runningSince:null,startedAt:null,finished:false,hintsUsed:0,resets:0};
 }
 export function loadSudokuSession({date,seed,puzzle}) {
   let data = null;
@@ -20,15 +21,17 @@ export function loadSudokuSession({date,seed,puzzle}) {
   data.notes = data.notes.map(v => Number.isInteger(v) && v >= 0 && v < (1 << (SIZE + 1)) ? v : 0);
   if (!Array.isArray(data.history)) data.history = [];
   data.history = data.history.slice(-80).filter(h =>
-    Array.isArray(h.values) && h.values.length === CELL_COUNT && Array.isArray(h.notes) && h.notes.length === CELL_COUNT);
-  data.elapsedMs = Math.max(0,Number(data.elapsedMs)||0);
+    h && Array.isArray(h.values) && h.values.length === CELL_COUNT && Array.isArray(h.notes) && h.notes.length === CELL_COUNT);
+  data.elapsedMs = Number.isFinite(data.elapsedMs)?Math.max(0,data.elapsedMs):0;
   data.runningSince = null; // Browser was closed; do not include time away from game.
-  data.hintsUsed = Math.max(0,Number(data.hintsUsed)||0);
+  data.hintsUsed = Number.isFinite(data.hintsUsed)?Math.max(0,Math.floor(data.hintsUsed)):0;
+  data.resets = Number.isFinite(data.resets)?Math.max(0,Math.floor(data.resets)):0;
   return data;
 }
 export function saveSudokuSession(session) {
   try {localStorage.setItem(KEY + session.date,JSON.stringify({
-    ...session,runningSince:null,history:session.history.slice(-80)
+    ...snapshotSessionTimer(session),history:session.history.slice(-80)
   })); return true;} catch {return false;}
 }
 export function clearSudokuSession(date) {try {localStorage.removeItem(KEY + date);} catch {}}
+

@@ -1,12 +1,14 @@
 import { GA4_MEASUREMENT_ID } from './analytics-config.js';
 import { setAnalyticsAdapter, track } from './analytics-service.js';
-import { toGA4Event, visitEvents } from './analytics-metrics.js';
+import { toGA4Event, visitEvents, activationEvents, analyticsPageUrl } from './analytics-metrics.js';
 import { currentDateKey } from '../daily.js';
 
 const CONSENT_KEY = 'puzli_analytics_consent_v1';
 const FIRST_DAY_KEY = 'puzli_analytics_first_day_v1';
 const LAST_DAY_KEY = 'puzli_analytics_last_day_v1';
 const SENT_KEY = 'puzli_analytics_sent_v1';
+const ACTIVATED_KEY = 'puzli_analytics_activated_v1';
+const ACTIVE_DAY_KEY = 'puzli_analytics_active_day_v1';
 const configured = /^G-[A-Z0-9]{6,}$/.test(GA4_MEASUREMENT_ID);
 const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
 let enabled = false;
@@ -63,11 +65,26 @@ function startGA4() {
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
   window.gtag('js', new Date());
-  window.gtag('config', GA4_MEASUREMENT_ID, { send_page_view: true });
+  window.gtag('config', GA4_MEASUREMENT_ID, {
+    send_page_view: true,
+    page_location: analyticsPageUrl(location.href),
+    page_referrer: analyticsPageUrl(document.referrer),
+    allow_google_signals: false,
+    allow_ad_personalization_signals: false
+  });
   setAnalyticsAdapter(event => {
     const normalized = toGA4Event(event);
     if (!normalized || !sendUnique(event, normalized)) return;
     window.gtag('event', normalized.name, normalized.params);
+    if (event.eventName === 'game_completed' && event.payload?.mode === 'daily') {
+      const today = event.payload.date || currentDateKey();
+      const firstCompletionDay = read(ACTIVATED_KEY);
+      for (const name of activationEvents({ firstCompletionDay, lastActiveDay: read(ACTIVE_DAY_KEY), today })) {
+        window.gtag('event', name, { puzzle_date: today });
+      }
+      if (!firstCompletionDay) write(ACTIVATED_KEY, today);
+      write(ACTIVE_DAY_KEY, today);
+    }
   });
   const script = document.createElement('script');
   script.async = true;
@@ -107,6 +124,8 @@ function setConsent(choice) {
   remove(SENT_KEY);
   remove(FIRST_DAY_KEY);
   remove(LAST_DAY_KEY);
+  remove(ACTIVATED_KEY);
+  remove(ACTIVE_DAY_KEY);
   // Already loaded Google scripts cannot be unloaded from a live document.
   // A reload removes them; the persisted refusal prevents them loading again.
   if (wasEnabled) location.reload();
@@ -143,3 +162,4 @@ function initialize() {
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });
 else initialize();
+
