@@ -74,6 +74,10 @@ for(const game of games){
     const key=game.session+DATE;
     const hints=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).hintsUsed,key);
     expect(hints).toBeGreaterThan(0);
+    // Sudoku keeps its reset action inside the mobile help panel.
+    if(game.id==='sudoku' && !(await page.locator('#reset').isVisible())){
+      await page.locator('#rulesTop').click();
+    }
     await (await visibleControl(page,'#reset','#mobileReset')).click();
     await page.reload();await ready(page,game);
     const restored=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);

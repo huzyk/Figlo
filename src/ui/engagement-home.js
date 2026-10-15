@@ -140,5 +140,11 @@ export function initEngagementUI(date) {
     catch { setStatus('Pamięć przeglądarki jest niedostępna. Nie udało się usunąć wyników.'); }
     renderEngagementUI(viewDate);
   });
+  // A shared result is carried in the URL fragment. Navigation between two
+  // shares on the same page does not reload the document.
+  window.addEventListener('hashchange', () => {
+    importResultFromUrl();
+    renderRanking(loadFigloState(viewDate));
+  });
   importResultFromUrl(); renderEngagementUI(viewDate);
 }
