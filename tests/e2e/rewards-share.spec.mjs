@@ -24,8 +24,8 @@ test('PUZLI IQ and achievements update after a daily game, without disturbing si
 });
 
 test('shared score from one browser can join another browser local friends ranking', async ({ browser }) => {
-  const senderContext=await browser.newContext();
-  const receiverContext=await browser.newContext();
+  const senderContext=await browser.newContext({baseURL:'http://127.0.0.1:4173'});
+  const receiverContext=await browser.newContext({baseURL:'http://127.0.0.1:4173'});
   try{
     const sender=await senderContext.newPage();
     await sender.addInitScript(() => {
