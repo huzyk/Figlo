@@ -15,8 +15,9 @@ const { STORAGE_KEY, getCrownSession, loadFigloState, saveCrownSession } = stora
 
 const seed = 'figlo:korony:2026-08-24:v1';
 
-test('daily Crown session restores board, history and timer fields', () => {
+test('daily Crown session restores board and freezes the saved timer', () => {
   localStorage.clear();
+  const runningSince = Date.now() - 1000;
   saveCrownSession({
     date: '2026-08-24',
     seed,
@@ -27,7 +28,7 @@ test('daily Crown session restores board, history and timer fields', () => {
       { crowns: [3, 14], manualXs: [7] }
     ],
     elapsedMs: 42000,
-    runningSince: 100000,
+    runningSince,
     finished: false
   }, '2026-08-24');
 
@@ -35,8 +36,9 @@ test('daily Crown session restores board, history and timer fields', () => {
   assert.deepEqual(restored.crowns, [3, 14]);
   assert.deepEqual(restored.manualXs, [7, 8]);
   assert.deepEqual(restored.history[0], { crowns: [3], manualXs: [7] });
-  assert.equal(restored.elapsedMs, 42000);
-  assert.equal(restored.runningSince, 100000);
+  assert.ok(restored.elapsedMs >= 43000);
+  assert.ok(restored.elapsedMs < 44000);
+  assert.equal(restored.runningSince, null);
   assert.equal(restored.finished, false);
 });
 
@@ -66,7 +68,7 @@ test('new day clears yesterday Crown session but keeps user state', () => {
 });
 
 test('corrupted unified storage falls back to a safe state', () => {
-  localStorage.clear();
+  globalThis.localStorage = new LocalStorageMock();
   localStorage.setItem(STORAGE_KEY, '{broken json');
   const state = loadFigloState('2026-08-24');
   assert.equal(state.version, 2);
@@ -74,3 +76,4 @@ test('corrupted unified storage falls back to a safe state', () => {
   assert.deepEqual(state.daily.completedGames, []);
   assert.deepEqual(state.sessions.korony.crowns, []);
 });
+

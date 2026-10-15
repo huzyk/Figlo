@@ -4,13 +4,13 @@ import { getDailyGame } from '../services/daily-service.js';
 import { completeGame } from '../services/progress-service.js';
 import { loadFigloState } from '../storage.js';
 import { track } from '../services/analytics-service.js';
-import { requestedGameMode, setGameMode } from '../ui/game-mode.js';
+import { requestedGameMode, requestedPuzzleDate, setGameMode, validateChallengeRecord, showChallengeError, challengeRoundLabel } from '../ui/game-mode.js';
 import { SIZE, CELL_COUNT, BOX_ROWS, BOX_COLS, buildSudokuPuzzle, candidates, hasConflict, isSudokuSolved } from './engine.js';
-import { createSudokuSession, loadSudokuSession, saveSudokuSession, clearSudokuSession } from './session.js';
+import { createSudokuSession, loadSudokuSession, saveSudokuSession } from './session.js';
 import { findSudokuHint, newlyCompletedSudokuUnits, boardHasSudokuConflict } from './hints.js?v=20261015-optin-hints';
 
 const $ = selector => document.querySelector(selector);
-const today = currentDateKey(), requestedMode = requestedGameMode();
+const today = currentDateKey(), puzzleDate = requestedPuzzleDate(), requestedMode = requestedGameMode();
 let record = null, session = null, mode = 'daily', selected = null;
 let notesMode = false, hinted = null, hintError = false, tick = null, trainingCount = 0;
 let unitFlashTimer = null, winTimer = null;
@@ -30,7 +30,7 @@ function startTimer() {
   session.runningSince = Date.now();
   if (!session.startedAt) {
     session.startedAt = new Date().toISOString();
-    track('game_started', {gameId:'sudoku',puzzleId:record.puzzleId,date:today,mode});
+    track('game_started', {gameId:'sudoku',puzzleId:record.puzzleId,date:session?.date||today,mode});
   }
   if (!tick) tick = setInterval(renderTimer,250);
 }
@@ -167,21 +167,22 @@ function finish() {
   session.finished=true;
   pauseTimer();
   const ms=session.elapsedMs;
-  let best=loadFigloState(today).games.sudoku?.bestTimeMs||null;
+  let best=mode==='daily'?loadFigloState(today).games.sudoku?.bestTimeMs||null:null;
   if(mode==='daily'){
     const result=completeGame({
-      gameId:'sudoku',puzzleId:record.puzzleId,date:today,elapsedMs:ms,
-      mode:'daily',startedAt:session.startedAt
+      gameId:'sudoku',puzzleId:record.puzzleId,date:session?.date||today,elapsedMs:ms,
+      mode:'daily',startedAt:session.startedAt,hintsUsed:session.hintsUsed||0,resets:session.resets||0,attemptNo:(session.resets||0)+1
     });
     best=result.state.games.sudoku.bestTimeMs||ms;
     if(result.firstGameCompletionToday){
-      track('game_completed',{...result.event,gameId:'sudoku',mode:'daily',date:today,elapsedMs:ms,hintsUsed:session.hintsUsed});
+      track('game_completed',{...result.event,gameId:'sudoku',mode:'daily',date:session?.date||today,elapsedMs:ms,hintsUsed:session.hintsUsed});
     }
     if(result.firstDayCompletionToday)track('daily_completed',{date:today});
   }else{
-    track('game_completed',{gameId:'sudoku',puzzleId:record.puzzleId,date:today,
-      mode:'training',elapsedMs:ms,hintsUsed:session.hintsUsed});
+    track('game_completed',{gameId:'sudoku',puzzleId:record.puzzleId,date:session?.date||today,
+      mode,elapsedMs:ms,hintsUsed:session.hintsUsed,resets:session.resets||0,attemptNo:(session.resets||0)+1});
   }
+  $('#doneCopy').textContent=mode==='challenge'?'Wyzwanie ukończone. Porównaj wynik ze znajomymi.':mode==='training'?'Trening ukończony. Czas na kolejną planszę?':'Sudoku zaliczone. Dobra robota!';
   $('#finalTime').textContent=fmt(ms);
   $('#bestTime').textContent=best?fmt(best):'—';
   $('#done').hidden=false;
@@ -250,18 +251,19 @@ function hint() {
   hintError=['mistake','conflict','blocked'].includes(step.kind);
   session.hintsUsed++;
   startTimer();persist();render();
-  track('hint_used',{gameId:'sudoku',puzzleId:record.puzzleId,date:today,mode,hintsUsed:session.hintsUsed});
+  track('hint_used',{gameId:'sudoku',puzzleId:record.puzzleId,date:session?.date||today,mode,hintsUsed:session.hintsUsed});
   announce(step.reason,step.kind==='mistake'||step.kind==='conflict'||step.kind==='blocked');
   $('#feedback').classList.add('hint-message');
 }
 function reset() {
   if(!session || session.finished)return;
   clearPendingWin();clearUnitFlash();pauseTimer();
-  if(mode==='daily')clearSudokuSession(today);
-  session=createSudokuSession({date:today,seed:record.puzzleId,puzzle:record.puzzle});
+  const hintsUsed=session.hintsUsed||0,resets=(session.resets||0)+1,date=session.date;
+  session={...createSudokuSession({date,seed:record.puzzleId,puzzle:record.puzzle}),hintsUsed,resets};
   notesMode=false;hinted=null;hintError=false;resetFocus();persist();render();announce('Plansza wyczyszczona. Zacznij od nowa.');
 }
 async function loadRound(training) {
+  const roundDate=training?today:puzzleDate;
   clearPendingWin();clearUnitFlash();
   $('#board').setAttribute('aria-busy','true');
   $('#done').hidden=true;
@@ -274,28 +276,30 @@ async function loadRound(training) {
       record.puzzleId='sudoku-training:'+seed;
       mode='training';trainingCount++;
     } else {
-      record=await getDailyGame('sudoku',today);
-      mode='daily';
+      mode=requestedMode==='challenge'?'challenge':'daily';
+      const loadedRecord=await getDailyGame('sudoku',roundDate);
+      validateChallengeRecord(loadedRecord);
+      record=loadedRecord;
     }
-    setGameMode(mode);
+    setGameMode(mode,{date:roundDate,puzzleId:record.puzzleId});
     session=mode==='daily'
-      ?loadSudokuSession({date:today,seed:record.puzzleId,puzzle:record.puzzle})
-      :createSudokuSession({date:today,seed:record.puzzleId,puzzle:record.puzzle});
-    if(session.finished)session=createSudokuSession({date:today,seed:record.puzzleId,puzzle:record.puzzle});
-    $('#roundLabel').textContent=mode==='daily'?'Dzisiaj':'Trening #'+trainingCount;
+      ?loadSudokuSession({date:roundDate,seed:record.puzzleId,puzzle:record.puzzle})
+      :createSudokuSession({date:roundDate,seed:record.puzzleId,puzzle:record.puzzle});
+    if(session.finished)session=createSudokuSession({date:roundDate,seed:record.puzzleId,puzzle:record.puzzle});
+    $('#roundLabel').textContent=mode==='challenge'?challengeRoundLabel():mode==='daily'?'Dzisiaj':'Trening #'+trainingCount;
     notesMode=false;hinted=null;hintError=false;buildBoard();resetFocus();render();renderTimer();
     if(session.startedAt&&!session.finished&&!document.hidden){
       session.runningSince=Date.now();
       tick=setInterval(renderTimer,250);
     }
-    track(mode==='daily'?'game_opened':'game_training_started',{
-      gameId:'sudoku',puzzleId:record.puzzleId,date:today,mode
+    track(mode==='training'?'game_training_started':'game_opened',{
+      gameId:'sudoku',puzzleId:record.puzzleId,date:session?.date||today,mode
     });
     announce('Wybierz pole i wpisz cyfrę 1–6. Możesz używać notatek.');
   } catch(error) {
     console.error('Sudoku: puzzle loading failed',error);
-    $('#loadError').hidden=false;
-    track('game_load_failed',{gameId:'sudoku',date:today,mode:training?'training':'daily'});
+    if(!showChallengeError(error))$('#loadError').hidden=false;
+    track('game_load_failed',{gameId:'sudoku',date:session?.date||today,mode:training?'training':requestedMode});
   } finally {board.setAttribute('aria-busy','false');}
 }
 function handleKey(event) {
@@ -351,8 +355,9 @@ document.addEventListener('visibilitychange',()=>{
   }
 });
 window.addEventListener('pagehide',()=>{settlePendingWin();pauseTimer();});
-const shouldTrain=requestedMode==='training'||
-  loadFigloState(today).daily.completedGames.includes('sudoku');
+const shouldTrain=requestedMode!=='challenge'&&(requestedMode==='training'||
+  loadFigloState(today).daily.completedGames.includes('sudoku'));
 loadRound(shouldTrain);
+
 
 watchDayRollover(today);

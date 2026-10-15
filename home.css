@@ -129,6 +129,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--blue);outline-offse
 .stats small{margin-top:9px;color:#8A95A3;font-size:11px}
 
 /* Footer has only necessary navigation/privacy */
+.week-goal{margin:14px 0 8px;padding:10px 12px;border-radius:8px;background:#edf3ff;color:#284ba3;font-size:13px;font-weight:750;line-height:1.5;overflow-wrap:anywhere}
 .site-footer{background:#111A2C;color:#fff}
 .footer-inner{display:grid;grid-template-columns:1.1fr .8fr 1fr;align-items:start;gap:35px;padding-block:37px 43px}
 .footer-logo{font-size:27px;font-weight:850;letter-spacing:-.07em}
@@ -215,3 +216,4 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--blue);outline-offse
  .day-card{padding:13px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.game-card,.game-card:hover,.play::after{transition:none;transform:none}}
+

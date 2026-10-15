@@ -1,18 +1,15 @@
-import { completeDailyGame, isTodayComplete, loadFigloState, saveFigloState } from '../storage.js';
+import { completeDailyGame, isTodayComplete, loadFigloState } from '../storage.js';
 import { createCompletionEvent } from '../domain/completion.js';
-
-const emptyGameStats=()=>({bestTimeMs:null,completedCount:0,totalTimeMs:0,timedCompletions:0,lastCompletedDate:null});
 
 export function getDailyProgress(dateKey) {
   const state = loadFigloState(dateKey);
   return { date: state.daily.date, completedGames: [...state.daily.completedGames], requiredGames: [...state.daily.requiredGames], complete: isTodayComplete(state), state };
 }
 
-export function completeGame({ gameId, puzzleId, date, elapsedMs = null, mode = 'daily', startedAt = null, hintsUsed = null }) {
-  const event = createCompletionEvent({ gameId, puzzleId, date, elapsedMs, mode, startedAt });
+export function completeGame({ gameId, puzzleId, date, elapsedMs = null, mode = 'daily', startedAt = null, hintsUsed = null, resets = null, attemptNo = null }) {
+  const event = createCompletionEvent({ gameId, puzzleId, date, elapsedMs, mode, startedAt, hintsUsed, resets, attemptNo });
   if (mode !== 'daily') return { state: loadFigloState(date), firstGameCompletionToday: false, firstDayCompletionToday: false, event };
-  const state=loadFigloState(date);
-  if(!state.games[gameId]){state.games[gameId]=emptyGameStats();saveFigloState(state);}
-  const result = completeDailyGame(gameId, { timeMs: elapsedMs, hintsUsed, today: date });
-  return { ...result, event };
+  const result = completeDailyGame(gameId, { timeMs: elapsedMs, hintsUsed, resets, attemptNo, puzzleId, event, today: date });
+  return { ...result, event: result.state.puzzleResults[puzzleId] || event };
 }
+

@@ -44,7 +44,7 @@ test('Bloki correction consumes a hint and forfeits clean-game bonus',async({pag
   await expect(page.locator('#filledCounter')).toHaveText('1/36');
   await hintButton(page,info).click();
   await expect(page.locator('#filledCounter')).toHaveText('0/36');
-  await expect(page.locator('#feedback')).toContainText(/podpowiedź/i);
+  await expect(page.locator('#feedback')).toContainText(/podpowiedzią|podpowiedź/i);
   let state=await stateOf(page);
   expect(state.rewards.hintCounts.bloki).toBe(1);
   await page.evaluate(async()=>{
@@ -82,7 +82,7 @@ test('Zip correction consumes a hint without changing the visual board',async({p
   await hintButton(page,info).click();
   await expect(page.locator('#filledCounter')).toHaveText(
     String(wrongMove.prefix.length)+'/36');
-  await expect(page.locator('#feedback')).toContainText(/podpowiedź/i);
+  await expect(page.locator('#feedback')).toContainText(/podpowiedzią|podpowiedź/i);
   const state=await stateOf(page);
   expect(state.rewards.hintCounts.zip).toBe(1);
 });
