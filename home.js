@@ -1,3 +1,4 @@
+import { initEngagementUI, renderEngagementUI } from './src/ui/engagement-home.js';
 import{currentDateKey,dateFromKey,getWeekDateKeys}from'./src/daily.js';
 import{getDailyManifest}from'./src/services/daily-service.js';
 import{getDailyProgress}from'./src/services/progress-service.js';
@@ -62,8 +63,8 @@ function renderDailyProgress(){
     cta.textContent='Zagraj treningowo';
   }
 }
-function renderStats(){$('#cardStreak').textContent=streakLabel(stats.streak);$('#statStreak').textContent=String(stats.streak);$('#bestStreak').textContent=`Najlepsza: ${stats.bestStreak}`;$('#activeDays').textContent=String(stats.completedDays);$('#totalCompleted').textContent=String(stats.completedGames);$('#averageTime').textContent=formatDuration(stats.averageGameTimeMs);}
-function renderWeek(){const root=$('#weekStrip'),labels=['P','W','Ś','C','P','S','N'],dates=getWeekDateKeys(todayDate);root.innerHTML='';dates.forEach((dateKey,index)=>{const item=document.createElement('div');item.className='week-day';const isToday=dateKey===today,isCompleted=stats.completedDates.includes(dateKey);if(isToday)item.classList.add('today');if(isCompleted)item.classList.add('completed');if(isToday)item.setAttribute('aria-current','date');const label=document.createElement('span');label.className='week-day-label';label.textContent=labels[index];const dot=document.createElement('span');dot.className='week-day-state';dot.textContent=isCompleted?'✓':isToday?'•':'·';item.setAttribute('aria-label',`${labels[index]}${isCompleted?', ukończony':''}${isToday?', dzisiaj':''}`);item.append(label,dot);root.appendChild(item);});}
+function renderStats(){$('#cardStreak').textContent=streakLabel(stats.activityStreak);$('#statStreak').textContent=String(stats.activityStreak);$('#bestStreak').textContent=`Najlepsza: ${stats.bestActivityStreak}`;$('#activeDays').textContent=String(stats.completedDays);$('#totalCompleted').textContent=String(stats.completedGames);$('#averageTime').textContent=formatDuration(stats.averageGameTimeMs);}
+function renderWeek(){const root=$('#weekStrip'),labels=['P','W','Ś','C','P','S','N'],dates=getWeekDateKeys(todayDate);root.innerHTML='';dates.forEach((dateKey,index)=>{const item=document.createElement('div');item.className='week-day';const isToday=dateKey===today,isCompleted=stats.activeDates.includes(dateKey);if(isToday)item.classList.add('today');if(isCompleted)item.classList.add('completed');if(isToday)item.setAttribute('aria-current','date');const label=document.createElement('span');label.className='week-day-label';label.textContent=labels[index];const dot=document.createElement('span');dot.className='week-day-state';dot.textContent=isCompleted?'✓':isToday?'•':'·';item.setAttribute('aria-label',`${labels[index]}${isCompleted?', ukończony':''}${isToday?', dzisiaj':''}`);item.append(label,dot);root.appendChild(item);});}
 function renderGamesSummary(){const available=manifest?.games?.filter(game=>game.available).length||progress.requiredGames.length;$('#gamesSummary').textContent=gameCountLabel(available);}
 function wireMobileMenu(){
   const menu=$('.menu'),nav=document.querySelector('.nav-wrap nav');
@@ -83,7 +84,7 @@ function refreshProgress(){
   if(currentDateKey()!==today){location.reload();return;}
   progress=getDailyProgress(today);
   stats=getUserStats(today);
-  renderDailyProgress();renderStats();renderWeek();renderGamesSummary();
+  renderDailyProgress();renderStats();renderWeek();renderGamesSummary();renderEngagementUI(today);
 }
 function wireGameSelection(){
   const ids={crownsCard:'korony',duetCard:'duet',blokiCard:'bloki',latarnieCard:'latarnie',zipCard:'zip',sudokuCard:'sudoku'};
@@ -100,7 +101,7 @@ function wireGameSelection(){
   });
 }
 async function start(){
-  renderDate();refreshProgress();wireMobileMenu();wireGameSelection();
+  renderDate();refreshProgress();wireMobileMenu();wireGameSelection();initEngagementUI(today);
   window.addEventListener('pageshow',event=>{if(event.persisted)refreshProgress();});
   manifest=await getDailyManifest(today);
   renderGamesSummary();
