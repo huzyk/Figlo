@@ -1,5 +1,6 @@
 import { dayDifference, currentDateKey } from './daily.js';
 import { requiredGamesForDate } from './daily-games.js';
+import { awardDailyGame, createRewardsState, getBadges } from './domain/rewards.js';
 
 export const STORAGE_KEY = 'figlo_user_state_v2';
 
@@ -10,10 +11,11 @@ function defaultGameStats() { return { bestTimeMs: null, completedCount: 0, tota
 function defaultState(today = currentDateKey()) {
   return {
     version: 2,
-    user: { streak: 0, bestStreak: 0, completedDays: 0, completedGames: 0, lastCompletedDate: null, completedDates: [] },
+    user: { streak: 0, bestStreak: 0, completedDays: 0, completedGames: 0, lastCompletedDate: null, completedDates: [], activeDates: [], activeStreak: 0, bestActiveStreak: 0, lastActiveDate: null },
     daily: { date: today, requiredGames: requiredGamesForDate(today), completedGames: [] },
     games: { korony: defaultGameStats(), duet: defaultGameStats(), bloki: defaultGameStats(), latarnie: defaultGameStats(), zip: defaultGameStats(), sudoku: defaultGameStats() },
     settings: { autoX: false },
+    rewards: createRewardsState(),
     sessions: { korony: defaultCrownSession(), duet: defaultDuetSession() }
   };
 }
@@ -34,7 +36,7 @@ function migrateLegacyState(today) {
   state.user.completedDays = legacyActiveDays;
   state.user.completedGames = legacyCompleted;
   state.user.lastCompletedDate = legacyLastDay;
-  if (legacyLastDay) state.user.completedDates = [legacyLastDay];
+  if (legacyLastDay) { state.user.completedDates = [legacyLastDay]; state.user.activeDates = [legacyLastDay]; state.user.activeStreak = legacyStreak; state.user.bestActiveStreak = legacyBestStreak; state.user.lastActiveDate = legacyLastDay; }
   state.games.korony.completedCount = safeNumber(localStorage.getItem('figlo-crowns-completed-count'), legacyCompleted);
   state.games.korony.bestTimeMs = legacyBestMs > 0 ? legacyBestMs : null;
   state.games.korony.totalTimeMs = safeNumber(localStorage.getItem('figlo-crowns-total-ms'));
@@ -52,7 +54,7 @@ function normalizeState(raw, today) {
   const state = {
     ...fallback,
     ...raw,
-    user: { ...fallback.user, ...(raw.user || {}), completedDates: Array.isArray(raw.user?.completedDates) ? raw.user.completedDates : legacyHistoryDates },
+    user: { ...fallback.user, ...(raw.user || {}), completedDates: Array.isArray(raw.user?.completedDates) ? raw.user.completedDates : legacyHistoryDates, activeDates: Array.isArray(raw.user?.activeDates) ? raw.user.activeDates : (Array.isArray(raw.user?.completedDates) ? raw.user.completedDates : legacyHistoryDates), activeStreak: Number.isFinite(raw.user?.activeStreak) ? raw.user.activeStreak : (raw.user?.streak || 0), bestActiveStreak: Number.isFinite(raw.user?.bestActiveStreak) ? raw.user.bestActiveStreak : (raw.user?.bestStreak || 0), lastActiveDate: raw.user?.lastActiveDate || raw.user?.lastCompletedDate || null },
     daily: { ...fallback.daily, ...(raw.daily || {}) },
     games: {
       ...fallback.games,
@@ -65,6 +67,7 @@ function normalizeState(raw, today) {
       sudoku: { ...fallback.games.sudoku, ...(raw.games?.sudoku || {}) }
     },
     settings: { ...fallback.settings, ...(raw.settings || {}) },
+    rewards: { ...createRewardsState(), ...(raw.rewards || {}), daily: { ...(raw.rewards?.daily && typeof raw.rewards.daily === 'object' && !Array.isArray(raw.rewards.daily) ? raw.rewards.daily : {}) }, hintCounts: { ...(raw.rewards?.hintCounts && typeof raw.rewards.hintCounts === 'object' && !Array.isArray(raw.rewards.hintCounts) ? raw.rewards.hintCounts : {}) } },
     sessions: {
       ...fallback.sessions,
       ...(raw.sessions || {}),
@@ -76,6 +79,7 @@ function normalizeState(raw, today) {
   if (!Array.isArray(state.daily.completedGames)) state.daily.completedGames = [];
   state.daily.completedGames = state.daily.completedGames.filter(id => state.daily.requiredGames.includes(id));
   if (!Array.isArray(state.user.completedDates)) state.user.completedDates = [];
+  if (!Array.isArray(state.user.activeDates)) state.user.activeDates = [...state.user.completedDates];
   if (!Array.isArray(state.sessions.korony.crowns)) state.sessions.korony.crowns = [];
   if (!Array.isArray(state.sessions.korony.manualXs)) state.sessions.korony.manualXs = [];
   if (!Array.isArray(state.sessions.korony.history)) state.sessions.korony.history = [];
@@ -123,7 +127,7 @@ export function loadFigloState(today = currentDateKey()) {
 export function saveFigloState(state) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true; } catch (error) { console.error('Nie udało się zapisać stanu Figlo:', error); return false; } }
 export function isTodayComplete(state) { return state.daily.requiredGames.every(gameId => state.daily.completedGames.includes(gameId)); }
 
-export function completeDailyGame(gameId, { timeMs = null, today = currentDateKey() } = {}) {
+export function completeDailyGame(gameId, { timeMs = null, hintsUsed = null, today = currentDateKey() } = {}) {
   const state = loadFigloState(today);
   const gameState = state.games[gameId];
   if (!gameState) throw new Error(`Nieznana gra: ${gameId}`);
@@ -136,8 +140,19 @@ export function completeDailyGame(gameId, { timeMs = null, today = currentDateKe
   gameState.completedCount += 1;
   gameState.lastCompletedDate = today;
   if (Number.isFinite(timeMs) && timeMs > 0) { gameState.totalTimeMs += timeMs; gameState.timedCompletions += 1; }
+  const oldBadges = new Set(getBadges(state).filter(b => b.earned).map(b => b.id));
   state.user.completedGames += 1;
+  if (!state.user.activeDates.includes(today)) {
+    const activityGap = dayDifference(state.user.lastActiveDate, today);
+    state.user.activeStreak = activityGap === 1 ? state.user.activeStreak + 1 : 1;
+    state.user.bestActiveStreak = Math.max(state.user.bestActiveStreak, state.user.activeStreak);
+    state.user.lastActiveDate = today;
+    state.user.activeDates.push(today);
+    state.user.activeDates = state.user.activeDates.slice(-400);
+  }
   const dayIsNowComplete = isTodayComplete(state);
+  const recordedHints = state.rewards.hintDate === today ? (state.rewards.hintCounts[gameId] || 0) : 0;
+  awardDailyGame(state, { date: today, gameId, hintsUsed: Math.max(recordedHints, Number.isFinite(hintsUsed) ? hintsUsed : 0), completeSet: dayIsNowComplete });
   let firstDayCompletionToday = false;
   if (!wasDayComplete && dayIsNowComplete && state.user.lastCompletedDate !== today) {
     firstDayCompletionToday = true;
@@ -148,8 +163,19 @@ export function completeDailyGame(gameId, { timeMs = null, today = currentDateKe
     state.user.lastCompletedDate = today;
     if (!state.user.completedDates.includes(today)) { state.user.completedDates.push(today); state.user.completedDates = state.user.completedDates.slice(-120); }
   }
+  const newBadges = getBadges(state).filter(b => b.earned && !oldBadges.has(b.id)).map(b => b.name);
+  state.rewards.lastAward = { date: today, gameId, badges: newBadges };
   saveFigloState(state);
   return { state, firstGameCompletionToday: true, firstDayCompletionToday };
+}
+
+export function recordDailyHint(gameId, today = currentDateKey()) {
+  const state = loadFigloState(today);
+  if (state.daily.date !== today || !state.daily.requiredGames.includes(gameId) || state.daily.completedGames.includes(gameId)) return false;
+  if (state.rewards.hintDate !== today) { state.rewards.hintDate = today; state.rewards.hintCounts = {}; }
+  state.rewards.hintCounts[gameId] = Math.min(999, (Number(state.rewards.hintCounts[gameId]) || 0) + 1);
+  saveFigloState(state);
+  return true;
 }
 
 export function updateFigloSettings(patch) { const state = loadFigloState(); state.settings = { ...state.settings, ...patch }; saveFigloState(state); return state; }

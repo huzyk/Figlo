@@ -60,7 +60,7 @@ test('all six games complete one day, training preserves totals, next day resets
     await expect(page.locator('#done')).toBeVisible();
     await page.goto(`/index.html?date=${DATE}`);
     await expect(page.locator('#progressRing')).toHaveText(`${index + 1}/6`);
-    await expect(page.locator('#statStreak')).toHaveText(index === 5 ? '1' : '0');
+    await expect(page.locator('#statStreak')).toHaveText('1'); // activity streak starts after first solved game
   }
   await expect(page.locator('#totalCompleted')).toHaveText('6');
   for (const game of games) {
