@@ -16,22 +16,17 @@ test('buffer check detects a missing day and invalid record', async t => {
   await assert.rejects(checkDuetBuffer({ start: '2026-08-24', days: 2, directory }), /2026-08-25.*Invalid/);
 });
 
-test('daily publication stages newly generated files before checking for changes', async t => {
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'duet-publish-'));
-  t.after(() => fs.rm(directory, { recursive: true, force: true }));
-  const git = (...args) => execFileSync('git', args, { cwd: directory, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-  git('init');
-  git('-c', 'user.name=Test', '-c', 'user.email=test@example.com', 'commit', '--allow-empty', '-m', 'initial');
-  await fs.mkdir(path.join(directory, 'data/duet'), { recursive: true });
-  await fs.writeFile(path.join(directory, 'data/duet/new.json'), '{}');
-  // The former check reports no changes even though a new puzzle exists.
-  git('diff', '--quiet', '--', 'data/duet');
-  const workflow = await fs.readFile(new URL('../.github/workflows/generate-duet-daily.yml', import.meta.url), 'utf8');
-  const publish = workflow.split('      - name: Commit generated daily assets')[1].split('        run: |\n')[1].split('\n').map(line => line.replace(/^          /, '')).join('\n');
-  // Replace only network publishing; execute the actual workflow's commit logic.
-  execFileSync('bash', ['-e', '-c', publish.replace('git push', 'git status --porcelain')], { cwd: directory });
-  assert.equal(git('show', 'HEAD:data/duet/new.json'), '{}');
-  const head = git('rev-parse', 'HEAD');
-  execFileSync('bash', ['-e', '-c', publish.replace('git push', 'git status --porcelain')], { cwd: directory });
-  assert.equal(git('rev-parse', 'HEAD'), head);
+test('only the safe Duet generator remains and published records cannot be rebased or overwritten', async () => {
+  const workflows = new URL('../.github/workflows/', import.meta.url);
+  const names = await fs.readdir(workflows);
+  assert.equal(names.includes('generate-duet-daily.yml'), false);
+  assert.equal(names.includes('refresh-duet-today.yml'), false);
+  assert.equal(names.includes('duet-daily-buffer.yml'), true);
+  const content = await fs.readFile(new URL('duet-daily-buffer.yml', workflows), 'utf8');
+  assert.match(content, /--skip-existing/);
+  assert.match(content, /git add -- data\/duet\//);
+  assert.match(content, /git fetch origin main/);
+  assert.match(content, /original_head/);
+  assert.match(content, /git push origin HEAD:main/);
+  assert.doesNotMatch(content, /git pull --rebase|git push origin preview|--force/);
 });

@@ -13,7 +13,7 @@ export const BADGES = [
   { id: 'first-set', name: 'Komplecista', description: 'Ukończ pierwszy dzienny zestaw', icon: '✓' },
   { id: 'games-25', name: 'Rozgrzewka', description: 'Rozwiąż 25 gier Daily', icon: '◈' },
   { id: 'active-7', name: 'Stały bywalec', description: '7 dni aktywności z rzędu', icon: '✳' },
-  { id: 'sets-7', name: 'Tydzień kompletów', description: 'Ukończ 7 dziennych zestawów', icon: '★' },
+  { id: 'sets-7', name: 'Siedem kompletów', description: 'Ukończ 7 pełnych dziennych zestawów — nie muszą być z rzędu', icon: '★' },
   { id: 'clean-set', name: 'Bez podpowiedzi', description: 'Zdobądź cały komplet bez podpowiedzi', icon: '◆' },
   { id: 'games-100', name: 'Setka', description: 'Rozwiąż 100 gier Daily', icon: '✹' },
   { id: 'sets-30', name: 'Wytrwały', description: 'Ukończ 30 dziennych zestawów', icon: '♛' },
@@ -59,9 +59,10 @@ export function awardDailyGame(state, { date, gameId, hintsUsed = 0, completeSet
   if (!rewards.daily[date]) rewards.daily[date] = { games: {}, bonus: 0, total: 0 };
   const record = rewards.daily[date];
   if (record.games[gameId]) return record.games[gameId].points;
+  // null means an old/unknown hint count, not a verified clean solution.
   const clean = hintsUsed === 0;
   const points = 100 + (clean ? 20 : 0);
-  record.games[gameId] = { points, hintsUsed: Math.max(0, hintsUsed) };
+  record.games[gameId] = { points, hintsUsed: Number.isFinite(hintsUsed) ? Math.max(0, Math.floor(hintsUsed)) : null };
   record.total += points;
   rewards.totalPoints += points;
   if (clean) rewards.cleanGames += 1;

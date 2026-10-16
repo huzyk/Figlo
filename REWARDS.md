@@ -5,7 +5,8 @@
 - **PUZLI IQ** to własny wskaźnik zaangażowania/postępu w grach, nie test psychometryczny ani miara inteligencji.
 - Algorytm: 100 + min(18, floor(ukończone_gry/4)) + min(16, floor(gry_bez_podpowiedzi/5)) + min(16, floor(pełne_zestawy/4)).
 - Rangi: Nowicjusz (<108), Logik (108+), Strateg (118+), Ekspert (130+), Mistrz (143+).
-- 9 osiągnięć ustalanych z rzeczywistych danych w przeglądarce. Historia legacy zachowana. Brak historycznej informacji o podpowiedziach nie tworzy automatycznie odznak perfekcyjnych.
+- 9 osiągnięć ustalanych z rzeczywistych danych w przeglądarce. Historia legacy zachowana. Brak historycznej informacji o podpowiedziach nie tworzy automatycznie odznak perfekcyjnych. Odznaka „Siedem kompletów” oznacza siedem pełnych zestawów łącznie, nie siedem kolejnych dni (ciągłość mierzy osobna odznaka aktywności).
+- Ukończenie z nieznaną liczbą podpowiedzi (`null`) daje 100 pkt bez premii za samodzielność i nie zalicza czystego kompletu. Zweryfikowane `0` daje premię +20. Nowe ścieżki gry zapisują licznik podpowiedzi jawnie.
 - Punktacja Daily: 100 za pierwsze ukończenie gry + 20 jeśli bez podpowiedzi; +80 za pierwszy pełny komplet dnia (maksymalnie 800 pkt/dzień). Trening i wyzwanie z linku nie naliczają punktów. Reset nie usuwa informacji o wykorzystanej pomocy.
 - Osobne serie: aktywności (minimum jedna gra dziennie) i pełnych zestawów (wszystkie dostępne gry). Poprzednia seria zachowana jako seria kompletów.
 - Dzienny rekord nagród jest zapisywany w localStorage; tygodniowe wyniki są sumowane od poniedziałku według daty Europe/Warsaw.
