@@ -1,4 +1,5 @@
 import { dayDifference } from '../daily.js';
+import { DAILY_SET_BONUS, VERIFIED_SCORING_VERSION, speedPoints, targetSeconds } from './seasonal-scoring.js';
 
 /** PUZLI IQ is an in-game progression index, NOT a psychometric IQ test. */
 export const RANKS = [
@@ -19,8 +20,51 @@ export const BADGES = [
   { id: 'sets-30', name: 'Wytrwały', description: 'Ukończ 30 dziennych zestawów', icon: '♛' },
   { id: 'master', name: 'Mistrz PUZLI', description: 'Osiągnij rangę Mistrz', icon: '♕' }
 ];
+export const LOCAL_SCORING_VERSION = 2;
 export function createRewardsState() {
-  return { daily: {}, hintDate: null, hintCounts: {}, totalPoints: 0, cleanGames: 0, cleanSets: 0 };
+  return { scoringVersion: LOCAL_SCORING_VERSION, daily: {}, hintDate: null, hintCounts: {},
+    totalPoints: 0, cleanGames: 0, cleanSets: 0 };
+}
+
+/** Convert old 100/120/80 local rewards to the same 10/speed/clean/20 scale
+ *  as the future server scoring. Preserve old totals only as historical metadata;
+ *  NEVER combine old and new scales in weekly or lifetime points.
+ *  Done in memory during load; the next ordinary state save persists the migration.
+ */
+export function migrateRewardsScoring(rewards, puzzleResults = {}) {
+  if (rewards.scoringVersion === LOCAL_SCORING_VERSION) return rewards;
+  const outcomes = new Map();
+  for (const result of Object.values(puzzleResults || {})) {
+    if (result?.mode === 'daily' && result.date && result.gameId) {
+      outcomes.set(result.date + ':' + result.gameId, result);
+    }
+  }
+  const oldTotal = Number(rewards.totalPoints) || 0;
+  let total = 0;
+  for (const [date, day] of Object.entries(rewards.daily || {})) {
+    if (!day || typeof day !== 'object' || Array.isArray(day)) continue;
+    let dayTotal = 0;
+    for (const [gameId, existing] of Object.entries(day.games || {})) {
+      if (!existing || typeof existing !== 'object') continue;
+      let targetSecs;
+      try { targetSecs = targetSeconds(gameId); } catch { continue; }
+      const result = outcomes.get(date + ':' + gameId);
+      const elapsedMs = Number.isFinite(result?.elapsedMs) ? result.elapsedMs : null;
+      const hintsUsed = Number.isFinite(existing.hintsUsed) ? Math.max(0, Math.floor(existing.hintsUsed)) : null;
+      const base = 10, speed = speedPoints(elapsedMs, targetSecs), clean = hintsUsed === 0 ? 5 : 0;
+      const points = base + speed + clean;
+      day.games[gameId] = { ...existing, points, hintsUsed, base, speed, clean,
+        elapsedMs, targetSecs, scoringVersion: VERIFIED_SCORING_VERSION };
+      dayTotal += points;
+    }
+    day.bonus = Number(day.bonus) > 0 ? DAILY_SET_BONUS : 0;
+    day.total = dayTotal + day.bonus;
+    total += day.total;
+  }
+  rewards.legacyTotalPoints = Number.isFinite(rewards.legacyTotalPoints) ? rewards.legacyTotalPoints : oldTotal;
+  rewards.totalPoints = total;
+  rewards.scoringVersion = LOCAL_SCORING_VERSION;
+  return rewards;
 }
 export function getPuzliIQ(state) {
   const played = Math.max(0, Number(state?.user?.completedGames) || 0);
@@ -54,22 +98,24 @@ export function getBadges(state) {
   if (iq >= 143) owned.add('master');
   return BADGES.map(badge => ({ ...badge, earned: owned.has(badge.id) }));
 }
-export function awardDailyGame(state, { date, gameId, hintsUsed = 0, completeSet = false }) {
+export function awardDailyGame(state, { date, gameId, hintsUsed = 0, elapsedMs = null, completeSet = false }) {
   const rewards = state.rewards;
   if (!rewards.daily[date]) rewards.daily[date] = { games: {}, bonus: 0, total: 0 };
   const record = rewards.daily[date];
   if (record.games[gameId]) return record.games[gameId].points;
-  // null means an old/unknown hint count, not a verified clean solution.
-  const clean = hintsUsed === 0;
-  const points = 100 + (clean ? 20 : 0);
-  record.games[gameId] = { points, hintsUsed: Number.isFinite(hintsUsed) ? Math.max(0, Math.floor(hintsUsed)) : null };
+  const targetSecs = targetSeconds(gameId);
+  const base = 10, speed = speedPoints(elapsedMs, targetSecs), clean = hintsUsed === 0 ? 5 : 0;
+  const points = base + speed + clean;
+  record.games[gameId] = { points, base, speed, clean, elapsedMs, targetSecs,
+    scoringVersion: VERIFIED_SCORING_VERSION,
+    hintsUsed: Number.isFinite(hintsUsed) ? Math.max(0, Math.floor(hintsUsed)) : null };
   record.total += points;
   rewards.totalPoints += points;
   if (clean) rewards.cleanGames += 1;
   if (completeSet && !record.bonus) {
-    record.bonus = 80;
-    record.total += 80;
-    rewards.totalPoints += 80;
+    record.bonus = DAILY_SET_BONUS;
+    record.total += DAILY_SET_BONUS;
+    rewards.totalPoints += DAILY_SET_BONUS;
     if (state.daily.requiredGames.every(id => record.games[id]?.hintsUsed === 0)) rewards.cleanSets += 1;
   }
   const dates = Object.keys(rewards.daily).sort();
