@@ -87,7 +87,8 @@ function renderRewardSummary(root, state, gameId, date, mode, result) {
   const supplement = document.createElement('span');
   if (game) {
     supplement.textContent = '+' + game.base + ' za ukończenie · +' + game.speed +
-      ' za szybkość · +' + game.clean + ' bez podpowiedzi';
+      ' za szybkość · +' + game.clean + ' bez podpowiedzi' +
+      (game.hintsUsed > 0 ? ' · użyto podpowiedzi' : game.hintsUsed == null ? ' · brak danych o podpowiedziach' : '');
   } else {
     supplement.textContent = 'Wynik zapisany';
   }
