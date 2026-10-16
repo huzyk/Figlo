@@ -3,6 +3,7 @@ import { loadFigloState } from '../storage.js';
 import { BADGES } from '../domain/rewards.js';
 import { getGameMode, getGameDate, getGamePuzzleId } from './game-mode.js';
 import { gameShareCard, shareCard, createManualShareFallback, formatShareTime } from '../services/share-service.js';
+import { playVictory } from './victory-fx.js';
 
 const GAME_META = {
   korony: { name: 'Korony', title: 'Korony ukończone!', href: 'korony.html' },
@@ -165,48 +166,22 @@ function renderUnlockedBadge(root, state, gameId, date) {
 }
 
 function celebrateCompletion(root) {
-  root.classList.remove('is-celebrating');
-  root.querySelector('.puzli-victory-sparks')?.remove();
   if (getGameMode() !== 'daily') {
     root.querySelector('.puzli-badge-unlock')?.remove();
     return;
   }
   const gameId = gameIdFromPath(), date = getGameDate(), puzzleId = getGamePuzzleId();
   const state = loadFigloState(date);
-  const record = completionRecord(state, {gameId, date, puzzleId});
-  if (!record) return;
+  if (!completionRecord(state, { gameId, date, puzzleId })) return;
   renderUnlockedBadge(root, state, gameId, date);
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+  // Daily wins play only once per puzzle. Preview uses playVictory directly.
   const key = ['puzli-win-seen', date, gameId, puzzleId || 'daily'].join(':');
   try {
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, '1');
-  } catch { /* Browsers with disabled storage may still play the effect. */ }
-
-  const mark = root.querySelector('.success-mark');
-  if (mark) {
-    const sparks = document.createElement('span');
-    sparks.className = 'puzli-victory-sparks';
-    sparks.setAttribute('aria-hidden', 'true');
-    for (let i = 0; i < 14; i++) {
-      const ray = document.createElement('span');
-      ray.className = 'puzli-victory-spark';
-      const angle = (i / 14) * Math.PI * 2 - Math.PI / 2;
-      const radius = 49 + (i % 3) * 7;
-      ray.style.setProperty('--spark-x', Math.round(Math.cos(angle) * radius) + 'px');
-      ray.style.setProperty('--spark-y', Math.round(Math.sin(angle) * radius) + 'px');
-      ray.style.setProperty('--spark-spin', (i % 2 ? 90 : -90) + 'deg');
-      ray.style.setProperty('--spark-delay', (80 + (i % 4) * 32) + 'ms');
-      sparks.append(ray);
-    }
-    mark.append(sparks);
-  }
-  root.classList.add('is-celebrating');
-  setTimeout(() => {
-    root.classList.remove('is-celebrating');
-    root.querySelector('.puzli-victory-sparks')?.remove();
-  }, 1320);
+  } catch { /* Private browsing may block sessionStorage. */ }
+  playVictory(root);
 }
 
 function init() {
