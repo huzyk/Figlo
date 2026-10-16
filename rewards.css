@@ -77,3 +77,6 @@
 .friends-actions button:disabled{opacity:.55;cursor:default}
 .share-manual-fallback{margin:12px 0;min-width:0}.share-manual-fallback[hidden]{display:none}.share-manual-fallback label{display:block;margin-bottom:7px;font-size:12px;font-weight:700}
 .share-manual-fallback textarea{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:120px;padding:10px;border:1px solid #b9c9ef;border-radius:8px;background:#fff;color:#17264a;font:inherit;font-size:12px;line-height:1.5;resize:vertical;overflow-wrap:anywhere}
+
+/* v2 scoring explainer lives inside the existing IQ card. */
+.iq-panel .score-explainer{margin:15px 0 0;padding:10px 12px;border-radius:10px;background:rgba(167,139,250,.09);border:1px solid rgba(167,139,250,.18);color:var(--muted,#aca9bc);font-size:12px;line-height:1.5}
