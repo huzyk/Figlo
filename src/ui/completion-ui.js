@@ -167,7 +167,10 @@ function renderUnlockedBadge(root, state, gameId, date) {
 
 function celebrateCompletion(root) {
   if (getGameMode() !== 'daily') {
+    // Training and shared challenges deserve the same satisfying finish,
+    // but never award daily points or badges.
     root.querySelector('.puzli-badge-unlock')?.remove();
+    playVictory(root);
     return;
   }
   const gameId = gameIdFromPath(), date = getGameDate(), puzzleId = getGamePuzzleId();
