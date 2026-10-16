@@ -98,18 +98,18 @@ grant execute on function public.puzli_my_results() to authenticated;
 
 
 create function public.puzli_my_membership()
-returns jsonb language sql stable security definer set search_path = '' as $
+returns jsonb language sql stable security definer set search_path = '' as $$
   select case when auth.uid() is null or not public.account_session_active() then null
     else (select jsonb_build_object('nickname',m.nickname,'opted_in',m.opted_in)
       from public.puzli_leaderboard_members m where m.user_id=auth.uid()) end;
-$;
+$$;
 revoke all on function public.puzli_my_membership() from public,anon;
 grant execute on function public.puzli_my_membership() to authenticated;
 
 
 -- Derived, private, server-verified lifetime progress; no client may write badges.
 create function public.puzli_my_progress()
-returns jsonb language plpgsql stable security definer set search_path = '' as $
+returns jsonb language plpgsql stable security definer set search_path = '' as $$
 declare n_games integer; n_clean integer; n_sets integer; n_clean_sets integer;
   n_active integer; n_best_streak integer; iq integer; earned text[] := array[]::text[];
 begin
@@ -143,7 +143,7 @@ begin
  return jsonb_build_object('games',n_games,'clean_games',n_clean,'sets',n_sets,
    'clean_sets',n_clean_sets,'active_days',n_active,'best_active_streak',n_best_streak,
    'iq',iq,'badges',to_jsonb(earned));
-end $;
+end $$;
 revoke all on function public.puzli_my_progress() from public,anon;
 grant execute on function public.puzli_my_progress() to authenticated;
 
