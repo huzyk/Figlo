@@ -32,7 +32,13 @@ export function createRewardsState() {
  *  Done in memory during load; the next ordinary state save persists the migration.
  */
 export function migrateRewardsScoring(rewards, puzzleResults = {}) {
-  if (rewards.scoringVersion === LOCAL_SCORING_VERSION) return rewards;
+  // A stale tab can append an old 100/120-point entry even after this
+  // device has already migrated. Detect mixed ledgers, not just root version.
+  const mixed = Object.values(rewards.daily || {}).some(day =>
+    (Number(day?.bonus) || 0) > DAILY_SET_BONUS ||
+    Object.values(day?.games || {}).some(game => game && game.scoringVersion !== VERIFIED_SCORING_VERSION)
+  );
+  if (rewards.scoringVersion === LOCAL_SCORING_VERSION && !mixed) return rewards;
   const outcomes = new Map();
   for (const result of Object.values(puzzleResults || {})) {
     if (result?.mode === 'daily' && result.date && result.gameId) {
@@ -46,6 +52,11 @@ export function migrateRewardsScoring(rewards, puzzleResults = {}) {
     let dayTotal = 0;
     for (const [gameId, existing] of Object.entries(day.games || {})) {
       if (!existing || typeof existing !== 'object') continue;
+      // Never overwrite an already converted game's saved breakdown.
+      if (existing.scoringVersion === VERIFIED_SCORING_VERSION && Number.isInteger(existing.points)) {
+        dayTotal += existing.points;
+        continue;
+      }
       let targetSecs;
       try { targetSecs = targetSeconds(gameId); } catch { continue; }
       const result = outcomes.get(date + ':' + gameId);
