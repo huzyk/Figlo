@@ -2,7 +2,7 @@
  * A readable mobile explanation displayed beneath the puzzle board.
  * Desktop retains the original hint card. No scrollIntoView or page scrolling.
  */
-export function showMobileHint(feedback,{reason,action}={}){
+export function showMobileHint(feedback,{reason,action,onClose}={}){
   if(!matchMedia('(max-width: 767px)').matches||!feedback)return false;
   if(!feedback.classList.contains('hint-feedback')){
     feedback.dataset.beforeHint=feedback.textContent;
@@ -18,7 +18,7 @@ export function showMobileHint(feedback,{reason,action}={}){
   close.className='mobile-hint-close';
   close.setAttribute('aria-label','Zamknij podpowiedź');
   close.textContent='×';
-  close.addEventListener('click',()=>dismissMobileHint(feedback));
+  close.addEventListener('click',()=>{dismissMobileHint(feedback);onClose?.();});
   heading.append(label,close);
   feedback.replaceChildren(heading);
   if(reason){
