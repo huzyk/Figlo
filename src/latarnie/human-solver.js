@@ -7,8 +7,9 @@ function cellLocation(index,puzzle) {
   return 'wiersz ' + (r+1) + ', kolumna ' + (c+1);
 }
 function actionFor(puzzle,index,value) {
-  return (value===1 ? 'Postaw latarnię' : 'Postaw X') +
-    ' w podświetlonym polu (' + cellLocation(index,puzzle) + ').';
+  const target=' w podświetlonym polu ('+cellLocation(index,puzzle)+').';
+  return value===1 ? 'Postaw latarnię'+target :
+    'Postaw X'+target+' Dotknij tego pola dwa razy (puste → latarnia → X).';
 }
 function baseSolution(puzzle) {
   const solutions=solveLatarnie(puzzle,{limit:1});
