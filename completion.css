@@ -15,13 +15,110 @@
 .share-manual-fallback{margin:12px 0;text-align:left;min-width:0}.share-manual-fallback[hidden]{display:none}.share-manual-fallback label{display:block;margin-bottom:7px;font-size:12px;font-weight:700}
 .share-manual-fallback textarea{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:120px;padding:10px;border:1px solid #b9c9ef;border-radius:8px;background:#fff;color:#17264a;font:inherit;font-size:12px;line-height:1.5;resize:vertical;overflow-wrap:anywhere}
 
-/* Daily win particles and earned badges. Neither blocks the board/dialog. */
-.puzli-confetti-layer{position:absolute;inset:0;z-index:25;pointer-events:none;overflow:hidden}
-.puzli-confetti{position:absolute;left:50%;top:38%;height:12px;width:7px;border-radius:2px;background:hsl(var(--hue) 79% 65%);opacity:0;transform:translate(-50%,-50%);animation:puzli-burst 1.3s ease-out var(--delay) both}
-@keyframes puzli-burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(0deg)}12%{opacity:1}72%{opacity:.96}100%{opacity:0;transform:translate(calc(-50% + var(--burst-x)),calc(-50% + var(--burst-y) + 120px)) rotate(var(--spin))}}
-.puzli-achievement-toast{position:absolute;z-index:26;pointer-events:none;left:50%;top:12%;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:210px;max-width:85vw;padding:13px 18px;border-radius:18px;background:linear-gradient(145deg,#fff4cf,#fff9e9);border:2px solid #f0c56c;box-shadow:0 8px 30px #654b2360;color:#694a10;text-align:center;animation:puzli-award-pop 2.5s ease both}
-.puzli-achievement-toast strong{font-size:18px}.puzli-achievement-toast>span:last-child{font-size:13px;font-weight:650}
-.puzli-achievement-medal{font-size:44px;line-height:1;color:#c7881b;text-shadow:0 2px 10px #ffe3a1;animation:puzli-award-medal 1s ease-out both}
-@keyframes puzli-award-pop{0%{opacity:0;transform:translate(-50%,18px) scale(.5)}13%,78%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-8px) scale(1)}}
-@keyframes puzli-award-medal{0%{transform:scale(.3) rotate(-22deg)}50%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
-@media(prefers-reduced-motion:reduce){.puzli-confetti-layer,.puzli-achievement-toast{display:none!important}.completion-reward-summary *{animation:none!important}}
+/* PUZLI / victory: one short flourish, rooted in the game's own palette.
+   No rainbow confetti, floating toast or UI-obscuring overlay. */
+.completion{
+  --puzli-win-accent:#a78bfa;
+  --puzli-win-accent-light:#d8cafa;
+  --puzli-win-ink:#1b1430;
+  --puzli-win-text:#d8cafa;
+  --puzli-win-tint:rgba(167,139,250,.11);
+}
+body.game-korony .completion{--puzli-win-accent:#edc477;--puzli-win-accent-light:#fff0bf;--puzli-win-ink:#301b30;--puzli-win-text:#ffe0a2;--puzli-win-tint:rgba(237,196,119,.13)}
+body.game-duet .completion{--puzli-win-accent:#58d1cb;--puzli-win-accent-light:#d0fff5;--puzli-win-ink:#173b3c;--puzli-win-text:#08777b;--puzli-win-tint:rgba(29,157,154,.10)}
+body.game-bloki .completion{--puzli-win-accent:#c8acff;--puzli-win-accent-light:#f0e7ff;--puzli-win-ink:#25163d;--puzli-win-text:#dac7ff;--puzli-win-tint:rgba(196,166,255,.12)}
+body.game-latarnie .completion{--puzli-win-accent:#f3c779;--puzli-win-accent-light:#fff3c4;--puzli-win-ink:#342414;--puzli-win-text:#ffe2a8;--puzli-win-tint:rgba(243,199,121,.12)}
+body.game-zip .completion{--puzli-win-accent:#93b8ff;--puzli-win-accent-light:#dce9ff;--puzli-win-ink:#1a2851;--puzli-win-text:#c4d8ff;--puzli-win-tint:rgba(147,184,255,.13)}
+body.game-sudoku .completion{--puzli-win-accent:#99e2b6;--puzli-win-accent-light:#e1ffe7;--puzli-win-ink:#1a3628;--puzli-win-text:#b4f1cf;--puzli-win-tint:rgba(153,226,182,.12)}
+
+.completion .success-mark{
+  position:relative;isolation:isolate;width:68px;height:68px;
+  margin:2px auto 17px;border-radius:22px;
+  background:linear-gradient(140deg,var(--puzli-win-accent-light),var(--puzli-win-accent));
+  color:var(--puzli-win-ink);font-size:34px;font-weight:900;
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:0 0 0 7px var(--puzli-win-tint),0 10px 26px rgba(0,0,0,.18);
+}
+.completion .success-mark::before{
+  content:"";position:absolute;inset:-15px;z-index:-1;border:1px solid var(--puzli-win-accent);
+  border-radius:32px;opacity:0;pointer-events:none;
+}
+.completion .success-mark::after{
+  content:"";position:absolute;inset:2px;border-radius:19px;
+  border-top:1px solid rgba(255,255,255,.55);pointer-events:none;
+}
+.completion.is-celebrating .completion-card{animation:puzli-victory-arrive .48s cubic-bezier(.16,1,.3,1) both}
+.completion.is-celebrating .success-mark{animation:puzli-victory-mark .66s cubic-bezier(.18,1.4,.35,1) .05s both}
+.completion.is-celebrating .success-mark::before{animation:puzli-victory-ring .8s ease-out .19s both}
+@keyframes puzli-victory-arrive{
+  from{opacity:.86;transform:translateY(10px) scale(.975)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes puzli-victory-mark{
+  0%{opacity:.65;transform:scale(.78) rotate(-7deg)}
+  62%{opacity:1;transform:scale(1.07) rotate(2deg)}
+  100%{opacity:1;transform:scale(1) rotate(0)}
+}
+@keyframes puzli-victory-ring{
+  0%{opacity:.6;transform:scale(.7)}
+  100%{opacity:0;transform:scale(1.45)}
+}
+.puzli-victory-sparks{position:absolute;inset:0;pointer-events:none}
+.puzli-victory-spark{
+  position:absolute;top:50%;left:50%;width:5px;height:5px;
+  border-radius:2px;background:var(--puzli-win-accent);opacity:0;
+  animation:puzli-victory-spark .78s cubic-bezier(.18,.65,.3,1) var(--spark-delay) both;
+}
+.puzli-victory-spark:nth-child(3n){background:var(--puzli-win-accent-light);border-radius:50%;width:4px;height:4px}
+.puzli-victory-spark:nth-child(4n){width:3px;height:8px}
+@keyframes puzli-victory-spark{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(0deg)}
+  22%{opacity:1}
+  80%{opacity:.8}
+  100%{opacity:0;transform:translate(calc(-50% + var(--spark-x)),calc(-50% + var(--spark-y))) scale(.8) rotate(var(--spark-spin))}
+}
+
+/* Badges are earned objects in the result card, not disposable notifications. */
+.puzli-badge-unlock{
+  display:flex;align-items:center;gap:12px;text-align:left;
+  margin:15px 0 0;padding:12px 14px;
+  border-radius:16px;border:1px solid var(--puzli-win-accent);
+  background:var(--puzli-win-tint);color:inherit;
+}
+.puzli-badge-unlock[hidden]{display:none!important}
+.puzli-badge-unlock-icon{
+  display:grid;place-items:center;flex:0 0 46px;width:46px;height:46px;
+  border-radius:14px;background:var(--puzli-win-accent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 5px 14px rgba(0,0,0,.15);
+  font-size:26px;color:var(--puzli-win-ink);
+}
+.puzli-badge-unlock-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.puzli-badge-unlock-copy small{
+  font-size:10px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--puzli-win-text);
+}
+.puzli-badge-unlock-copy strong{font-size:16px;line-height:1.23;overflow-wrap:anywhere}
+.completion.is-celebrating .puzli-badge-unlock{
+  animation:puzli-victory-badge .58s cubic-bezier(.16,1,.3,1) .32s both;
+}
+@keyframes puzli-victory-badge{
+  from{opacity:0;transform:translateY(12px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.completion .completion-reward-summary{
+  background:var(--puzli-win-tint);
+  border:1px solid color-mix(in srgb,var(--puzli-win-accent) 35%,transparent);
+  color:inherit;border-radius:14px;
+}
+.completion .completion-reward-summary strong{color:var(--puzli-win-text)}
+.completion .completion-rewards-link{color:var(--puzli-win-text)}
+@media(max-width:420px){
+  .completion .success-mark{width:62px;height:62px;font-size:32px;margin-bottom:13px}
+  .puzli-badge-unlock{padding:10px 12px;gap:10px}
+  .puzli-badge-unlock-icon{flex-basis:42px;width:42px;height:42px}
+}
+@media(prefers-reduced-motion:reduce){
+  .completion .success-mark,.completion .success-mark::before,.completion .completion-card,
+  .puzli-badge-unlock,.puzli-victory-spark{animation:none!important;transition:none!important}
+  .puzli-victory-sparks{display:none!important}
+}

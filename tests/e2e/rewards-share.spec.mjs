@@ -200,18 +200,29 @@ test('engagement sections never cause horizontal overflow on narrow devices', as
   }
 });
 
-test('daily win celebrates with lightweight confetti and a unique badge toast',async({page})=>{
-  await page.goto('/korony.html?date='+DATE);
+test('daily win has a short game-themed sparkle burst and an anchored earned badge', async ({ page }) => {
+  await page.goto('/korony.html?date=' + DATE);
   await solveCrown(page);
-  await expect(page.locator('.puzli-confetti-layer .puzli-confetti')).toHaveCount(18);
-  await expect(page.locator('.puzli-achievement-toast')).toContainText('Pierwszy krok');
-  await expect(page.locator('#completionRewardSummary')).toContainText('Nowa odznaka');
+  await expect(page.locator('.puzli-victory-spark')).toHaveCount(14);
+  await expect(page.locator('.puzli-badge-unlock')).toContainText('Odznaka odblokowana');
+  await expect(page.locator('.puzli-badge-unlock')).toContainText('Pierwszy krok');
+  await expect(page.locator('.puzli-achievement-toast,.puzli-confetti-layer')).toHaveCount(0);
+  await expect(page.locator('.puzli-victory-sparks')).toHaveCount(0, { timeout: 4000 });
+  await expect(page.locator('.puzli-badge-unlock')).toBeVisible();
+  // Closing and reopening the result never replays an old award.
+  await page.evaluate(() => { document.querySelector('#done').hidden = true; });
+  await expect(page.locator('#done')).toBeHidden();
+  await page.evaluate(() => { document.querySelector('#done').hidden = false; });
+  await expect(page.locator('.puzli-victory-spark')).toHaveCount(0);
+  await expect(page.locator('.puzli-badge-unlock')).toContainText('Pierwszy krok');
 });
-test('reduced motion suppresses celebration without suppressing the reward information',async({page})=>{
-  await page.emulateMedia({reducedMotion:'reduce'});
-  await page.goto('/korony.html?date='+DATE);
+
+test('reduced motion has no sparkles and still clearly shows the earned badge', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/korony.html?date=' + DATE);
   await solveCrown(page);
-  await expect(page.locator('.puzli-confetti-layer')).toHaveCount(0);
-  await expect(page.locator('.puzli-achievement-toast')).toHaveCount(0);
-  await expect(page.locator('#completionRewardSummary')).toContainText('Pierwszy krok');
+  await expect(page.locator('.puzli-victory-sparks')).toHaveCount(0);
+  await expect(page.locator('.puzli-badge-unlock')).toContainText('Pierwszy krok');
+  const animation = await page.locator('.completion-card').evaluate(el => getComputedStyle(el).animationName);
+  expect(animation).toBe('none');
 });
