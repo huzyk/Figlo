@@ -259,3 +259,39 @@ test('victory preview respects reduced motion', async ({page}) => {
   await expect(page.locator('.puzli-victory-sky')).toHaveCount(0);
   await expect(page.locator('.puzli-badge-unlock')).toBeVisible();
 });
+
+test('training success uses the new full celebration without daily rewards or empty UI', async ({ page }) => {
+  await page.goto('/korony.html?mode=training');
+  await solveCrown(page);
+  await expect(page.locator('[data-completion-eyebrow]')).toHaveText('TRENING');
+  await expect(page.locator('.puzli-victory-spark')).toHaveCount(48);
+  await expect(page.locator('.puzli-victory-wave')).toHaveCount(2);
+  await expect(page.locator('[data-completion-progress]')).toBeHidden();
+  await expect(page.locator('#completionRewardsLink')).toBeHidden();
+  await expect(page.locator('#completionRewardSummary')).toBeHidden();
+  await expect(page.locator('.puzli-badge-unlock')).toHaveCount(0);
+
+  const symbol = await page.locator('.success-mark').evaluate(el => ({
+    visibleText: el.textContent.trim(),
+    font: parseFloat(getComputedStyle(el).fontSize),
+    before: getComputedStyle(el, '::before').content,
+  }));
+  expect(symbol.visibleText).toBe('✓');
+  expect(symbol.font).toBeGreaterThan(25);
+  expect(['""', "''"]).toContain(symbol.before);
+  await expect(page.locator('#completionShare')).toBeVisible();
+  await expect(page.locator('.puzli-victory-sky')).toHaveCount(0, {timeout: 5000});
+});
+
+test('daily completion also shows a clear checkmark rather than stacked game symbols', async ({ page }) => {
+  await page.goto('/korony.html?date=' + DATE);
+  await solveCrown(page);
+  const symbol = await page.locator('.success-mark').evaluate(el => ({
+    font: parseFloat(getComputedStyle(el).fontSize),
+    before: getComputedStyle(el, '::before').content
+  }));
+  expect(symbol.font).toBeGreaterThan(25);
+  expect(['""', "''"]).toContain(symbol.before);
+  await expect(page.locator('[data-completion-progress]')).not.toBeHidden();
+  await expect(page.locator('#completionRewardsLink')).toBeVisible();
+});
