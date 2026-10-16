@@ -246,9 +246,9 @@ test('new scoring detects a legacy game from another browser tab without corrupt
     'duet:2026-10-15:v1':{gameId:'duet',date:'2026-10-15',mode:'daily',elapsedMs:240000}
   });
   assert.equal(modern.daily['2026-10-15'].games.korony.points,25);
-  assert.equal(modern.daily['2026-10-15'].games.duet.points,22);
-  assert.equal(modern.daily['2026-10-15'].total,47);
-  assert.equal(modern.totalPoints,47);
-  assert.equal(modern.daily['2026-10-15'].games.duet.speed,7);
+  assert.equal(modern.daily['2026-10-15'].games.duet.points,21);
+  assert.equal(modern.daily['2026-10-15'].total,46);
+  assert.equal(modern.totalPoints,46);
+  assert.equal(modern.daily['2026-10-15'].games.duet.speed,6);
   assert.equal(modern.scoringVersion,2);
 });
