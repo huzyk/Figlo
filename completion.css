@@ -296,3 +296,148 @@ body .completion .completion-card .completion-share:focus-visible{
 @media(max-width:420px){
   body[class*="game-"] .completion .success-mark{font-size:35px}
 }
+
+
+/* PUZLI result card v4 — compact three-lane score breakdown, shared by
+   Daily completion and victory-preview. Uses the current game's accent. */
+.completion .completion-reward-summary{
+  display:block;
+  box-sizing:border-box;
+  width:100%;
+  padding:14px 15px 13px;
+  margin:10px 0 16px;
+  text-align:left;
+  overflow:hidden;
+  border-radius:17px;
+  background:linear-gradient(120deg,var(--puzli-win-tint),rgba(255,255,255,.028));
+}
+.completion .score-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:13px;
+}
+.completion .score-headline{display:flex;flex-direction:column;gap:3px;min-width:0}
+.completion .score-kicker{
+  display:block;
+  font-size:10px;
+  line-height:1.3;
+  letter-spacing:.12em;
+  font-weight:850;
+  color:var(--puzli-win-accent-light);
+  opacity:.85;
+}
+.completion .completion-reward-summary .score-total{
+  display:block;
+  color:var(--puzli-win-accent-light);
+  font-size:clamp(27px,6.5vw,35px);
+  line-height:1.05;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.04em;
+}
+.completion .score-maximum{
+  color:inherit;
+  font-size:12px;
+  font-weight:750;
+  letter-spacing:0;
+  opacity:.7;
+  white-space:nowrap;
+}
+.completion .score-peak{
+  padding:6px 9px;
+  border:1px solid color-mix(in srgb,var(--puzli-win-accent) 45%,transparent);
+  border-radius:20px;
+  background:var(--puzli-win-tint);
+  font-size:10px;
+  font-weight:750;
+  line-height:1.25;
+  color:var(--puzli-win-accent-light);
+  text-align:right;
+  white-space:nowrap;
+}
+.completion .score-rows{display:grid;gap:10px}
+.completion .score-row{min-width:0}
+.completion .score-row-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:5px;
+}
+.completion .score-row-label{
+  font-size:12px;
+  line-height:1.1;
+  font-weight:680;
+  color:inherit;
+  opacity:.92;
+}
+.completion .completion-reward-summary .score-row-value{
+  color:var(--puzli-win-accent-light);
+  font-size:12px;
+  line-height:1.1;
+  font-weight:850;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.completion .score-track{
+  position:relative;
+  height:7px;
+  width:100%;
+  overflow:hidden;
+  border-radius:99px;
+  background:color-mix(in srgb,var(--puzli-win-accent) 13%,rgba(10,13,25,.62));
+}
+.completion .score-fill{
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--puzli-win-accent) 60%,#fff),
+    var(--puzli-win-accent-light));
+  box-shadow:0 0 12px color-mix(in srgb,var(--puzli-win-accent) 45%,transparent);
+}
+.completion .score-base .score-fill{opacity:.72}
+.completion .score-speed .score-fill{opacity:1}
+.completion .score-clean .score-fill{opacity:.88}
+.completion .score-note{
+  display:block;
+  margin-top:10px;
+  color:inherit;
+  opacity:.7;
+  font-size:11px;
+  line-height:1.35;
+}
+.completion .score-set-bonus{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:7px;
+  margin-top:12px;
+  padding-top:11px;
+  border-top:1px solid color-mix(in srgb,var(--puzli-win-accent) 25%,transparent);
+  color:var(--puzli-win-accent-light);
+  font-size:12px;
+  font-weight:780;
+}
+.completion .completion-reward-summary .score-set-bonus strong{
+  color:var(--puzli-win-accent-light);
+  font-size:14px;
+  white-space:nowrap;
+}
+.completion.is-celebrating .score-fill{
+  transform-origin:left center;
+  animation:puzli-score-fill .8s cubic-bezier(.16,1,.3,1) .82s both;
+}
+.completion.is-celebrating .score-row:nth-child(2) .score-fill{animation-delay:.93s}
+.completion.is-celebrating .score-row:nth-child(3) .score-fill{animation-delay:1.04s}
+@keyframes puzli-score-fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media(max-width:420px){
+  .completion .completion-reward-summary{padding:11px 13px;margin:8px 0 13px}
+  .completion .score-header{margin-bottom:9px}
+  .completion .score-rows{gap:8px}
+  .completion .score-row-head{margin-bottom:4px}
+}
+@media(prefers-reduced-motion:reduce){
+  .completion.is-celebrating .score-fill{animation:none!important;transform:none!important}
+}
