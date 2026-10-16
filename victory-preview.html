@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#0f111a">
   <title>PUZLI — podgląd animacji zwycięstwa</title>
-  <link rel="stylesheet" href="completion.css">
+  <link rel="stylesheet" href="completion.css?v=cinematic-v3">
   <link rel="stylesheet" href="game-identities.css">
   <style>
     *,*::before,*::after{box-sizing:border-box}
@@ -47,8 +47,8 @@
   <main class="preview-shell">
     <header class="preview-header">
       <div class="preview-brand">PUZLI / PODGLĄD</div>
-      <h1>Animacja ukończenia gry</h1>
-      <p>Dotknij „Odtwórz animację”. Możesz powtarzać efekt, zmieniać grę i porównać wariant z odznaką.</p>
+      <h1>Animacja ukończenia gry — v3</h1>
+      <p>Większy rozbłysk, dwie fale światła i mocniejsze wejście odznaki. Odtwarzaj dowolnie na telefonie.</p>
     </header>
     <nav class="preview-controls" aria-label="Wybierz grę">
       <button type="button" data-game="korony" aria-pressed="true">Korony</button>
@@ -83,55 +83,34 @@
         </div>
       </section>
     </div>
-    <p class="preview-note">To demonstracja wyglądu, nie prawdziwy wynik. Korzysta z tych samych animacji i styli „completion.css”, co ekran ukończenia PUZLI. Test nie zapisuje punktów ani serii.</p>
+    <p class="preview-note">To demonstracja wyglądu, nie prawdziwy wynik. Korzysta dokładnie z tego samego modułu animacji i styli co PUZLI. Test nie zapisuje punktów ani serii.</p>
   </main>
-  <script>
-    (() => {
-      const names={korony:'Korony ukończone!',duet:'Duet ukończony!',bloki:'Bloki ukończone!',latarnie:'Latarnie ukończone!',zip:'Zip ukończony!',sudoku:'Sudoku ukończone!'};
-      const root=document.querySelector('#done'),mark=root.querySelector('.success-mark');
-      let timeout;
-      function animate(){
-        clearTimeout(timeout);
-        root.classList.remove('is-celebrating');
-        root.querySelector('.puzli-victory-sparks')?.remove();
-        // The same 14-particle trajectories and class animation as the real completion flow.
-        if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-        void root.offsetWidth;
-        const sparks=document.createElement('span');
-        sparks.className='puzli-victory-sparks';
-        sparks.setAttribute('aria-hidden','true');
-        for(let i=0;i<14;i++){
-          const ray=document.createElement('span');
-          ray.className='puzli-victory-spark';
-          const angle=i/14*Math.PI*2-Math.PI/2;
-          const radius=49+(i%3)*7;
-          ray.style.setProperty('--spark-x',Math.round(Math.cos(angle)*radius)+'px');
-          ray.style.setProperty('--spark-y',Math.round(Math.sin(angle)*radius)+'px');
-          ray.style.setProperty('--spark-spin',(i%2?90:-90)+'deg');
-          ray.style.setProperty('--spark-delay',(80+(i%4)*32)+'ms');
-          sparks.append(ray);
-        }
-        mark.append(sparks);
-        root.classList.add('is-celebrating');
-        timeout=setTimeout(()=>{
-          root.classList.remove('is-celebrating');
-          root.querySelector('.puzli-victory-sparks')?.remove();
-        },1320);
-      }
-      document.querySelector('#replay').addEventListener('click',animate);
-      document.querySelector('#badgeToggle').addEventListener('change',event=>{
-        root.querySelector('.puzli-badge-unlock').hidden=!event.target.checked;
+  <script type="module">
+    import { playVictory } from './src/ui/victory-fx.js?v=cinematic-v3';
+    const names = {
+      korony:'Korony ukończone!',duet:'Duet ukończony!',
+      bloki:'Bloki ukończone!',latarnie:'Latarnie ukończone!',
+      zip:'Zip ukończony!',sudoku:'Sudoku ukończone!'
+    };
+    const root = document.querySelector('#done');
+    function animate() { playVictory(root); }
+    document.querySelector('#replay').addEventListener('click',animate);
+    document.querySelector('#badgeToggle').addEventListener('change',event=>{
+      root.querySelector('.puzli-badge-unlock').hidden = !event.target.checked;
+      animate();
+    });
+    for (const button of document.querySelectorAll('[data-game]')) {
+      button.addEventListener('click',()=>{
+        document.body.className = 'game-' + button.dataset.game;
+        document.querySelector('#doneTitle').textContent = names[button.dataset.game];
+        document.querySelectorAll('[data-game]').forEach(item=>{
+          item.setAttribute('aria-pressed',String(item === button));
+        });
         animate();
       });
-      for(const button of document.querySelectorAll('[data-game]')){
-        button.addEventListener('click',()=>{
-          document.body.className='game-'+button.dataset.game;
-          document.querySelector('#doneTitle').textContent=names[button.dataset.game];
-          document.querySelectorAll('[data-game]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
-          animate();
-        });
-      }
-    })();
+    }
+    // Showcase the new effect on initial open. Controls remain immediately usable.
+    animate();
   </script>
 </body>
 </html>
