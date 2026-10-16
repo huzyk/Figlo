@@ -14,3 +14,14 @@
 .completion-share-status{margin:7px 0 0;font-size:12px;line-height:1.45;color:inherit}.completion-share-status:empty{display:none}
 .share-manual-fallback{margin:12px 0;text-align:left;min-width:0}.share-manual-fallback[hidden]{display:none}.share-manual-fallback label{display:block;margin-bottom:7px;font-size:12px;font-weight:700}
 .share-manual-fallback textarea{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:120px;padding:10px;border:1px solid #b9c9ef;border-radius:8px;background:#fff;color:#17264a;font:inherit;font-size:12px;line-height:1.5;resize:vertical;overflow-wrap:anywhere}
+
+/* Daily win particles and earned badges. Neither blocks the board/dialog. */
+.puzli-confetti-layer{position:absolute;inset:0;z-index:25;pointer-events:none;overflow:hidden}
+.puzli-confetti{position:absolute;left:50%;top:38%;height:12px;width:7px;border-radius:2px;background:hsl(var(--hue) 79% 65%);opacity:0;transform:translate(-50%,-50%);animation:puzli-burst 1.3s ease-out var(--delay) both}
+@keyframes puzli-burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(0deg)}12%{opacity:1}72%{opacity:.96}100%{opacity:0;transform:translate(calc(-50% + var(--burst-x)),calc(-50% + var(--burst-y) + 120px)) rotate(var(--spin))}}
+.puzli-achievement-toast{position:absolute;z-index:26;pointer-events:none;left:50%;top:12%;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:210px;max-width:85vw;padding:13px 18px;border-radius:18px;background:linear-gradient(145deg,#fff4cf,#fff9e9);border:2px solid #f0c56c;box-shadow:0 8px 30px #654b2360;color:#694a10;text-align:center;animation:puzli-award-pop 2.5s ease both}
+.puzli-achievement-toast strong{font-size:18px}.puzli-achievement-toast>span:last-child{font-size:13px;font-weight:650}
+.puzli-achievement-medal{font-size:44px;line-height:1;color:#c7881b;text-shadow:0 2px 10px #ffe3a1;animation:puzli-award-medal 1s ease-out both}
+@keyframes puzli-award-pop{0%{opacity:0;transform:translate(-50%,18px) scale(.5)}13%,78%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-8px) scale(1)}}
+@keyframes puzli-award-medal{0%{transform:scale(.3) rotate(-22deg)}50%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
+@media(prefers-reduced-motion:reduce){.puzli-confetti-layer,.puzli-achievement-toast{display:none!important}.completion-reward-summary *{animation:none!important}}

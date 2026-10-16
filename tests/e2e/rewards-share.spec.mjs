@@ -199,3 +199,19 @@ test('engagement sections never cause horizontal overflow on narrow devices', as
     expect(documentWidth, 'scroll overflow at ' + width).toBeLessThanOrEqual(viewport + 2);
   }
 });
+
+test('daily win celebrates with lightweight confetti and a unique badge toast',async({page})=>{
+  await page.goto('/korony.html?date='+DATE);
+  await solveCrown(page);
+  await expect(page.locator('.puzli-confetti-layer .puzli-confetti')).toHaveCount(18);
+  await expect(page.locator('.puzli-achievement-toast')).toContainText('Pierwszy krok');
+  await expect(page.locator('#completionRewardSummary')).toContainText('Nowa odznaka');
+});
+test('reduced motion suppresses celebration without suppressing the reward information',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.goto('/korony.html?date='+DATE);
+  await solveCrown(page);
+  await expect(page.locator('.puzli-confetti-layer')).toHaveCount(0);
+  await expect(page.locator('.puzli-achievement-toast')).toHaveCount(0);
+  await expect(page.locator('#completionRewardSummary')).toContainText('Pierwszy krok');
+});
