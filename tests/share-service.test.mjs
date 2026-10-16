@@ -8,7 +8,7 @@ import { setAnalyticsAdapter } from '../src/services/analytics-service.js';
 
 const DATE = '2026-10-15';
 const BASE = 'https://huzyk.github.io/Figlo/korony.html?date=2026-10-15';
-const result = { v: 1, id: 'player-0123456789', name: 'Łucja', week: '2026-10-12', points: 120, iq: 100 };
+const result = { v: 2, id: 'player-0123456789', name: 'Łucja', week: '2026-10-12', points: 25, iq: 100 };
 const record = { puzzleId: 'figlo:korony:2026-10-15:v1', gameId: 'korony', date: DATE, mode: 'daily', elapsedMs: 63000, hintsUsed: 0, resets: 0 };
 
 test('game sharing links the exact board version and omits board content', () => {
@@ -52,7 +52,8 @@ test('weekly payload uses fragment, safely round trips Polish names and rejects 
   assert.equal(url.search, '');
   assert.match(url.hash, /^#rywalizacja\?wynik=/);
   assert.deepEqual(decodeSharedResult(encodeSharedResult(result)), result);
-  for (const patch of [{ points: 5601 }, { week: '2026-02-30' }, { week: DATE }, { iq: 151 }, { name: 'a' }, { id: 'bad' }]) {
+  assert.equal(decodeSharedResult(encodeSharedResult({...result,v:1,points:800})),null);
+  for (const patch of [{ points: 1191 }, { week: '2026-02-30' }, { week: DATE }, { iq: 151 }, { name: 'a' }, { id: 'bad' }]) {
     assert.equal(decodeSharedResult(encodeSharedResult({ ...result, ...patch })), null);
   }
 });

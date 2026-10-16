@@ -52,7 +52,7 @@ test('Bloki correction consumes a hint and forfeits clean-game bonus',async({pag
     completeDailyGame('bloki',{today:'2026-10-15'});
   });
   state=await stateOf(page);
-  expect(state.rewards.daily[DATE].games.bloki.points).toBe(100);
+  expect(state.rewards.daily[DATE].games.bloki.points).toBe(10);
   expect(state.rewards.daily[DATE].games.bloki.hintsUsed).toBe(1);
 });
 

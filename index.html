@@ -8,7 +8,7 @@
   <title>PUZLI — codzienne gry logiczne</title>
   <link rel="stylesheet" href="home.css?v=20261014-clean4">
   <link rel="stylesheet" href="analytics.css">
-  <link rel="stylesheet" href="rewards.css?v=20261015">
+  <link rel="stylesheet" href="rewards.css?v=score-v2">
 
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <meta property="og:type" content="website">
@@ -138,6 +138,7 @@
             <div class="rank-track" aria-label="Postęp do kolejnej rangi"><div id="rankProgress"></div></div>
             <div class="rank-progress-copy"><span id="rankCurrent">Nowicjusz</span><span id="rankNext">Do rangi Logik: 8 pkt</span></div>
             <div class="iq-details"><div><strong id="totalPuzliPoints">0</strong><span>Punkty łącznie</span></div><div><strong id="weekPuzliPoints">0</strong><span>Ten tydzień</span></div><div><strong id="perfectSets">0</strong><span>Perfekcyjne komplety</span></div></div>
+            <p class="score-explainer">Punkty za grę: 10 za ukończenie + do 10 za szybkość + 5 bez podpowiedzi. Pełny zestaw: +20. Maksimum 170 dziennie.</p>
           </article>
           <article class="badge-panel">
             <div class="badge-head"><h3>Twoje odznaki</h3><span id="badgesCount">0/9 zdobytych</span></div>
@@ -168,7 +169,7 @@
     </div>
   </footer>
   <script type="module" src="src/services/analytics-bootstrap.js"></script>
-  <script type="module" src="home.js"></script>
+  <script type="module" src="home.js?v=score-v2"></script>
 </body>
 </html>
 

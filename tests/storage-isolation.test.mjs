@@ -36,8 +36,8 @@ test('interleaved different-game completions add both stats, first results and r
   assert.equal(state.games.duet.completedCount, 1);
   assert.equal(state.games.duet.totalTimeMs, 2000);
   assert.equal(Object.keys(state.puzzleResults).length, 2);
-  assert.equal(state.rewards.totalPoints, 240);
-  assert.equal(state.rewards.daily[newDate].total, 240);
+  assert.equal(state.rewards.totalPoints, 30);
+  assert.equal(state.rewards.daily[newDate].total, 30);
   assert.equal(state.rewards.cleanGames, 2);
   assert.deepEqual(new Set(state.daily.completedGames), new Set(['korony','duet']));
 });
@@ -53,8 +53,8 @@ test('interleaved submissions of the same puzzle preserve the first event and co
   assert.equal(state.games.korony.totalTimeMs, 60000);
   assert.equal(state.games.korony.timedCompletions, 1);
   assert.equal(state.games.korony.bestTimeMs, 60000);
-  assert.equal(state.rewards.totalPoints, 100);
-  assert.equal(state.rewards.daily[newDate].total, 100);
+  assert.equal(state.rewards.totalPoints, 20);
+  assert.equal(state.rewards.daily[newDate].total, 20);
   assert.equal(state.rewards.cleanGames, 0);
   assert.equal(state.puzzleResults[`korony:${newDate}:v1`].eventId, 'first');
   assert.equal(state.puzzleResults[`korony:${newDate}:v1`].hintsUsed, 2);
@@ -71,7 +71,7 @@ test('interleaved completions of one game on different dates accumulate times an
   assert.equal(state.games.korony.bestTimeMs, 1000);
   assert.equal(state.games.korony.lastCompletedDate, newDate);
   assert.equal(state.user.completedGames, 2);
-  assert.equal(state.rewards.totalPoints, 240);
+  assert.equal(state.rewards.totalPoints, 30);
   assert.equal(state.user.activeStreak, 2);
 });
 
@@ -86,9 +86,9 @@ test('interleaved last two games award the full-set bonus and counters exactly o
   assert.equal(result.firstDayCompletionToday, true);
   assert.equal(state.user.completedGames, 6);
   assert.equal(state.user.completedDays, 1);
-  assert.equal(state.rewards.totalPoints, 800);
-  assert.equal(state.rewards.daily[newDate].total, 800);
-  assert.equal(state.rewards.daily[newDate].bonus, 80);
+  assert.equal(state.rewards.totalPoints, 110);
+  assert.equal(state.rewards.daily[newDate].total, 110);
+  assert.equal(state.rewards.daily[newDate].bonus, 20);
   assert.equal(state.rewards.cleanGames, 6);
   assert.equal(state.rewards.cleanSets, 1);
 });
@@ -118,12 +118,18 @@ test('adding a new game to a legacy full set cannot award its set bonus again af
   raw.user.completedDates = [newDate];
   raw.user.lastCompletedDate = newDate;
   raw.rewards.totalPoints = 680;
+  delete raw.rewards.scoringVersion;
+  raw.rewards.daily[newDate] = {
+    games: Object.fromEntries(['korony','duet','bloki','latarnie','zip'].map(id=>[id,{points:120,hintsUsed:0}])),
+    bonus:80,total:680
+  };
   store.setItem(STORAGE_KEY, JSON.stringify(raw));
   const result = completeDailyGame('sudoku', { today: newDate });
   assert.equal(result.firstDayCompletionToday, false);
   assert.equal(result.state.user.completedDays, 1);
-  assert.equal(result.state.rewards.totalPoints, 800);
-  assert.equal(result.state.rewards.daily[newDate].bonus, 0);
+  assert.equal(result.state.rewards.totalPoints, 110);
+  assert.equal(result.state.rewards.daily[newDate].bonus, 20);
+  assert.equal(result.state.rewards.legacyTotalPoints, 680);
 });
 
 test('reading an old tab is side-effect free and preserves the new day progress and sessions', () => {
@@ -166,7 +172,7 @@ test('stale snapshots rebase settings without overwriting latest stats, rewards 
   const state = loadFigloState(newDate);
   assert.equal(state.settings.autoX, true);
   assert.equal(state.user.completedGames, 1);
-  assert.equal(state.rewards.totalPoints, 120);
+  assert.equal(state.rewards.totalPoints, 25);
   assert.deepEqual(state.daily.completedGames, ['korony']);
   assert.deepEqual(state.sessions.korony.crowns, [5]);
 });
@@ -226,7 +232,7 @@ test('first result still deduplicates after the reward history has been pruned',
   const result = completeDailyGame('korony', { today: oldDate, timeMs: 1000 });
   assert.equal(result.firstGameCompletionToday, false);
   assert.equal(result.state.user.completedGames, 1);
-  assert.equal(result.state.rewards.totalPoints, 120);
+  assert.equal(result.state.rewards.totalPoints, 15);
 });
 
 test('only old board histories expire after fourteen days; completions, hints and first results survive', () => {
@@ -270,7 +276,7 @@ test('read and write failures preserve progress in memory across subsequent read
   assert.equal(loadFigloState(oldDate).user.completedGames, 1);
   completeDailyGame('duet', { today: oldDate });
   assert.equal(loadFigloState(oldDate).user.completedGames, 2);
-  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 240);
+  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 30);
   globalThis.localStorage = store;
   assert.equal(loadFigloState(oldDate).user.completedGames, 2);
   reset();
@@ -283,7 +289,7 @@ test('quota errors do not cause a readable but stale storage value to erase memo
   store.setItem = () => { throw new Error('quota exceeded'); };
   completeDailyGame('duet', { today: oldDate });
   assert.equal(loadFigloState(oldDate).user.completedGames, 2);
-  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 240);
+  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 30);
 });
 
 test('missing localStorage keeps a working in-memory state and is isolated from a later storage handle', () => {
@@ -292,7 +298,7 @@ test('missing localStorage keeps a working in-memory state and is isolated from 
   completeDailyGame('korony', { today: oldDate });
   completeDailyGame('duet', { today: oldDate });
   assert.equal(loadFigloState(oldDate).user.completedGames, 2);
-  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 240);
+  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 30);
   reset();
   assert.equal(loadFigloState(oldDate).user.completedGames, 0);
 });

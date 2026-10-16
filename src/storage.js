@@ -1,6 +1,6 @@
 import { dayDifference, currentDateKey } from './daily.js';
 import { requiredGamesForDate } from './daily-games.js';
-import { awardDailyGame, createRewardsState, getBadges } from './domain/rewards.js';
+import { awardDailyGame, createRewardsState, getBadges, migrateRewardsScoring, LOCAL_SCORING_VERSION } from './domain/rewards.js';
 import { createCompletionEvent, puzzleIdFor } from './domain/completion.js';
 
 export const STORAGE_KEY = 'figlo_user_state_v2';
@@ -140,6 +140,10 @@ function normalizeCanonical(raw, today) {
   const state = normalizeState(raw, today);
   state.days = {};
   state.puzzleResults = { ...(raw?.puzzleResults || {}) };
+  // Old saved browser points used a different 100/120/80 scale. Convert on
+  // every read of a legacy snapshot before the weekly rankings are calculated.
+  if (raw?.rewards?.scoringVersion !== LOCAL_SCORING_VERSION) state.rewards.scoringVersion = 0;
+  migrateRewardsScoring(state.rewards, state.puzzleResults);
   for (const [date, day] of Object.entries(raw?.days || {})) {
     state.days[date] = {
       completedGames: [...new Set((Array.isArray(day.completedGames) ? day.completedGames : []).filter(id => requiredGamesForDate(date).includes(id)))],
@@ -298,7 +302,7 @@ function applyDailyResult(state, result) {
   addActivityDate(state.user, today);
   const dayIsNowComplete = isTodayComplete(state);
   const setAlreadyRecorded = state.user.completedDates.includes(today) || state.user.lastCompletedDate === today;
-  awardDailyGame(state, { date: today, gameId, hintsUsed: knownHints, completeSet: dayIsNowComplete && !setAlreadyRecorded });
+  awardDailyGame(state, { date: today, gameId, hintsUsed: knownHints, elapsedMs: timeMs, completeSet: dayIsNowComplete && !setAlreadyRecorded });
   let firstDayCompletionToday = false;
   if (!wasDayComplete && dayIsNowComplete && addActivityDate(state.user, today, true)) { firstDayCompletionToday = true; state.user.completedDays += 1; }
   state.rewards.lastAward = { date: today, gameId, badges: getBadges(state).filter(b => b.earned && !oldBadges.has(b.id)).map(b => b.id) };
