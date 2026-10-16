@@ -235,3 +235,20 @@ test('migration never invents a speed or clean bonus for missing historic eviden
   migrateRewardsScoring(legacy,{});
   assert.equal(legacy.totalPoints,20);
 });
+
+test('new scoring detects a legacy game from another browser tab without corrupting recent scores',()=>{
+  const modern={scoringVersion:2,totalPoints:25,cleanGames:1,cleanSets:0,
+    daily:{'2026-10-15':{games:{
+      korony:{points:25,base:10,speed:10,clean:5,hintsUsed:0,scoringVersion:1},
+      duet:{points:120,hintsUsed:0}
+    },bonus:0,total:145}}};
+  migrateRewardsScoring(modern,{
+    'duet:2026-10-15:v1':{gameId:'duet',date:'2026-10-15',mode:'daily',elapsedMs:240000}
+  });
+  assert.equal(modern.daily['2026-10-15'].games.korony.points,25);
+  assert.equal(modern.daily['2026-10-15'].games.duet.points,22);
+  assert.equal(modern.daily['2026-10-15'].total,47);
+  assert.equal(modern.totalPoints,47);
+  assert.equal(modern.daily['2026-10-15'].games.duet.speed,7);
+  assert.equal(modern.scoringVersion,2);
+});
