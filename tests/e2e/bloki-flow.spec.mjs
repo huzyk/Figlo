@@ -46,3 +46,13 @@ test('Bloki uses readable 2x2 shape legend with the same geometry as clues', asy
     expect(bounds.y+bounds.height).toBeLessThanOrEqual(actions.y+2);
   }
 });
+
+test('un-numbered Bloki hints are empty colored shapes rather than dots',async({page})=>{
+  await fresh(page);
+  await expect(page.locator('.clue-dot')).toHaveCount(0);
+  const empty=page.locator('.clue-token:not(:has(.clue-area))');
+  await expect(empty.first()).toBeVisible();
+  await expect(empty.first()).toBeEmpty();
+  await expect(empty.first().locator('xpath=..')).toHaveAttribute('aria-label',/bez określonej liczby pól/);
+  await expect(page.locator('.bloki-legend')).toContainText('Bez liczby = dowolny rozmiar');
+});

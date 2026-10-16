@@ -60,7 +60,7 @@ export function generatePuzzle(seed, { size = DEFAULT_SIZE, maxAttempts = 10000,
     }
     if(candidates.length>=Math.max(1,difficultySamples))return chooseDifficultyCandidate(candidates,difficulty);
   }
-  if(gentle&&size===9&&maxAttempts>=GENTLE_MAX_ATTEMPTS)return buildGentleFallback(normalizedSeed,random,attemptLimit);
+  if(gentle&&size===9&&maxAttempts>=150)return buildGentleFallback(normalizedSeed,random,attemptLimit);
   if(candidates.length)return chooseDifficultyCandidate(candidates,difficulty);
   throw new Error(`Nie udało się wygenerować unikalnej planszy po ${maxAttempts} próbach.`);
 }

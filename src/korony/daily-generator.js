@@ -1,7 +1,7 @@
 import { generatePuzzle } from '../generator.js';
 
-export function generateCrownDailyAsync(seed, difficulty='medium', difficultySamples=3) {
-  if (typeof Worker !== 'function') return Promise.resolve(generatePuzzle(seed,{difficulty,difficultySamples}));
+export function generateCrownDailyAsync(seed, difficulty='medium', difficultySamples=3, maxAttempts=10000) {
+  if (typeof Worker !== 'function') return Promise.resolve(generatePuzzle(seed,{difficulty,difficultySamples,maxAttempts}));
   return new Promise((resolve,reject)=>{
     const worker=new Worker(new URL('./daily-generator-worker.js',import.meta.url),{type:'module'});
     const cleanup=()=>worker.terminate();
@@ -14,6 +14,6 @@ export function generateCrownDailyAsync(seed, difficulty='medium', difficultySam
       cleanup();
       reject(event.error||new Error(event.message||'Korony worker generation failed'));
     },{once:true});
-    worker.postMessage({seed,difficulty,difficultySamples});
+    worker.postMessage({seed,difficulty,difficultySamples,maxAttempts});
   });
 }

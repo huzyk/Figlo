@@ -35,8 +35,8 @@ function clueName(shape){if(shape===SHAPES.SQUARE)return'kwadrat';if(shape===SHA
 function clueColor(clueId){const numeric=Math.max(0,(Number(String(clueId).replace(/\D/g,''))||1)-1);return CLUE_COLORS[numeric%CLUE_COLORS.length];}
 function clueVars(clueId,prefix='clue'){const color=clueColor(clueId);return`--${prefix}:${color.line};--${prefix}-bg:${color.bg}`;}
 function placementStyle(rect,clueId){return`--r:${rect.row};--c:${rect.col};--w:${rect.width};--h:${rect.height};${clueVars(clueId,'block')}`;}
-function clueMarkup(clue){const className=clueShapeClass(clue.shape);const inner=clue.area!=null?`<span class="clue-area">${clue.area}</span>`:'<span class="clue-dot" aria-hidden="true"></span>';return`<span class="clue-token ${className}" style="${clueVars(clue.id)}">${inner}</span>`;}
-function clueLabel(clue){const bits=[];if(clue.area!=null)bits.push(`${clue.area} pól`);bits.push(clueName(clue.shape));return`Wskazówka: ${bits.join(', ')}`;}
+function clueMarkup(clue){const className=clueShapeClass(clue.shape);const inner=clue.area!=null?`<span class="clue-area">${clue.area}</span>`:'';return`<span class="clue-token ${className}" style="${clueVars(clue.id)}">${inner}</span>`;}
+function clueLabel(clue){const bits=[];bits.push(clue.area!=null?`${clue.area} pól`:'bez określonej liczby pól');bits.push(clueName(clue.shape));return`Wskazówka: ${bits.join(', ')}`;}
 function indexPuzzle(){clueByCell=new Map((puzzle?.clues||[]).map(clue=>[`${clue.row}:${clue.col}`,clue]));}
 function placementMatchesSolution(placement){const target=solution?.find(s=>s.clueId===placement.clueId);return!!target&&rectEqual(target.rect,placement.rect);}
 function clearHint({render=false}={}){if(hintTimer)clearTimeout(hintTimer);hintTimer=null;hintTarget=null;if(render&&puzzle&&session)renderBoard();}

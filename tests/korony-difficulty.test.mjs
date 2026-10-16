@@ -50,3 +50,11 @@ test('fallback layout has low deduction complexity and unique solution',{timeout
  assert.equal(countRegionSolutions(p.regions,2).count,1);
  assert.equal(p.deductionRules.includes('hypothetical-crossout'),false);
 });
+
+test('short-budget gentle Crown training falls back promptly to an easy valid board',{timeout:120000},()=>{
+ const p=generatePuzzle('test-fast-training-2026',{difficulty:'gentle',maxAttempts:150});
+ assert.equal(p.size,9);
+ assert.equal(countRegionSolutions(p.regions,2).count,1);
+ assert.ok(p.difficultyScore<=21);
+ assert.equal(p.deductionRules.includes('hypothetical-crossout'),false);
+});

@@ -96,7 +96,7 @@ async function loadTrainingPuzzle(){
   board.setAttribute('aria-busy','true');
   try{
     const seed=trainingSeed();
-    currentPuzzle=await generateCrownDailyAsync(seed,'gentle');
+    currentPuzzle=await generateCrownDailyAsync(seed,'gentle',3,150);
     activePuzzleId='korony-training:'+seed;
     setRegions(currentPuzzle.regions);
     buildBoard();
