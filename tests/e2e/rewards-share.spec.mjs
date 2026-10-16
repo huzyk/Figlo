@@ -347,7 +347,7 @@ test('visual preview demonstrates real score breakdown in all six games and fits
     await expect(page.locator('.score-row')).toHaveCount(3);
     await expect(page.locator('.score-base .score-row-value')).toHaveText('10/10');
     const widths=await page.locator('.score-fill').evaluateAll(items=>items.map(item=>item.style.width));
-    expect(widths.every(x=>/^\\d+(?:\\.\\d+)?%$/.test(x))).toBe(true);
+    expect(widths.every(x=>/^\d+(?:\.\d+)?%$/.test(x))).toBe(true);
   }
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(2);
