@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://challenges.cloudflare.com; style-src 'self'; connect-src https://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <title>Twoje konto — PUZLI</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="account.css">
+  <script type="module" src="src/account/account.js"></script>
+</head>
+<body>
+  <header><a class="logo" href="index.html">puzli<span>.</span></a><a href="index.html">Wróć do gier ↗</a></header>
+  <main>
+    <p class="eyebrow">TWÓJ KAWAŁEK PUZLI</p>
+    <h1>Miło Cię widzieć.</h1>
+    <p>Jedno konto. Bez kolejnego hasła do zapamiętania.</p>
+    <p id="status" role="status" aria-live="polite">Sprawdzamy dostępność kont…</p>
+    <section id="login" hidden aria-label="Logowanie lub założenie konta">
+      <div id="providers"></div>
+      <p class="divider">lub przez e-mail</p>
+      <form id="emailForm">
+        <label for="email">Adres e-mail</label>
+        <input id="email" type="email" autocomplete="email" maxlength="254" required>
+        <div id="captcha"></div>
+        <button id="sendCode" disabled>Wyślij kod logowania</button>
+      </form>
+      <form id="codeForm" hidden>
+        <label for="code">Kod z wiadomości e-mail</label>
+        <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" minlength="6" maxlength="10" required>
+        <button>Potwierdź kod</button>
+        <button id="changeEmail" type="button" class="secondary">Zmień adres lub wyślij ponownie</button>
+      </form>
+      <p class="small">Pierwsze logowanie tworzy konto. Kolejne otwiera Twoje istniejące konto. <a href="privacy.html">Dane i prywatność</a>.</p>
+    </section>
+    <section id="profile" hidden aria-label="Ustawienia konta">
+      <h2>Twoje konto</h2><p id="identity"></p>
+      <form id="profileForm"><label for="nickname">Pseudonim</label><input id="nickname" minlength="2" maxlength="24" required autocomplete="nickname"><button>Zapisz pseudonim</button></form>
+      <p class="small">Wyniki i rozpoczęte gry pozostają na tym urządzeniu. Synchronizacja wyników nie jest jeszcze dostępna. Konto nie potwierdza autentyczności wyników.</p>
+      <button id="exportData" class="secondary">Pobierz dane konta</button>
+      <button id="signOut" class="secondary">Wyloguj na tym urządzeniu</button>
+      <button id="signOutAll" class="secondary">Wyloguj wszystkie urządzenia</button>
+      <details><summary>Usuń konto</summary><p>Usunięcie konta i pseudonimu jest nieodwracalne. Lokalne wyniki gier pozostaną na tym urządzeniu. Wymagane jest logowanie z ostatnich 5 minut.</p><label for="deleteConfirm">Wpisz USUŃ</label><input id="deleteConfirm" autocomplete="off"><button id="deleteAccount" class="danger">Usuń konto na zawsze</button></details>
+    </section>
+    <a class="guest" href="index.html">Graj bez konta →</a>
+  </main>
+</body>
+</html>

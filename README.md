@@ -27,6 +27,13 @@ npm run test:e2e
 
 Testy przeglądarkowe obejmują Chromium na ekranie komputera i telefonu. Przed większą premierą sprawdź również prawdziwy telefon i Safari.
 
-## Publikacja
+## Konta użytkowników
+
+Projekt logowania i lista kroków aktywacji: [docs/security/ACCOUNTS.md](docs/security/ACCOUNTS.md).
+Ekran `account.html` obsługuje Supabase Auth, ale integracja pozostaje domyślnie wyłączona,
+dopóki nie zostaną skonfigurowane usługi i zaliczone testy produkcyjne. Lokalny SDK odbudowuje
+`npm run build:auth`. Konta nie synchronizują jeszcze wyników gier.
+
+## Publikacja zmian
 
 Zmiany przechodzą przez PR do `main`, testy, a następnie automatyczny awans sprawdzonego commita do gałęzi `preview`, z której korzysta obecna produkcja GitHub Pages. Instrukcja publikacji, cofnięcia wydania i ochrony gałęzi: [RELEASE.md](RELEASE.md).
