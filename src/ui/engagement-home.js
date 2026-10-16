@@ -5,7 +5,7 @@ import { cleanShareName, sharePublicId, shareNickname, saveShareNickname, decode
   encodeSharedResult, consumeSharedResultUrl, sharedRankingUrl, setShareCard, shareCard,
   createManualShareFallback, rankSharedEntries } from '../services/share-service.js';
 
-const FRIENDS_KEY = 'puzli_shared_friends_v1';
+const FRIENDS_KEY = 'puzli_shared_friends_v2';
 const $ = id => document.getElementById(id);
 let initialized = false, viewDate = null;
 function readJson(key, fallback) {
@@ -74,7 +74,7 @@ async function shareWeeklyResult() {
   if (name.length < 2) { setStatus('Podaj nazwę gracza (co najmniej 2 znaki).'); input?.focus(); return; }
   saveShareNickname(name);
   const state = loadFigloState(viewDate);
-  const payload = { v: 1, id: sharePublicId(), name, week: getWeekKey(viewDate), points: weeklyPoints(state, viewDate), iq: getPuzliIQ(state) };
+  const payload = { v: 2, id: sharePublicId(), name, week: getWeekKey(viewDate), points: weeklyPoints(state, viewDate), iq: getPuzliIQ(state) };
   const card = { title: 'PUZLI — ranking znajomych', text: name + ' ma ' + payload.points + ' pkt w PUZLI w tygodniu od ' + payload.week + '. Porównaj wynik!', url: sharedRankingUrl(payload) };
   await shareCard(card, { status: $('friendStatus'), fallback: $('weeklyShareFallback'), context: { date: viewDate } });
   renderRanking(state);
