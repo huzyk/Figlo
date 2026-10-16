@@ -48,3 +48,40 @@ test('wrong bulb hint is unambiguous and stays visible until dismissed or correc
   await expect(wrongCell).not.toHaveClass(/hint-target/);
   await expect(wrongCell).not.toHaveClass(/has-bulb/);
 });
+
+test('Latarnie hint has a single clearly highlighted action and a distinct source clue',async({page},info)=>{
+  await fresh(page,'/latarnie.html?date=2026-10-15');
+  const step=await page.evaluate(async()=>{
+    const [{getDailyGame},{nextHumanStep}]=await Promise.all([
+      import('/src/services/daily-service.js'),
+      import('/src/latarnie/human-solver.js')
+    ]);
+    const {puzzle}=await getDailyGame('latarnie','2026-10-15');
+    return nextHumanStep(puzzle,{bulbs:new Set(),noBulbs:new Set()});
+  });
+  expect(step).not.toBeNull();
+  expect(step.indices).toEqual([step.index]);
+  const button=info.project.name==='mobile-chromium'?'#mobileHint':'#hint';
+  await page.locator(button).click();
+  await expect(page.locator('#board .hint-target')).toHaveCount(1);
+  await expect(page.locator('#board .hint-target')).toHaveAttribute('data-index',String(step.index));
+  await expect(page.locator('#board .hint-source')).toHaveCount(step.sourceIndex==null?0:1);
+  if(step.sourceIndex!=null){
+    await expect(page.locator('#board .hint-source')).toHaveAttribute('data-index',String(step.sourceIndex));
+    const source=page.locator('#board .hint-source');
+    const ring=await source.evaluate(el=>getComputedStyle(el).boxShadow);
+    expect(ring).toMatch(/rgb\(/);
+  }
+  const location='wiersz '+(Math.floor(step.index/7)+1)+', kolumna '+(step.index%7+1);
+  if(info.project.name==='mobile-chromium'){
+    await expect(page.locator('#feedback .mobile-hint-action')).toContainText(location);
+    await expect(page.locator('#feedback .mobile-hint-action strong')).toHaveText('Co zrobić:');
+    const h=await page.locator('#feedback').evaluate(el=>el.getBoundingClientRect().height);
+    expect(h).toBeLessThanOrEqual(190);
+  } else {
+    await expect(page.locator('#hintText')).toContainText(location);
+  }
+  await page.locator('#board .hint-target').click();
+  await expect(page.locator('#board .hint-target')).toHaveCount(0);
+  await expect(page.locator('#board .hint-source')).toHaveCount(0);
+});
