@@ -65,7 +65,7 @@ function candidateGroups(puzzle,bulbs,noBulbs) {
     if(placed.length+available.length===wall.clue&&available.length) {
       for(const index of available)forcedBulbs.push(wallStep(
         puzzle,wall,index,'clue-forced',1,
-        name+' wymaga jeszcze '+available.length+' '+(available.length===1?'latarni':'latarni')+
+        name+' wymaga jeszcze '+available.length+' latarni'+
         '. Wszystkie wolne pola obok niej muszą zawierać latarnie.'
       ));
     }
@@ -102,15 +102,16 @@ function firstSafeStep(puzzle,bulbs,noBulbs,groups) {
     if(stepKeepsSolution(puzzle,bulbs,noBulbs,step))return step;
   return null;
 }
-export function nextHumanStep(puzzle,{bulbs=new Set(),noBulbs=new Set()}={}) {
+export function nextHumanStep(puzzle,{bulbs=new Set(),noBulbs=new Set(),preferBulbs=false}={}) {
   const correction=correctionStep(puzzle,bulbs,noBulbs);if(correction)return correction;
   const groups=candidateGroups(puzzle,bulbs,noBulbs);
-  // Prefer placing a logically forced lantern to merely clearing a
-  // satisfied clue. Every hint indicates exactly ONE immediately actionable move.
-  const local=firstSafeStep(puzzle,bulbs,noBulbs,[
-    groups.forcedBulbs,groups.onlySources,groups.zeroClues,
-    groups.completedClues,groups.visibility
-  ]);
+  // Gameplay hints prefer placements; the human solver keeps its original
+  // deduction order for stable difficulty metrics and puzzle generation.
+  // Each suggested step changes exactly one square.
+  const order=preferBulbs
+    ? [groups.forcedBulbs,groups.onlySources,groups.zeroClues,groups.completedClues,groups.visibility]
+    : [groups.zeroClues,groups.forcedBulbs,groups.completedClues,groups.onlySources,groups.visibility];
+  const local=firstSafeStep(puzzle,bulbs,noBulbs,order);
   if(local)return local;
   const solution=baseSolution(puzzle);if(!solution)return null;
   for(const index of solution)if(!bulbs.has(index)&&!noBulbs.has(index))return {
