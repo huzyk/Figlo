@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getPuzliIQ, getRank, getBadges, getWeekKey, weeklyPoints } from '../src/domain/rewards.js';
+import { getPuzliIQ, getRank, getBadges, getWeekKey, weeklyPoints, migrateRewardsScoring } from '../src/domain/rewards.js';
 import { completeDailyGame, loadFigloState, recordDailyHint } from '../src/storage.js';
+import { calculateVerifiedPoints, speedPoints, targetSeconds } from '../src/domain/seasonal-scoring.js';
 
 class Store {
   constructor() { this.map = new Map(); }
@@ -27,22 +28,22 @@ test('one game counts as an active day, not as a full set; bonus applies once', 
   let result = completeDailyGame('korony',{today:date,timeMs:40000});
   assert.equal(result.state.user.activeStreak, 1);
   assert.equal(result.state.user.streak, 0);
-  assert.equal(result.state.rewards.totalPoints, 120);
+  assert.equal(result.state.rewards.totalPoints, 25);
   for (const game of games.slice(1)) result = completeDailyGame(game,{today:date,timeMs:50000});
   assert.equal(result.state.user.streak, 1);
   assert.equal(result.state.user.completedDays, 1);
-  assert.equal(result.state.rewards.daily[date].bonus, 80);
-  assert.equal(result.state.rewards.totalPoints, 800);
+  assert.equal(result.state.rewards.daily[date].bonus, 20);
+  assert.equal(result.state.rewards.totalPoints, 170);
   assert.equal(result.state.rewards.cleanSets, 1);
   completeDailyGame('zip',{today:date,timeMs:1000});
-  assert.equal(loadFigloState(date).rewards.totalPoints, 800);
+  assert.equal(loadFigloState(date).rewards.totalPoints, 170);
 });
 test('tracked hint removes only clean-play bonus and is kept across repeated hints', () => {
   reset();
   assert.equal(recordDailyHint('duet',date),true);
   assert.equal(recordDailyHint('duet',date),true);
   const result=completeDailyGame('duet',{today:date});
-  assert.equal(result.state.rewards.daily[date].games.duet.points,100);
+  assert.equal(result.state.rewards.daily[date].games.duet.points,10);
   assert.equal(result.state.rewards.daily[date].games.duet.hintsUsed,2);
   assert.equal(result.state.rewards.cleanGames,0);
   assert.equal(recordDailyHint('duet',date),false);
@@ -68,8 +69,8 @@ test('weekly results begin on Monday and are isolated from the next week', () =>
   completeDailyGame('korony',{today:'2026-10-18'});
   completeDailyGame('korony',{today:'2026-10-19'});
   assert.equal(getWeekKey(date),'2026-10-12');
-  assert.equal(weeklyPoints(loadFigloState('2026-10-19'),'2026-10-15'),240);
-  assert.equal(weeklyPoints(loadFigloState('2026-10-19'),'2026-10-19'),120);
+  assert.equal(weeklyPoints(loadFigloState('2026-10-19'),'2026-10-15'),30);
+  assert.equal(weeklyPoints(loadFigloState('2026-10-19'),'2026-10-19'),15);
 });
 test('existing v2 state migrates new fields without destroying legacy progress', () => {
   reset();
@@ -147,12 +148,12 @@ test('seven total daily sets earn the badge even without a seven-day streak', ()
 test('unknown hint history cannot produce a clean game, clean set or clean badge', () => {
   reset();
   let result=completeDailyGame('korony',{today:date,hintsUsed:null});
-  assert.equal(result.state.rewards.totalPoints,100);
+  assert.equal(result.state.rewards.totalPoints,10);
   assert.equal(result.state.rewards.cleanGames,0);
   assert.equal(result.state.puzzleResults['korony:'+date+':v1'].hintsUsed,null);
   assert.deepEqual(result.state.rewards.lastAward.badges,['first-game']);
   for(const game of games.slice(1)) result=completeDailyGame(game,{today:date,hintsUsed:0});
-  assert.equal(result.state.rewards.totalPoints,780);
+  assert.equal(result.state.rewards.totalPoints,105);
   assert.equal(result.state.rewards.cleanGames,5);
   assert.equal(result.state.rewards.cleanSets,0);
   assert.equal(result.state.rewards.daily[date].games.korony.hintsUsed,null);
@@ -164,9 +165,73 @@ test('a confirmed zero hint count earns clean-game and full-set achievements', (
   reset();
   let result;
   for(const game of games) result=completeDailyGame(game,{today:date,hintsUsed:0});
-  assert.equal(result.state.rewards.totalPoints,800);
+  assert.equal(result.state.rewards.totalPoints,110);
   assert.equal(result.state.rewards.cleanGames,6);
   assert.equal(result.state.rewards.cleanSets,1);
   assert.equal(getBadges(result.state).find(b=>b.id==='clean-set').earned,true);
   assert.deepEqual(result.state.rewards.lastAward.badges,['first-set','clean-set']);
+});
+
+test('speed bonus varies with elapsed time and matches future server formula', () => {
+  reset();
+  const secs = targetSeconds('korony');
+  assert.equal(secs, 240);
+  const veryFast = calculateVerifiedPoints({ elapsedMs: 40000, targetSecs: secs, hintsUsed: 0 });
+  const medium = calculateVerifiedPoints({ elapsedMs: 240000, targetSecs: secs, hintsUsed: 0 });
+  const slow = calculateVerifiedPoints({ elapsedMs: 600000, targetSecs: secs, hintsUsed: 0 });
+  assert.deepEqual(veryFast, { base: 10, speed: 10, clean: 5, total: 25 });
+  assert.ok(medium.speed < veryFast.speed);
+  assert.equal(slow.speed, 0);
+  assert.equal(speedPoints(null, secs), 0);
+  assert.equal(speedPoints(1000, secs), 0);
+  const real = completeDailyGame('korony',{ today:date,timeMs:240000,hintsUsed:0 });
+  const scored = real.state.rewards.daily[date].games.korony;
+  assert.equal(scored.points, medium.total);
+  assert.equal(scored.speed, medium.speed);
+  assert.equal(scored.clean, 5);
+  completeDailyGame('korony',{today:date,timeMs:10000,hintsUsed:0});
+  assert.equal(loadFigloState(date).rewards.daily[date].games.korony.points, medium.total);
+});
+
+test('old 800-point browser ledger migrates once; keep badges and historic times', () => {
+  reset();
+  let result;
+  for (const game of games) result=completeDailyGame(game,{today:date,timeMs:90000,hintsUsed:0});
+  const old=result.state;
+  old.rewards.scoringVersion=undefined;
+  old.rewards.totalPoints=800;
+  old.rewards.daily[date].bonus=80;
+  old.rewards.daily[date].total=800;
+  for(const game of games){
+    old.rewards.daily[date].games[game].points=120;
+    delete old.rewards.daily[date].games[game].base;
+    delete old.rewards.daily[date].games[game].speed;
+    delete old.rewards.daily[date].games[game].clean;
+  }
+  localStorage.setItem('figlo_user_state_v2',JSON.stringify(old));
+  const migrated=loadFigloState(date);
+  assert.equal(migrated.rewards.scoringVersion,2);
+  assert.equal(migrated.rewards.legacyTotalPoints,800);
+  assert.equal(migrated.rewards.daily[date].bonus,20);
+  assert.ok(migrated.rewards.totalPoints<=170);
+  assert.equal(migrated.rewards.totalPoints,migrated.rewards.daily[date].total);
+  assert.equal(migrated.rewards.cleanSets,1);
+  assert.equal(migrated.user.completedDays,1);
+  assert.deepEqual(loadFigloState(date).rewards.daily[date],migrated.rewards.daily[date]);
+  completeDailyGame('korony',{today:date,timeMs:3000});
+  assert.equal(loadFigloState(date).rewards.totalPoints,migrated.rewards.totalPoints);
+});
+
+test('migration never invents a speed or clean bonus for missing historic evidence',()=>{
+  const legacy={totalPoints:220,daily:{'2026-10-15':{games:{
+    korony:{points:120,hintsUsed:null},duet:{points:100,hintsUsed:2}
+  },bonus:0,total:220}}};
+  migrateRewardsScoring(legacy,{});
+  assert.equal(legacy.totalPoints,20);
+  assert.equal(legacy.daily['2026-10-15'].games.korony.speed,0);
+  assert.equal(legacy.daily['2026-10-15'].games.korony.clean,0);
+  assert.equal(legacy.daily['2026-10-15'].games.duet.points,10);
+  assert.equal(legacy.legacyTotalPoints,220);
+  migrateRewardsScoring(legacy,{});
+  assert.equal(legacy.totalPoints,20);
 });
