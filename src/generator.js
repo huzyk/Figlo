@@ -16,17 +16,51 @@ export function validateGeneratedRegions(regions) { const size=regions.length;if
 function scoreDeductions(deductions){return deductions.reduce((sum,step)=>sum+(RULE_WEIGHTS[step.rule]||2),0);}
 function chooseDifficultyCandidate(candidates,difficulty){const sorted=[...candidates].sort((a,b)=>a.difficultyScore-b.difficultyScore);if(difficulty==='easy')return sorted[0];if(difficulty==='hard')return sorted[sorted.length-1];return sorted[Math.floor(sorted.length/2)];}
 
+const GENTLE_MAX_ATTEMPTS=1800;
+const GENTLE_MAX_SCORE=21;
+// Backups are verified 9x9 boards with no placed crowns. Geometric transforms
+// preserve each board's solution uniqueness and low-complexity deduction route.
+const GENTLE_BACKUPS=[[[5,5,5,5,5,5,6,2,2],[0,0,5,5,5,5,6,6,6],[0,5,5,5,3,5,4,6,6],[0,0,0,0,3,5,4,4,6],[0,0,0,3,3,4,4,4,4],[0,0,0,1,3,1,4,4,4],[0,0,0,1,1,1,7,4,4],[0,7,7,7,7,7,7,8,8],[7,7,7,7,7,7,8,8,8]],[[7,7,1,1,1,1,4,4,4],[7,1,1,1,1,1,4,4,4],[1,1,1,1,1,4,4,4],[3,3,3,1,2,4,4,4,4],[0,8,3,3,2,2,4,4,4],[0,8,3,3,2,2,2,2,5],[0,8,3,3,3,2,2,2,5],[0,8,8,3,6,2,6,6,5],[0,8,3,3,6,6,6,6,6]],[[2,2,2,2,2,5,5,5,5],[0,0,0,2,2,2,5,5,5],[0,0,0,2,2,2,1,1,5],[0,0,0,0,4,2,4,1,5],[0,0,6,6,4,4,4,8,8],[0,6,6,6,6,4,4,7,8],[6,6,6,4,4,4,4,7,8],[6,6,4,4,4,4,3,7,7],[6,6,4,4,3,3,3,3,3]]];
+function buildGentleFallback(seed,random,attempts){
+  const size=9,template=GENTLE_BACKUPS[Math.floor(random()*GENTLE_BACKUPS.length)];
+  const transform=Math.floor(random()*8);
+  const regions=Array.from({length:size},()=>Array(size));
+  for(let row=0;row<size;row++)for(let col=0;col<size;col++){
+    let r=row,c=col;
+    if(transform&1)c=size-1-c;
+    if(transform&2)r=size-1-r;
+    if(transform&4)[r,c]=[c,r];
+    regions[r][c]=template[row][col];
+  }
+  const solved=countRegionSolutions(regions,2);
+  const human=validateHumanSolvable(regions,{allowLookahead:false});
+  const difficultyScore=scoreDeductions(human.deductions);
+  if(solved.count!==1||!human.solvable||difficultyScore>GENTLE_MAX_SCORE||
+    human.deductions.some(step=>step.rule==='hypothetical-crossout')){
+    throw new Error('Nie udało się zweryfikować łatwej planszy Koron.');
+  }
+  return {id:`practice-${GENERATOR_VERSION}-${seed}`,generatorVersion:GENERATOR_VERSION,
+    seed,size,regions,solution:solved.solution,attempts,deductionCount:human.deductions.length,
+    deductionRules:human.deductions.map(step=>step.rule),difficultyScore,difficulty:'gentle'};
+}
+
 export function generatePuzzle(seed, { size = DEFAULT_SIZE, maxAttempts = 10000, minRegionSize = 2, difficulty = null, difficultySamples = 3 } = {}) {
   if (!Number.isInteger(size) || size < 4) throw new Error('Rozmiar planszy musi być liczbą całkowitą >= 4.');
   if (!Number.isInteger(maxAttempts) || maxAttempts < 1) throw new Error('maxAttempts musi być dodatnią liczbą całkowitą.');
   const normalizedSeed=String(seed); const random=seededRandom(hashSeed(`figlo:${GENERATOR_VERSION}:${normalizedSeed}:${size}`)); const candidates=[];
-  for(let attempt=1;attempt<=maxAttempts;attempt++){
+  const gentle=difficulty==='gentle',attemptLimit=gentle&&size===9?Math.min(maxAttempts,GENTLE_MAX_ATTEMPTS):maxAttempts;
+  for(let attempt=1;attempt<=attemptLimit;attempt++){
     const{regions,regionSizes}=createRegionLayout(size,random);if(Math.min(...regionSizes)<minRegionSize)continue;const solved=countRegionSolutions(regions,2);if(solved.count!==1)continue;const human=validateHumanSolvable(regions,{allowLookahead:false});if(!human.solvable)continue;
     const candidate={id:`practice-${GENERATOR_VERSION}-${normalizedSeed}`,generatorVersion:GENERATOR_VERSION,seed:normalizedSeed,size,regions,solution:solved.solution,attempts:attempt,deductionCount:human.deductions.length,deductionRules:human.deductions.map(step=>step.rule),difficultyScore:scoreDeductions(human.deductions),difficulty:difficulty||'medium'};
     if(!difficulty)return candidate;
     candidates.push(candidate);
+    if(gentle){
+      if(candidate.difficultyScore<=GENTLE_MAX_SCORE&&!candidate.deductionRules.includes('hypothetical-crossout'))return candidate;
+      continue;
+    }
     if(candidates.length>=Math.max(1,difficultySamples))return chooseDifficultyCandidate(candidates,difficulty);
   }
+  if(gentle&&size===9&&maxAttempts>=GENTLE_MAX_ATTEMPTS)return buildGentleFallback(normalizedSeed,random,attemptLimit);
   if(candidates.length)return chooseDifficultyCandidate(candidates,difficulty);
   throw new Error(`Nie udało się wygenerować unikalnej planszy po ${maxAttempts} próbach.`);
 }

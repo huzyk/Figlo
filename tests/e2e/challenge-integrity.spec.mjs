@@ -1,5 +1,20 @@
 import { test, expect } from '@playwright/test';
 
+test('previously published Crown v2 challenge still opens',async({page})=>{
+ const date='2026-10-16',id=`figlo:korony:${date}:v2`;
+ await page.goto(`/korony.html?date=${date}&challenge=${date}&v=${encodeURIComponent(id)}`);
+ await expect(page.locator('#board .cell')).toHaveCount(81);
+ await expect(page.locator('html')).toHaveAttribute('data-game-puzzle-id',id);
+});
+
+test('new daily Korony board has no placed starting pieces',async({page})=>{
+ await page.goto('/korony.html?date=2026-10-16');
+ await expect(page.locator('#board .cell')).toHaveCount(81);
+ await expect(page.locator('#board .crown, #board .x-mark')).toHaveCount(0);
+ await expect(page.locator('#crownCounter')).toHaveText('0/9');
+ await expect(page.locator('html')).toHaveAttribute('data-game-puzzle-id','figlo:korony:2026-10-16:v3');
+});
+
 const TODAY = '2026-10-15';
 const DATE = '2026-08-28';
 const STORAGE_KEY = 'figlo_user_state_v2';
