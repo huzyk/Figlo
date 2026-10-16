@@ -200,14 +200,16 @@ test('engagement sections never cause horizontal overflow on narrow devices', as
   }
 });
 
-test('daily win has a short game-themed sparkle burst and an anchored earned badge', async ({ page }) => {
+test('daily win has cinematic rings, 48 particles and a persistent earned badge', async ({ page }) => {
   await page.goto('/korony.html?date=' + DATE);
   await solveCrown(page);
-  await expect(page.locator('.puzli-victory-spark')).toHaveCount(14);
+  await expect(page.locator('.puzli-victory-spark')).toHaveCount(48);
+  await expect(page.locator('.puzli-victory-wave')).toHaveCount(2);
+  await expect(page.locator('.puzli-victory-rays')).toHaveCount(1);
   await expect(page.locator('.puzli-badge-unlock')).toContainText('Odznaka odblokowana');
   await expect(page.locator('.puzli-badge-unlock')).toContainText('Pierwszy krok');
   await expect(page.locator('.puzli-achievement-toast,.puzli-confetti-layer')).toHaveCount(0);
-  await expect(page.locator('.puzli-victory-sparks')).toHaveCount(0, { timeout: 4000 });
+  await expect(page.locator('.puzli-victory-sky')).toHaveCount(0, { timeout: 5000 });
   await expect(page.locator('.puzli-badge-unlock')).toBeVisible();
   // Closing and reopening the result never replays an old award.
   await page.evaluate(() => { document.querySelector('#done').hidden = true; });
@@ -221,8 +223,39 @@ test('reduced motion has no sparkles and still clearly shows the earned badge', 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/korony.html?date=' + DATE);
   await solveCrown(page);
-  await expect(page.locator('.puzli-victory-sparks')).toHaveCount(0);
+  await expect(page.locator('.puzli-victory-sky')).toHaveCount(0);
   await expect(page.locator('.puzli-badge-unlock')).toContainText('Pierwszy krok');
   const animation = await page.locator('.completion-card').evaluate(el => getComputedStyle(el).animationName);
   expect(animation).toBe('none');
+});
+
+test('victory preview replays the exact live effect for six games without saving state', async ({page}) => {
+  await page.goto('/victory-preview.html');
+  await expect(page.locator('.puzli-victory-spark')).toHaveCount(48);
+  await expect(page.locator('.puzli-victory-wave')).toHaveCount(2);
+  for (const gameId of ['korony','duet','bloki','latarnie','zip','sudoku']) {
+    await page.locator('[data-game="'+gameId+'"]').click();
+    await expect(page.locator('body')).toHaveClass('game-'+gameId);
+    await expect(page.locator('.puzli-victory-spark')).toHaveCount(48);
+  }
+  await page.locator('#badgeToggle').uncheck();
+  await expect(page.locator('.puzli-badge-unlock')).toBeHidden();
+  await page.locator('#badgeToggle').check();
+  await expect(page.locator('.puzli-badge-unlock')).toBeVisible();
+  await page.locator('#replay').click();
+  await expect(page.locator('.puzli-victory-wave')).toHaveCount(2);
+  const state = await page.evaluate(() => ({
+    storage: Object.keys(localStorage).filter(key => key.startsWith('figlo-') || key.startsWith('puzli-')),
+    overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+  }));
+  expect(state.storage).toEqual([]);
+  expect(state.overflow).toBeLessThanOrEqual(2);
+});
+
+test('victory preview respects reduced motion', async ({page}) => {
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.goto('/victory-preview.html');
+  await page.locator('#replay').click();
+  await expect(page.locator('.puzli-victory-sky')).toHaveCount(0);
+  await expect(page.locator('.puzli-badge-unlock')).toBeVisible();
 });
