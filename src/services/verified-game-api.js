@@ -40,6 +40,13 @@ export async function getMyVerifiedPercentile(puzzleId){
   if(error)throw new Error('Statystyki porównawcze są chwilowo niedostępne.');
   return {available:true,percentile:data};
 }
+export async function getMyVerifiedProgress(){
+  const client=await getClient();
+  if(!client)return {available:false,progress:null};
+  const {data,error}=await client.rpc('puzli_my_progress');
+  if(error)throw new Error('Postęp jest chwilowo niedostępny.');
+  return {available:true,progress:data};
+}
 export async function getLeaderboardMembership(){
   const client=await getClient();
   if(!client)return {available:false,membership:null};

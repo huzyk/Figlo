@@ -96,3 +96,7 @@ wymagają wersjonowania, aby nie zmieniać historycznych wyników.
 npm test — czysta punktacja, walidacja rozwiązań i izolacja PostgreSQL w PGlite.
 npm run test:e2e — dotychczasowe gry bez aktywnego backendu.
 Testy rzeczywistego projektu staging Supabase pozostają konieczne.
+
+Puzli IQ i dziewięć odznak otrzymują również osobny, prywatny widok po stronie
+serwera (puzli_my_progress), pochodzący wyłącznie ze zweryfikowanych wyników.
+Dotychczasowe lokalne PUZLI IQ pozostaje bez zmian aż do jawnej migracji.

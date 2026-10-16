@@ -106,6 +106,47 @@ $;
 revoke all on function public.puzli_my_membership() from public,anon;
 grant execute on function public.puzli_my_membership() to authenticated;
 
+
+-- Derived, private, server-verified lifetime progress; no client may write badges.
+create function public.puzli_my_progress()
+returns jsonb language plpgsql stable security definer set search_path = '' as $
+declare n_games integer; n_clean integer; n_sets integer; n_clean_sets integer;
+  n_active integer; n_best_streak integer; iq integer; earned text[] := array[]::text[];
+begin
+ if auth.uid() is null or not public.account_session_active() then
+   raise exception 'Unauthorized';
+ end if;
+ select count(*)::integer,count(*) filter (where r.hints_used=0)::integer
+ into n_games,n_clean from public.puzli_verified_results r where r.user_id=auth.uid();
+ select count(*)::integer,count(*) filter (where not exists (
+    select 1 from public.puzli_verified_results r
+    where r.user_id=b.user_id and r.puzzle_date=b.puzzle_date and r.hints_used>0
+ ))::integer into n_sets,n_clean_sets
+ from public.puzli_set_bonuses b where b.user_id=auth.uid();
+ with days as (
+   select distinct r.puzzle_date as d from public.puzli_verified_results r where r.user_id=auth.uid()
+ ), numbered as (
+   select d, d-(row_number() over(order by d))::integer as grp from days
+ ), runs as (select count(*)::integer as n from numbered group by grp)
+ select count(distinct d)::integer,coalesce((select max(n) from runs),0)
+ into n_active,n_best_streak from days;
+ iq := 100 + least(18,n_games/4) + least(16,n_clean/5) + least(16,n_sets/4);
+ if n_games>=1 then earned:=array_append(earned,'first-game'); end if;
+ if n_sets>=1 then earned:=array_append(earned,'first-set'); end if;
+ if n_games>=25 then earned:=array_append(earned,'games-25'); end if;
+ if n_best_streak>=7 then earned:=array_append(earned,'active-7'); end if;
+ if n_sets>=7 then earned:=array_append(earned,'sets-7'); end if;
+ if n_clean_sets>=1 then earned:=array_append(earned,'clean-set'); end if;
+ if n_games>=100 then earned:=array_append(earned,'games-100'); end if;
+ if n_sets>=30 then earned:=array_append(earned,'sets-30'); end if;
+ if iq>=143 then earned:=array_append(earned,'master'); end if;
+ return jsonb_build_object('games',n_games,'clean_games',n_clean,'sets',n_sets,
+   'clean_sets',n_clean_sets,'active_days',n_active,'best_active_streak',n_best_streak,
+   'iq',iq,'badges',to_jsonb(earned));
+end $;
+revoke all on function public.puzli_my_progress() from public,anon;
+grant execute on function public.puzli_my_progress() to authenticated;
+
 -- A single score ledger, grouped into four periods. Ranked players have opted in.
 create function public.puzli_leaderboard(p_period text,p_anchor date,p_limit integer default 50)
 returns table(place bigint,nickname text,points bigint)

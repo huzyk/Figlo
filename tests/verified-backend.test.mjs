@@ -90,6 +90,10 @@ test('Postgres blocks client writes, hides private data, and serializes score co
     await db.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({sub:alice})]);
     await db.exec('set role authenticated');
     assert.equal((await db.query('select * from public.puzli_my_results()')).rows.length,1);
+    const progress=(await db.query('select public.puzli_my_progress() as progress')).rows[0].progress;
+    assert.equal(progress.games,1);
+    assert.equal(progress.iq,100);
+    assert.deepEqual(progress.badges,['first-game']);
     assert.equal((await db.query('select * from public.puzli_leaderboard($1,$2,$3)',['week',date,50])).rows.length,1);
     assert.equal((await db.query('select public.puzli_my_percentile($1) as p',[id])).rows[0].p,null);
     await db.exec('reset role');
