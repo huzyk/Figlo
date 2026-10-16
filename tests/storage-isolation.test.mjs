@@ -232,7 +232,7 @@ test('first result still deduplicates after the reward history has been pruned',
   const result = completeDailyGame('korony', { today: oldDate, timeMs: 1000 });
   assert.equal(result.firstGameCompletionToday, false);
   assert.equal(result.state.user.completedGames, 1);
-  assert.equal(result.state.rewards.totalPoints, 120);
+  assert.equal(result.state.rewards.totalPoints, 15);
 });
 
 test('only old board histories expire after fourteen days; completions, hints and first results survive', () => {
@@ -276,7 +276,7 @@ test('read and write failures preserve progress in memory across subsequent read
   assert.equal(loadFigloState(oldDate).user.completedGames, 1);
   completeDailyGame('duet', { today: oldDate });
   assert.equal(loadFigloState(oldDate).user.completedGames, 2);
-  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 240);
+  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 30);
   globalThis.localStorage = store;
   assert.equal(loadFigloState(oldDate).user.completedGames, 2);
   reset();
@@ -289,7 +289,7 @@ test('quota errors do not cause a readable but stale storage value to erase memo
   store.setItem = () => { throw new Error('quota exceeded'); };
   completeDailyGame('duet', { today: oldDate });
   assert.equal(loadFigloState(oldDate).user.completedGames, 2);
-  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 240);
+  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 30);
 });
 
 test('missing localStorage keeps a working in-memory state and is isolated from a later storage handle', () => {
@@ -298,7 +298,7 @@ test('missing localStorage keeps a working in-memory state and is isolated from 
   completeDailyGame('korony', { today: oldDate });
   completeDailyGame('duet', { today: oldDate });
   assert.equal(loadFigloState(oldDate).user.completedGames, 2);
-  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 240);
+  assert.equal(loadFigloState(oldDate).rewards.totalPoints, 30);
   reset();
   assert.equal(loadFigloState(oldDate).user.completedGames, 0);
 });
