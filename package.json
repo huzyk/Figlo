@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:auth": "esbuild src/account/sdk-entry.js --bundle --format=esm --minify --legal-comments=eof --outfile=src/account/supabase.js",
     "test": "node --test tests/*.test.mjs",
     "test:e2e": "playwright test",
     "test:all": "npm test && npm run test:e2e",
@@ -10,6 +11,11 @@
     "generate:duet": "node scripts/generate-duet-daily.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "1.62.1"
+    "@electric-sql/pglite": "0.5.10",
+    "@playwright/test": "1.62.1",
+    "esbuild": "0.28.2"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.118.0"
   }
 }
