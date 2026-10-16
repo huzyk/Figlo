@@ -10,7 +10,7 @@ import{showGameLoader,hideGameLoader}from'../ui/game-loader.js';
 import{loadLatarnieDaily}from'./daily-loader.js';
 import{generateLatarnieAsync}from'./generator-async.js';
 import{litCells,conflictingBulbs,clueStatus,isSolved,latarnieProgress}from'./rules.js?v=20261014-latarnie-conflict';
-import{nextHumanStep}from'./human-solver.js';
+import{nextHumanStep}from'./human-solver.js?v=20261016-actionable';
 import{createLatarnieSession,loadLatarnieSession,saveLatarnieSession,clearLatarnieSession}from'./session.js';
 const $=s=>document.querySelector(s);const today=currentDateKey();const puzzleDate=requestedPuzzleDate();const requestedMode=requestedGameMode();let record=null,puzzle=null,session=null,gameMode='daily',trainingNumber=0,timerTick=null,boardResizeObserver=null;
 function randomSeed(){return globalThis.crypto?.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random()}`;}
@@ -43,7 +43,7 @@ function reset(){if(session.finished)return;clearHint();pauseTimer();session.bul
 function showHint(){
   if(session.finished)return;
   clearHintClasses();
-  const step=nextHumanStep(puzzle,{bulbs:bulbSet(),noBulbs:crossSet()});
+  const step=nextHumanStep(puzzle,{bulbs:bulbSet(),noBulbs:crossSet(),preferBulbs:true});
   const card=$('#hintCard');
   card.hidden=false;
   const reason=step?.reason||'Nie widzę teraz pewnego kolejnego kroku. Sprawdź ściany z liczbami i nieoświetlone pola.';
