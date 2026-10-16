@@ -53,7 +53,7 @@ export function migrateRewardsScoring(rewards, puzzleResults = {}) {
     for (const [gameId, existing] of Object.entries(day.games || {})) {
       if (!existing || typeof existing !== 'object') continue;
       // Never overwrite an already converted game's saved breakdown.
-      if (existing.scoringVersion === VERIFIED_SCORING_VERSION && Number.isInteger(existing.points)) {
+      if (existing.scoringVersion === VERIFIED_SCORING_VERSION && Number.isInteger(existing.points) && existing.points >= 10 && existing.points <= 25 && existing.base === 10 && Number.isInteger(existing.speed) && Number.isInteger(existing.clean) && existing.points === existing.base + existing.speed + existing.clean) {
         dayTotal += existing.points;
         continue;
       }
