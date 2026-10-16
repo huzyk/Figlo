@@ -18,3 +18,31 @@ test('Bloki hint highlights one target without auto-solving',async({page},info)=
 test('Bloki completion joins daily progress',async({page})=>{await fresh(page);await solveDaily(page);await page.goto(`/index.html?date=${DATE}`);await expect(page.locator('#progressRing')).toHaveText(`1/${requiredGamesForDate(DATE).length}`);await expect(page.locator('#blokiStatus')).toContainText(/ponownie/i);await expect(page.locator('#blokiCard')).toHaveAttribute('href',/bloki\.html\?mode=training/);});
 test('Bloki training renders 36 cells and does not increment Daily counters',async({page})=>{await fresh(page);await solveDaily(page);const first=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),STORAGE_KEY);await page.locator('#replay').click();await expect(page.locator('#roundLabel')).toContainText(/Trening/i);await expect(page.locator('#board .bloki-cell')).toHaveCount(36);await expect(page.locator('#done')).toBeHidden();await expect(page.locator('#gameLoader')).toBeHidden();const second=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),STORAGE_KEY);expect(second.user.completedGames).toBe(first.user.completedGames);expect(second.games.bloki.completedCount).toBe(first.games.bloki.completedCount);});
 test('Bloki board fits mobile and desktop viewport',async({page})=>{await fresh(page);const box=await page.locator('#board').boundingBox();const viewport=page.viewportSize();expect(box).not.toBeNull();expect(viewport).not.toBeNull();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width+1);});
+
+test('Bloki uses readable 2x2 shape legend with the same geometry as clues', async ({page},info)=>{
+  await fresh(page);
+  const legend=page.locator('.bloki-legend');
+  await expect(legend.locator('.legend-item')).toHaveCount(4);
+  await expect(legend).toContainText('Wysoki prostokąt');
+  await expect(legend).toContainText('Szeroki prostokąt');
+  await expect(legend).toContainText('Dowolny z powyższych');
+  await expect(legend).toContainText('Jeden znacznik na blok');
+  const columns=await legend.locator('.legend-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);
+  expect(columns).toBe(2);
+  for(const shape of ['square','tall','wide','any']){
+    const icon=legend.locator('.legend-shape.'+shape);
+    await expect(icon).toBeVisible();
+  }
+  const token=page.locator('.clue-token').first();
+  const hasDimensions=await token.evaluate(el=>{
+    const rect=el.getBoundingClientRect(),parent=el.closest('.bloki-cell').getBoundingClientRect();
+    return {width:rect.width,height:rect.height,cell:parent.width};
+  });
+  expect(hasDimensions.width).toBeLessThanOrEqual(hasDimensions.cell+1);
+  expect(hasDimensions.height).toBeLessThanOrEqual(hasDimensions.cell+1);
+  if(info.project.name==='mobile-chromium'){
+    const bounds=await legend.boundingBox();
+    const actions=await page.locator('.mobile-controls').boundingBox();
+    expect(bounds.y+bounds.height).toBeLessThanOrEqual(actions.y+2);
+  }
+});
