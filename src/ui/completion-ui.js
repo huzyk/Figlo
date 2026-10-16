@@ -83,11 +83,6 @@ function renderRewardSummary(root, state, gameId, date, mode, result) {
   const supplement = document.createElement('span');
   supplement.textContent = points === 120 && result?.hintsUsed === 0 ? 'Bez podpowiedzi: +20 pkt premii' : result?.hintsUsed > 0 ? 'Rozwiązane z podpowiedzią' : 'Za zapisany wynik gry';
   summary.append(supplement);
-  const award = state.rewards?.lastAward;
-  if (award?.date === date && award.gameId === gameId && award.badges?.length) {
-    const badge = document.createElement('span'); badge.className = 'completion-new-badge';
-    badge.textContent = 'Nowa odznaka: ' + award.badges.map(id => BADGES.find(item => item.id === id)?.name || id).join(', '); summary.append(badge);
-  }
   const progress = progressFor(state);
   if (progress.total > 0 && progress.completed === progress.total && record?.bonus) {
     const full = document.createElement('span'); full.textContent = 'Pełny komplet: +' + record.bonus + ' pkt!'; summary.append(full);
@@ -136,53 +131,82 @@ export function refreshCompletion(root = document.querySelector('#done')) {
   if (gameId === 'korony' && elements.time) elements.time.textContent = elements.time.textContent.replace(/^Czas\s+/i, '');
   return view;
 }
-// Celebrations are visual only; never change scores or prevent interactions.
-// Reduced-motion preference disables particles and badge movement.
-function celebrateCompletion(root) {
-  root.querySelector('.puzli-confetti-layer')?.remove();
-  root.querySelector('.puzli-achievement-toast')?.remove();
-  if (getGameMode() !== 'daily' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const gameId = gameIdFromPath(), date = getGameDate();
-  const state = loadFigloState(date);
-  const record = completionRecord(state, {gameId,date,puzzleId:getGamePuzzleId()});
-  if (!record) return;
-  const progress = progressFor(state), fullSet = progress.total>0 && progress.completed===progress.total;
-  const layer = document.createElement('div');
-  layer.className = 'puzli-confetti-layer';
-  layer.setAttribute('aria-hidden','true');
-  const pieces = fullSet ? 34 : 18;
-  for (let i=0;i<pieces;i++) {
-    const paper = document.createElement('span');
-    paper.className = 'puzli-confetti';
-    paper.style.setProperty('--burst-x', ((i*137.508)%240-120)+'px');
-    paper.style.setProperty('--burst-y', (-30-(i*37)%120)+'px');
-    paper.style.setProperty('--spin', ((i*57)%520-260)+'deg');
-    paper.style.setProperty('--delay', ((i*47)%260)+'ms');
-    paper.style.setProperty('--hue', String((i*43)%360));
-    layer.append(paper);
+// Victory is presentation-only: no score mutation, overlay or interaction lock.
+// The unlocked badge stays in the result card; motion only plays once per puzzle.
+function renderUnlockedBadge(root, state, gameId, date) {
+  const award = state.rewards?.lastAward;
+  const badges = award?.date === date && award.gameId === gameId
+    ? (award.badges || []).map(id => BADGES.find(badge => badge.id === id)).filter(Boolean)
+    : [];
+  let panel = root.querySelector('.puzli-badge-unlock');
+  if (!badges.length) {
+    panel?.remove();
+    return;
   }
-  root.append(layer);
-  setTimeout(()=>layer.remove(), 1900);
-  const award=state.rewards?.lastAward;
-  if (award?.date !== date || award.gameId !== gameId || !award.badges?.length) return;
-  const key = 'puzli-award-seen:' + date + ':' + gameId + ':' + award.badges.join(',');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.className = 'puzli-badge-unlock';
+    const card = root.querySelector('.completion-card');
+    const anchor = card?.querySelector('.completion-progress') || card?.querySelector('.completion-copy') || card?.querySelector('h2');
+    if (anchor) anchor.after(panel); else card?.prepend(panel);
+  }
+  const icon = document.createElement('span');
+  icon.className = 'puzli-badge-unlock-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = badges.length === 1 ? badges[0].icon : '✦';
+  const copy = document.createElement('span');
+  copy.className = 'puzli-badge-unlock-copy';
+  const label = document.createElement('small');
+  label.textContent = badges.length === 1 ? 'Odznaka odblokowana' : 'Odznaki odblokowane';
+  const name = document.createElement('strong');
+  name.textContent = badges.map(badge => badge.name).join(' · ');
+  copy.append(label, name);
+  panel.replaceChildren(icon, copy);
+}
+
+function celebrateCompletion(root) {
+  root.classList.remove('is-celebrating');
+  root.querySelector('.puzli-victory-sparks')?.remove();
+  if (getGameMode() !== 'daily') {
+    root.querySelector('.puzli-badge-unlock')?.remove();
+    return;
+  }
+  const gameId = gameIdFromPath(), date = getGameDate(), puzzleId = getGamePuzzleId();
+  const state = loadFigloState(date);
+  const record = completionRecord(state, {gameId, date, puzzleId});
+  if (!record) return;
+  renderUnlockedBadge(root, state, gameId, date);
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const key = ['puzli-win-seen', date, gameId, puzzleId || 'daily'].join(':');
   try {
     if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key,'1');
-  }catch {}
-  const toast=document.createElement('div');
-  toast.className='puzli-achievement-toast';
-  toast.setAttribute('aria-hidden','true');
-  const symbol=document.createElement('span');
-  symbol.className='puzli-achievement-medal';
-  symbol.textContent='✦';
-  const title=document.createElement('strong');
-  title.textContent=award.badges.length===1 ? 'Nowa odznaka!' : 'Nowe odznaki!';
-  const names=document.createElement('span');
-  names.textContent=award.badges.map(id=>BADGES.find(b=>b.id===id)?.name||id).join(' · ');
-  toast.append(symbol,title,names);
-  root.append(toast);
-  setTimeout(()=>toast.remove(), 2600);
+    sessionStorage.setItem(key, '1');
+  } catch { /* Browsers with disabled storage may still play the effect. */ }
+
+  const mark = root.querySelector('.success-mark');
+  if (mark) {
+    const sparks = document.createElement('span');
+    sparks.className = 'puzli-victory-sparks';
+    sparks.setAttribute('aria-hidden', 'true');
+    for (let i = 0; i < 14; i++) {
+      const ray = document.createElement('span');
+      ray.className = 'puzli-victory-spark';
+      const angle = (i / 14) * Math.PI * 2 - Math.PI / 2;
+      const radius = 49 + (i % 3) * 7;
+      ray.style.setProperty('--spark-x', Math.round(Math.cos(angle) * radius) + 'px');
+      ray.style.setProperty('--spark-y', Math.round(Math.sin(angle) * radius) + 'px');
+      ray.style.setProperty('--spark-spin', (i % 2 ? 90 : -90) + 'deg');
+      ray.style.setProperty('--spark-delay', (80 + (i % 4) * 32) + 'ms');
+      sparks.append(ray);
+    }
+    mark.append(sparks);
+  }
+  root.classList.add('is-celebrating');
+  setTimeout(() => {
+    root.classList.remove('is-celebrating');
+    root.querySelector('.puzli-victory-sparks')?.remove();
+  }, 1320);
 }
 
 function init() {
