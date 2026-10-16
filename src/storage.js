@@ -298,13 +298,13 @@ function applyDailyResult(state, result) {
   addActivityDate(state.user, today);
   const dayIsNowComplete = isTodayComplete(state);
   const setAlreadyRecorded = state.user.completedDates.includes(today) || state.user.lastCompletedDate === today;
-  awardDailyGame(state, { date: today, gameId, hintsUsed: knownHints ?? 0, completeSet: dayIsNowComplete && !setAlreadyRecorded });
+  awardDailyGame(state, { date: today, gameId, hintsUsed: knownHints, completeSet: dayIsNowComplete && !setAlreadyRecorded });
   let firstDayCompletionToday = false;
   if (!wasDayComplete && dayIsNowComplete && addActivityDate(state.user, today, true)) { firstDayCompletionToday = true; state.user.completedDays += 1; }
-  state.rewards.lastAward = { date: today, gameId, badges: getBadges(state).filter(b => b.earned && !oldBadges.has(b.id)).map(b => b.name) };
+  state.rewards.lastAward = { date: today, gameId, badges: getBadges(state).filter(b => b.earned && !oldBadges.has(b.id)).map(b => b.id) };
   return { firstGameCompletionToday: true, firstDayCompletionToday };
 }
-export function completeDailyGame(gameId, { timeMs = null, hintsUsed = null, resets = null, attemptNo = null, puzzleId = null, event = null, today = currentDateKey() } = {}) {
+export function completeDailyGame(gameId, { timeMs = null, hintsUsed = 0, resets = null, attemptNo = null, puzzleId = null, event = null, today = currentDateKey() } = {}) {
   const state = loadFigloState(today);
   if (!state.games[gameId]) throw new Error(`Nieznana gra: ${gameId}`);
   if (!state.daily.requiredGames.includes(gameId)) throw new Error(`Gra ${gameId} nie należy do zestawu na ${today}`);

@@ -6,7 +6,7 @@ export function getDailyProgress(dateKey) {
   return { date: state.daily.date, completedGames: [...state.daily.completedGames], requiredGames: [...state.daily.requiredGames], complete: isTodayComplete(state), state };
 }
 
-export function completeGame({ gameId, puzzleId, date, elapsedMs = null, mode = 'daily', startedAt = null, hintsUsed = null, resets = null, attemptNo = null }) {
+export function completeGame({ gameId, puzzleId, date, elapsedMs = null, mode = 'daily', startedAt = null, hintsUsed = 0, resets = null, attemptNo = null }) {
   const event = createCompletionEvent({ gameId, puzzleId, date, elapsedMs, mode, startedAt, hintsUsed, resets, attemptNo });
   if (mode !== 'daily') return { state: loadFigloState(date), firstGameCompletionToday: false, firstDayCompletionToday: false, event };
   const result = completeDailyGame(gameId, { timeMs: elapsedMs, hintsUsed, resets, attemptNo, puzzleId, event, today: date });

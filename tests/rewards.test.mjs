@@ -97,3 +97,76 @@ test('badges unlock automatically from real state', () => {
   assert.ok(earned.includes('first-game'));
   assert.ok(!earned.includes('first-set'));
 });
+
+test('all nine achievements have distinct IDs, correct thresholds and stable progress', () => {
+  reset();
+  const state=loadFigloState(date);
+  const checks=[
+    {id:'first-game', field:'completedGames', threshold:1},
+    {id:'first-set', field:'completedDays', threshold:1},
+    {id:'games-25', field:'completedGames', threshold:25},
+    {id:'active-7', field:'bestActiveStreak', threshold:7},
+    {id:'sets-7', field:'completedDays', threshold:7},
+    {id:'games-100', field:'completedGames', threshold:100},
+    {id:'sets-30', field:'completedDays', threshold:30},
+  ];
+  assert.equal(new Set(getBadges(state).map(b=>b.id)).size,9);
+  assert.ok(getBadges(state).every(b=>!b.earned));
+  for(const check of checks){
+    const current=structuredClone(state);
+    current.user[check.field]=check.threshold-1;
+    assert.equal(getBadges(current).find(b=>b.id===check.id).earned,false,check.id+' before threshold');
+    current.user[check.field]=check.threshold;
+    assert.equal(getBadges(current).find(b=>b.id===check.id).earned,true,check.id+' at threshold');
+  }
+  const clean=structuredClone(state);
+  clean.rewards.cleanSets=1;
+  assert.equal(getBadges(clean).find(b=>b.id==='clean-set').earned,true);
+  assert.equal(getBadges(state).find(b=>b.id==='clean-set').earned,false);
+  const master=structuredClone(state);
+  master.user.completedGames=100;
+  master.user.completedDays=36;
+  master.rewards.cleanGames=100;
+  assert.equal(getPuzliIQ(master),143);
+  assert.equal(getRank(getPuzliIQ(master)).name,'Mistrz');
+  assert.equal(getBadges(master).find(b=>b.id==='master').earned,true);
+  assert.equal(getBadges(state).find(b=>b.id==='master').earned,false);
+});
+
+test('seven total daily sets earn the badge even without a seven-day streak', () => {
+  reset();
+  const state=loadFigloState(date);
+  state.user.completedDays=7;
+  state.user.bestActiveStreak=1;
+  const badges=getBadges(state);
+  assert.equal(badges.find(b=>b.id==='sets-7').earned,true);
+  assert.match(badges.find(b=>b.id==='sets-7').name,/Siedem kompletów/);
+  assert.equal(badges.find(b=>b.id==='active-7').earned,false);
+});
+
+test('unknown hint history cannot produce a clean game, clean set or clean badge', () => {
+  reset();
+  let result=completeDailyGame('korony',{today:date,hintsUsed:null});
+  assert.equal(result.state.rewards.totalPoints,100);
+  assert.equal(result.state.rewards.cleanGames,0);
+  assert.equal(result.state.puzzleResults['korony:'+date+':v1'].hintsUsed,null);
+  assert.deepEqual(result.state.rewards.lastAward.badges,['first-game']);
+  for(const game of games.slice(1)) result=completeDailyGame(game,{today:date,hintsUsed:0});
+  assert.equal(result.state.rewards.totalPoints,780);
+  assert.equal(result.state.rewards.cleanGames,5);
+  assert.equal(result.state.rewards.cleanSets,0);
+  assert.equal(result.state.rewards.daily[date].games.korony.hintsUsed,null);
+  assert.equal(getBadges(result.state).find(b=>b.id==='clean-set').earned,false);
+  assert.deepEqual(result.state.rewards.lastAward.badges,['first-set']);
+});
+
+test('a confirmed zero hint count earns clean-game and full-set achievements', () => {
+  reset();
+  let result;
+  for(const game of games) result=completeDailyGame(game,{today:date,hintsUsed:0});
+  assert.equal(result.state.rewards.totalPoints,800);
+  assert.equal(result.state.rewards.cleanGames,6);
+  assert.equal(result.state.rewards.cleanSets,1);
+  assert.equal(getBadges(result.state).find(b=>b.id==='clean-set').earned,true);
+  assert.deepEqual(result.state.rewards.lastAward.badges,['first-set','clean-set']);
+});
