@@ -1,0 +1,33 @@
+name: Seed PUZLI verified daily puzzles
+on:
+  schedule:
+    - cron: '18 5 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: puzli-verified-seed
+  cancel-in-progress: false
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Seed next seven Warsaw days (only when backend is configured)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        shell: bash
+        run: |
+          if [[ -z "$SUPABASE_URL" || -z "$SUPABASE_SERVICE_ROLE_KEY" ]]; then
+            echo "Supabase not yet configured: leaving guest-only PUZLI untouched."
+            exit 0
+          fi
+          START="$(TZ=Europe/Warsaw date +%F)"
+          node scripts/seed-verified-puzzles.mjs --start "$START" --days 7 --upload
