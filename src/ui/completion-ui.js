@@ -4,6 +4,7 @@ import { BADGES } from '../domain/rewards.js';
 import { getGameMode, getGameDate, getGamePuzzleId } from './game-mode.js';
 import { gameShareCard, shareCard, createManualShareFallback, formatShareTime } from '../services/share-service.js';
 import { playVictory } from './victory-fx.js';
+import { renderScoreBreakdown } from './score-breakdown.js';
 
 const GAME_META = {
   korony: { name: 'Korony', title: 'Korony ukończone!', href: 'korony.html' },
@@ -71,33 +72,26 @@ function elapsedFromModal(root) {
   if (!match) return null;
   return (match[3] ? Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]) : Number(match[1]) * 60 + Number(match[2])) * 1000;
 }
-function renderRewardSummary(root, state, gameId, date, mode, result) {
+function renderRewardSummary(root, state, gameId, date, mode) {
   let summary = root.querySelector('#completionRewardSummary');
   if (!summary) {
-    summary = document.createElement('div'); summary.id = 'completionRewardSummary'; summary.className = 'completion-reward-summary';
-    summary.setAttribute('aria-live', 'polite'); root.querySelector('.completion-stats')?.after(summary);
+    summary = document.createElement('div');
+    summary.id = 'completionRewardSummary';
+    summary.className = 'completion-reward-summary';
+    summary.setAttribute('aria-label', 'Punkty za grę');
+    root.querySelector('.completion-stats')?.after(summary);
   }
-  summary.replaceChildren(); summary.hidden = mode !== 'daily';
-  if (mode !== 'daily') return;
-  const record = state.rewards?.daily?.[date], points = record?.games?.[gameId]?.points || 0;
-  const line = document.createElement('strong');
-  line.textContent = '+' + points + ' pkt PUZLI';
-  summary.append(line);
-  const game = record?.games?.[gameId];
-  const supplement = document.createElement('span');
-  if (game) {
-    supplement.textContent = '+' + game.base + ' za ukończenie · +' + game.speed +
-      ' za szybkość · +' + game.clean + ' bez podpowiedzi' +
-      (game.hintsUsed > 0 ? ' · użyto podpowiedzi' : game.hintsUsed == null ? ' · brak danych o podpowiedziach' : '');
-  } else {
-    supplement.textContent = 'Wynik zapisany';
+  summary.hidden = mode !== 'daily';
+  if (mode !== 'daily') {
+    summary.replaceChildren();
+    return;
   }
-  summary.append(supplement);
-  const progress = progressFor(state);
-  if (progress.total > 0 && progress.completed === progress.total && record?.bonus) {
-    const full = document.createElement('span'); full.textContent = 'Pełny komplet: +' + record.bonus + ' pkt!'; summary.append(full);
-  }
+  const record = state.rewards?.daily?.[date];
+  const completed = progressFor(state);
+  const setBonus = completed.total > 0 && completed.completed === completed.total ? record?.bonus : 0;
+  renderScoreBreakdown(summary, record?.games?.[gameId], {setBonus});
 }
+
 function renderShare(root, { state, gameId, date, mode, puzzleId }) {
   const result = mode === 'daily' ? completionRecord(state, { gameId, date, puzzleId }) : null;
   const card = gameShareCard({ gameId, date, mode, puzzleId: result?.puzzleId || puzzleId,
@@ -134,7 +128,7 @@ export function refreshCompletion(root = document.querySelector('#done')) {
   if (elements.secondary) { elements.secondary.textContent = view.secondaryLabel; elements.secondary.classList.add('completion-secondary'); }
   const result = renderShare(root, { state, gameId, date, mode, puzzleId });
   refreshCompletionTime(elements.time, { mode, record: result });
-  renderRewardSummary(root, state, gameId, date, mode, result);
+  renderRewardSummary(root, state, gameId, date, mode);
   let link = root.querySelector('#completionRewardsLink');
   if (!link) { link = document.createElement('a'); link.id = 'completionRewardsLink'; link.className = 'completion-rewards-link'; link.textContent = 'Zobacz odznaki i ranking znajomych'; root.querySelector('.completion-card')?.append(link); }
   link.href = 'index.html#rywalizacja'; link.hidden = mode !== 'daily';

@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#0f111a">
   <title>PUZLI — podgląd animacji zwycięstwa</title>
-  <link rel="stylesheet" href="completion.css?v=completion-mode-fix">
+  <link rel="stylesheet" href="completion.css?v=score-bars-v4">
   <link rel="stylesheet" href="game-identities.css">
   <style>
     *,*::before,*::after{box-sizing:border-box}
@@ -47,8 +47,8 @@
   <main class="preview-shell">
     <header class="preview-header">
       <div class="preview-brand">PUZLI / PODGLĄD</div>
-      <h1>Animacja ukończenia gry — v3</h1>
-      <p>Większy rozbłysk, dwie fale światła i mocniejsze wejście odznaki. Odtwarzaj dowolnie na telefonie.</p>
+      <h1>Animacja i punktacja po zwycięstwie</h1>
+      <p>Efekt zwycięstwa i nowa karta punktów. Zmieniaj grę i odtwarzaj animację na telefonie.</p>
     </header>
     <nav class="preview-controls" aria-label="Wybierz grę">
       <button type="button" data-game="korony" aria-pressed="true">Korony</button>
@@ -78,7 +78,7 @@
             <div><span>Czas</span><strong>02:34</strong></div>
             <div><span>Najlepszy czas</span><strong>02:34</strong></div>
           </div>
-          <div class="completion-reward-summary"><strong>+120 pkt PUZLI</strong><span>Bez podpowiedzi: +20 pkt premii</span></div>
+          <div class="completion-reward-summary" id="completionRewardSummary" aria-label="Punkty za grę"></div>
           <a class="completion-primary">Graj dalej</a>
         </div>
       </section>
@@ -87,13 +87,20 @@
   </main>
   <script type="module">
     import { playVictory } from './src/ui/victory-fx.js?v=cinematic-v3';
+    import { renderScoreBreakdown } from './src/ui/score-breakdown.js';
+    import { calculateVerifiedPoints, targetSeconds } from './src/domain/seasonal-scoring.js';
     const names = {
       korony:'Korony ukończone!',duet:'Duet ukończony!',
       bloki:'Bloki ukończone!',latarnie:'Latarnie ukończone!',
       zip:'Zip ukończony!',sudoku:'Sudoku ukończone!'
     };
     const root = document.querySelector('#done');
-    function animate() { playVictory(root); }
+    let selectedGame = 'korony';
+    function renderExampleScore() {
+      const scoring = calculateVerifiedPoints({elapsedMs:154000,targetSecs:targetSeconds(selectedGame),hintsUsed:0});
+      renderScoreBreakdown(root.querySelector('#completionRewardSummary'), {...scoring,hintsUsed:0});
+    }
+    function animate() { renderExampleScore(); playVictory(root); }
     document.querySelector('#replay').addEventListener('click',animate);
     document.querySelector('#badgeToggle').addEventListener('change',event=>{
       root.querySelector('.puzli-badge-unlock').hidden = !event.target.checked;
@@ -101,7 +108,8 @@
     });
     for (const button of document.querySelectorAll('[data-game]')) {
       button.addEventListener('click',()=>{
-        document.body.className = 'game-' + button.dataset.game;
+        selectedGame = button.dataset.game;
+        document.body.className = 'game-' + selectedGame;
         document.querySelector('#doneTitle').textContent = names[button.dataset.game];
         document.querySelectorAll('[data-game]').forEach(item=>{
           item.setAttribute('aria-pressed',String(item === button));
