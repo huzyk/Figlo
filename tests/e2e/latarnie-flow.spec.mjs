@@ -57,7 +57,7 @@ test('Latarnie hint has a single clearly highlighted action and a distinct sourc
       import('/src/latarnie/human-solver.js')
     ]);
     const {puzzle}=await getDailyGame('latarnie','2026-10-15');
-    return nextHumanStep(puzzle,{bulbs:new Set(),noBulbs:new Set()});
+    return nextHumanStep(puzzle,{bulbs:new Set(),noBulbs:new Set(),preferBulbs:true});
   });
   expect(step).not.toBeNull();
   expect(step.indices).toEqual([step.index]);
