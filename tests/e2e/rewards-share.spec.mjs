@@ -183,8 +183,14 @@ test('second daily completion presents the first saved result in both modal and 
   }, DATE);
   await expect(page.locator('#finalTime')).toHaveText('00:30');
   await expect(page.locator('#finalTime').locator('..')).toContainText('Zapisany wynik');
-  await expect(page.locator('#completionRewardSummary')).toContainText('użyto podpowiedzi');
-  await expect(page.locator('#completionRewardSummary')).toContainText('za szybkość');
+  await expect(page.locator('#completionRewardSummary')).toContainText('Podpowiedź wykorzystana');
+  await expect(page.locator('#completionRewardSummary')).toContainText('Szybkość');
+  await expect(page.locator('.score-row')).toHaveCount(3);
+  await expect(page.locator('.score-total')).toHaveText('+20 / 25 pkt');
+  await expect(page.locator('.score-base .score-row-value')).toHaveText('10/10');
+  await expect(page.locator('.score-speed .score-row-value')).toHaveText('10/10');
+  await expect(page.locator('.score-clean .score-row-value')).toHaveText('0/5');
+  await expect(page.locator('.score-clean [role="progressbar"]')).toHaveAttribute('aria-valuenow','0');
   await page.locator('#completionShare').click();
   const card = await page.evaluate(() => window.__sharedPuzli);
   expect(card.text).toContain('w 0:30');
@@ -295,4 +301,55 @@ test('daily completion also shows a clear checkmark rather than stacked game sym
   expect(['""', "''"]).toContain(symbol.before);
   await expect(page.locator('[data-completion-progress]')).not.toBeHidden();
   await expect(page.locator('#completionRewardsLink')).toBeVisible();
+});
+
+test('daily score components use compact accessible bars with correct dynamic widths and do not alter points', async ({ page }) => {
+  await page.goto('/korony.html?date=' + DATE);
+  await expect(page.locator('#gameLoader')).toBeHidden();
+  await page.evaluate(async date => {
+    const {completeGame} = await import('/src/services/progress-service.js');
+    const {refreshCompletion} = await import('/src/ui/completion-ui.js');
+    completeGame({gameId:'korony',puzzleId:document.documentElement.dataset.gamePuzzleId,
+      date, elapsedMs:240000,hintsUsed:0,mode:'daily'});
+    document.querySelector('#done').hidden = false;
+    refreshCompletion();
+  }, DATE);
+  const points = await page.locator('#completionRewardSummary').evaluate(root => ({
+    total:root.querySelector('.score-total')?.textContent,
+    rows:[...root.querySelectorAll('.score-row')].map(row=>({
+      label:row.querySelector('.score-row-label')?.textContent,
+      text:row.querySelector('.score-row-value')?.textContent,
+      width:row.querySelector('.score-fill')?.style.width,
+      now:row.querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow')
+    }))
+  }));
+  expect(points.total).toContain('+22'); // 10 base + 7 speed (4m reference) + 5 clean.
+  expect(points.rows).toEqual([
+    {label:'Ukończenie',text:'10/10',width:'100%',now:'10'},
+    {label:'Szybkość',text:'7/10',width:'70%',now:'7'},
+    {label:'Bez podpowiedzi',text:'5/5',width:'100%',now:'5'}
+  ]);
+  await expect(page.locator('.score-set-bonus')).toHaveCount(0);
+  const saved = await page.evaluate(async date => {
+    const {loadFigloState}=await import('/src/storage.js');
+    return loadFigloState(date).rewards.daily[date].games.korony.points;
+  }, DATE);
+  expect(saved).toBe(22);
+});
+
+test('visual preview demonstrates real score breakdown in all six games and fits mobile', async ({page}) => {
+  await page.setViewportSize({width:320,height:740});
+  await page.goto('/victory-preview.html');
+  await expect(page.locator('.score-row')).toHaveCount(3);
+  await expect(page.locator('.score-maximum')).toHaveText(' / 25 pkt');
+  for (const game of ['korony','duet','bloki','latarnie','zip','sudoku']) {
+    await page.locator('[data-game="'+game+'"]').click();
+    await expect(page.locator('.score-row')).toHaveCount(3);
+    await expect(page.locator('.score-base .score-row-value')).toHaveText('10/10');
+    const widths=await page.locator('.score-fill').evaluateAll(items=>items.map(item=>item.style.width));
+    expect(widths.every(x=>/^\\d+(?:\\.\\d+)?%$/.test(x))).toBe(true);
+  }
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(2);
+  expect(await page.evaluate(()=>Object.keys(localStorage).filter(x=>x.startsWith('figlo-')||x.startsWith('puzli-')))).toEqual([]);
 });
