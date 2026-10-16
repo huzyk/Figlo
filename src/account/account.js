@@ -42,6 +42,9 @@ async function logout(scope) {
   user = undefined;
   $('profile').hidden = true; $('login').hidden = false;
   $('identity').textContent = ''; $('nickname').value = '';
+  $('code').value = ''; $('deleteConfirm').value = '';
+  $('codeForm').hidden = true; $('emailForm').hidden = false;
+  resetCaptcha();
   message(scope === 'global' ? 'Sesje zostały wylogowane. Dostęp do danych konta został cofnięty.' : 'Wylogowano z konta.');
 }
 async function init() {

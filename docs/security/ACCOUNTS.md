@@ -19,7 +19,7 @@ konfiguracji dostawców, SMTP, CAPTCHA i monitoringu nie jest to aktywne logowan
 
 ## Architektura i granice bezpieczeństwa
 
-GitHub Pages → przypięty, lokalnie zbudowany SDK → Supabase Auth (OAuth PKCE / OTP).
+Statyczny hosting (GitHub Pages / Cloudflare Pages) → przypięty, lokalnie zbudowany SDK → Supabase Auth (OAuth PKCE / OTP).
 Użytkownik → PostgREST → RLS → własny profil. Usunięcie → Edge Function → weryfikacja JWT,
 użytkownika, aktywnej sesji i czasu logowania → Admin API. ID celu nigdy nie pochodzi z formularza.
 
@@ -38,6 +38,9 @@ Przed płatnościami/admin panelem rekomendowana migracja do backendu/BFF z sesj
 Secure, SameSite, ochroną CSRF i osobnym origin dla kont. GitHub Pages nie zapewnia serwerowego
 ustawiania nagłówków CSP frame-ancestors; przy produkcji przenieść hosting/proxy na taki, który
 ustawia CSP, frame-ancestors 'none', HSTS, no-store na stronach kont i X-Content-Type-Options.
+Repo ma również aktywne wdrożenia Cloudflare Pages: plik `_headers` ustawia CSP z frame-ancestors,
+no-store i no-referrer dla `/account` oraz `/account.html`. HSTS skonfigurować dla docelowej domeny
+w panelu hostingu. Sprawdzić nagłówki po wszystkich przekierowaniach; GitHub ignoruje `_headers`.
 Przejęcie repo, CI lub hostingu pozwala podmienić aplikację — MFA administratorów jest obowiązkowe.
 
 RLS sprawdza `auth.uid()` i istnienie sesji w auth.sessions. Dzięki temu wylogowane sesje nie
