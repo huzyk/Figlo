@@ -80,9 +80,17 @@ function renderRewardSummary(root, state, gameId, date, mode, result) {
   summary.replaceChildren(); summary.hidden = mode !== 'daily';
   if (mode !== 'daily') return;
   const record = state.rewards?.daily?.[date], points = record?.games?.[gameId]?.points || 0;
-  const line = document.createElement('strong'); line.textContent = '+' + points + ' pkt PUZLI'; summary.append(line);
+  const line = document.createElement('strong');
+  line.textContent = '+' + points + ' pkt PUZLI';
+  summary.append(line);
+  const game = record?.games?.[gameId];
   const supplement = document.createElement('span');
-  supplement.textContent = points === 120 && result?.hintsUsed === 0 ? 'Bez podpowiedzi: +20 pkt premii' : result?.hintsUsed > 0 ? 'Rozwiązane z podpowiedzią' : 'Za zapisany wynik gry';
+  if (game) {
+    supplement.textContent = '+' + game.base + ' za ukończenie · +' + game.speed +
+      ' za szybkość · +' + game.clean + ' bez podpowiedzi';
+  } else {
+    supplement.textContent = 'Wynik zapisany';
+  }
   summary.append(supplement);
   const progress = progressFor(state);
   if (progress.total > 0 && progress.completed === progress.total && record?.bonus) {
