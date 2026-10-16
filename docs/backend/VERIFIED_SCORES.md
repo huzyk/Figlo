@@ -80,10 +80,12 @@ logów albo czatu. Używaj go wyłącznie w Edge Functions i sekretach Actions.
 ## Dalsze czynności w kodzie po połączeniu kont
 
 Flaga verifiedBackendEnabled w src/services/verified-game-api.js jest FALSE.
-Nie włączaj jej przed integracją żądań start/hint/finish w sześciu kontrolerach
-gry, wraz z serializacją podpowiedzi i przekazywaniem rozwiązanej planszy.
-Bieżący frontend NIE wysyła wyników do backendu i NIE pokazuje fikcyjnych
-centralnych rankingów. To celowy tryb bezpiecznego wdrażania.
+Wszystkie sześć kontrolerów przesyła przygotowany dowód ukończenia do
+src/services/verified-session.js, który buforuje zdarzenia rozpoczęcia,
+podpowiedzi i ukończenia we właściwej kolejności. Po podłączeniu kont i
+rzetelnych testach staging można włączyć flagę, aby rozpocząć oficjalne
+zliczanie. Gry lokalne nadal działają także bez połączenia z siecią.
+Front-end NIE pokazuje fikcyjnych centralnych rankingów.
 
 Po aktywacji stworzyć interfejs przełącznika zgody na publikację pseudonimu,
 prawdziwe rankingi oraz percentyle. Zmiany targetów i reguł punktacji

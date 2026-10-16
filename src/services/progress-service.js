@@ -1,15 +1,17 @@
 import { completeDailyGame, isTodayComplete, loadFigloState } from '../storage.js';
 import { createCompletionEvent } from '../domain/completion.js';
+import { submitVerifiedCompletion } from './verified-session.js';
 
 export function getDailyProgress(dateKey) {
   const state = loadFigloState(dateKey);
   return { date: state.daily.date, completedGames: [...state.daily.completedGames], requiredGames: [...state.daily.requiredGames], complete: isTodayComplete(state), state };
 }
 
-export function completeGame({ gameId, puzzleId, date, elapsedMs = null, mode = 'daily', startedAt = null, hintsUsed = 0, resets = null, attemptNo = null }) {
+export function completeGame({ gameId, puzzleId, date, elapsedMs = null, mode = 'daily', startedAt = null, hintsUsed = 0, resets = null, attemptNo = null, proof = null }) {
   const event = createCompletionEvent({ gameId, puzzleId, date, elapsedMs, mode, startedAt, hintsUsed, resets, attemptNo });
   if (mode !== 'daily') return { state: loadFigloState(date), firstGameCompletionToday: false, firstDayCompletionToday: false, event };
   const result = completeDailyGame(gameId, { timeMs: elapsedMs, hintsUsed, resets, attemptNo, puzzleId, event, today: date });
+  if (result.firstGameCompletionToday) submitVerifiedCompletion({gameId,puzzleId,date,mode},proof);
   return { ...result, event: result.state.puzzleResults[puzzleId] || event };
 }
 

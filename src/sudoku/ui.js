@@ -171,7 +171,8 @@ function finish() {
   if(mode==='daily'){
     const result=completeGame({
       gameId:'sudoku',puzzleId:record.puzzleId,date:session?.date||today,elapsedMs:ms,
-      mode:'daily',startedAt:session.startedAt,hintsUsed:session.hintsUsed||0,resets:session.resets||0,attemptNo:(session.resets||0)+1
+      mode:'daily',startedAt:session.startedAt,hintsUsed:session.hintsUsed||0,resets:session.resets||0,attemptNo:(session.resets||0)+1,
+      proof:[...session.values]
     });
     best=result.state.games.sudoku.bestTimeMs||ms;
     if(result.firstGameCompletionToday){
