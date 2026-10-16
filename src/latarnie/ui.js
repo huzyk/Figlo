@@ -22,7 +22,7 @@ function startTimer(){if(!session||session.finished||session.runningSince)return
 function pauseTimer(){if(!session?.runningSince)return;session.elapsedMs+=Math.max(0,Date.now()-session.runningSince);session.runningSince=null;if(timerTick){clearInterval(timerTick);timerTick=null;}save();renderTimer();}
 function bulbSet(){return new Set(session?.bulbs||[]);}function crossSet(){return new Set(session?.crosses||[]);}
 function pushHistory(){session.history.push({bulbs:[...session.bulbs],crosses:[...session.crosses]});if(session.history.length>100)session.history.shift();}
-const HINT_CLASSES=['hint','hint-target','hint-action-cross','hint-action-bulb','hint-action-remove'];
+const HINT_CLASSES=['hint','hint-source','hint-target','hint-action-cross','hint-action-bulb','hint-action-remove'];
 function clearHintClasses(){for(const cell of $('#board').children){cell.classList.remove(...HINT_CLASSES);cell.removeAttribute('aria-description');}}
 function clearHint(){$('#hintCard').hidden=true;clearHintClasses();dismissMobileHint($('#feedback'));}
 function hintActionClass(step){if(step?.kind==='wrong-bulb')return'hint-action-remove';if(step?.value===1)return'hint-action-bulb';if(step?.value===0)return'hint-action-cross';return null;}
@@ -40,7 +40,43 @@ if(!feedback.classList.contains('hint-feedback')){
 $('#bulbCounter').textContent=String(bulbs.size);$('#undo').disabled=!session.history.length||session.finished;$('#mobileUndo').disabled=!session.history.length||session.finished;$('#hint').disabled=session.finished;$('#mobileHint').disabled=session.finished;renderTimer();}
 function undo(){if(!session.history.length||session.finished)return;clearHint();const previous=session.history.pop();session.bulbs=previous.bulbs;session.crosses=previous.crosses;save();render();}
 function reset(){if(session.finished)return;clearHint();pauseTimer();session.bulbs=[];session.crosses=[];session.history=[];session.elapsedMs=0;session.runningSince=null;session.startedAt=null;session.resets=(session.resets||0)+1;save();render();}
-function showHint(){if(session.finished)return;clearHintClasses();const step=nextHumanStep(puzzle,{bulbs:bulbSet(),noBulbs:crossSet()});const card=$('#hintCard');card.hidden=false;$('#hintText').textContent=step?.reason||'Nie widzę teraz pewnego kolejnego kroku. Sprawdź ściany z liczbami i nieoświetlone pola.';if(step){startTimer();session.hintsUsed=(session.hintsUsed||0)+1;save();track('hint_used',{gameId:'latarnie',puzzleId:record?.puzzleId,date:session?.date||puzzleDate,mode:gameMode,hintsUsed:session.hintsUsed});const targets=new Set(step.indices||[step.index]),actionClass=hintActionClass(step);for(const cell of $('#board').children){const index=Number(cell.dataset.index),isTarget=targets.has(index);cell.classList.toggle('hint',step.area?.includes(index));cell.classList.toggle('hint-target',isTarget);cell.classList.toggle('hint-action-cross',isTarget&&actionClass==='hint-action-cross');cell.classList.toggle('hint-action-bulb',isTarget&&actionClass==='hint-action-bulb');cell.classList.toggle('hint-action-remove',isTarget&&actionClass==='hint-action-remove');if(isTarget&&actionClass==='hint-action-remove')cell.setAttribute('aria-description','Podpowiedź: usuń tę latarnię');else cell.removeAttribute('aria-description');}}if(matchMedia('(max-width: 767px)').matches){showMobileHint($('#feedback'),{reason:$('#hintText').textContent,onClose:()=>{$('#hintCard').hidden=true;clearHintClasses();}});}}
+function showHint(){
+  if(session.finished)return;
+  clearHintClasses();
+  const step=nextHumanStep(puzzle,{bulbs:bulbSet(),noBulbs:crossSet()});
+  const card=$('#hintCard');
+  card.hidden=false;
+  const reason=step?.reason||'Nie widzę teraz pewnego kolejnego kroku. Sprawdź ściany z liczbami i nieoświetlone pola.';
+  const action=step?.action||null;
+  $('#hintText').textContent=action?reason+' Co zrobić: '+action:reason;
+  if(step){
+    startTimer();
+    session.hintsUsed=(session.hintsUsed||0)+1;
+    save();
+    track('hint_used',{gameId:'latarnie',puzzleId:record?.puzzleId,date:session?.date||puzzleDate,mode:gameMode,hintsUsed:session.hintsUsed});
+    const source=step.sourceIndex;
+    const target=step.index;
+    const actionClass=hintActionClass(step);
+    for(const cell of $('#board').children){
+      const index=Number(cell.dataset.index),isTarget=index===target,isSource=index===source;
+      cell.classList.toggle('hint-source',isSource);
+      cell.classList.toggle('hint-target',isTarget);
+      cell.classList.toggle('hint-action-cross',isTarget&&actionClass==='hint-action-cross');
+      cell.classList.toggle('hint-action-bulb',isTarget&&actionClass==='hint-action-bulb');
+      cell.classList.toggle('hint-action-remove',isTarget&&actionClass==='hint-action-remove');
+      if(isTarget)cell.setAttribute('aria-description',action||'Podpowiedź: to pole należy zmienić');
+      else if(isSource)cell.setAttribute('aria-description','Źródło podpowiedzi: '+reason);
+      else cell.removeAttribute('aria-description');
+    }
+  }
+  if(matchMedia('(max-width: 767px)').matches){
+    showMobileHint($('#feedback'),{
+      reason,action,
+      onClose:()=>{$('#hintCard').hidden=true;clearHintClasses();}
+    });
+  }
+}
+
 function finish(){pauseTimer();session.finished=true;const ms=session.elapsedMs;let best=gameMode==='daily'?loadFigloState(today).games.latarnie?.bestTimeMs||null:null;if(gameMode==='daily'){save();const result=completeGame({gameId:'latarnie',puzzleId:record.puzzleId,date:today,elapsedMs:ms,mode:'daily',startedAt:session.startedAt,hintsUsed:session.hintsUsed||0,resets:session.resets||0,attemptNo:(session.resets||0)+1});best=result.state.games.latarnie?.bestTimeMs||ms;if(result.firstGameCompletionToday)track('game_completed',{...result.event,hintsUsed:session.hintsUsed||0});if(result.firstDayCompletionToday)track('daily_completed',{date:today});}else{track('game_completed',{gameId:'latarnie',puzzleId:record.puzzleId,date:session?.date||puzzleDate,mode:gameMode,elapsedMs:ms,hintsUsed:session.hintsUsed||0,resets:session.resets||0,attemptNo:(session.resets||0)+1});}$('#doneCopy').textContent=gameMode==='challenge'?'Wyzwanie ukończone. Porównaj wynik ze znajomymi.':gameMode==='training'?'Trening ukończony. Czas na kolejną planszę?':'Wszystkie pola są oświetlone.';$('#finalTime').textContent=formatMs(ms);$('#bestTime').textContent=best?formatMs(best):'—';$('#done').hidden=false;render();}
 async function loadDaily(){gameMode=requestedMode==='challenge'?'challenge':'daily';showGameLoader('Przygotowuję dzisiejsze Latarnie…');$('#board').setAttribute('aria-busy','true');try{const loadedRecord=await loadLatarnieDaily(puzzleDate);validateChallengeRecord(loadedRecord);record=loadedRecord;puzzle=record.puzzle;gameMode=requestedMode==='challenge'?'challenge':'daily';setGameMode(gameMode,{date:puzzleDate,puzzleId:record.puzzleId});$('#roundLabel').textContent=gameMode==='challenge'?challengeRoundLabel():'Dzisiaj';$('#done').hidden=true;let restored=gameMode==='daily'?loadLatarnieSession({date:puzzleDate,seed:record.puzzleId}):null;if(restored?.finished){clearLatarnieSession(puzzleDate);restored=null;}session=restored||createLatarnieSession({date:puzzleDate,seed:record.puzzleId});buildBoard();render();track('game_opened',{gameId:'latarnie',puzzleId:record.puzzleId,date:puzzleDate,mode:gameMode});if(!document.hidden&&resumeSessionTimer(session))timerTick=setInterval(renderTimer,250);}finally{$('#board').removeAttribute('aria-busy');hideGameLoader();}}
 async function loadTraining(){showGameLoader('Przygotowuję planszę treningową…');$('#board').setAttribute('aria-busy','true');try{const seed=randomSeed();const generated=await generateLatarnieAsync({seed,difficulty:'medium'});record={puzzleId:`latarnie-training:${seed}`,puzzle:generated.puzzle,solution:generated.solution};puzzle=generated.puzzle;session=createLatarnieSession({date:today,seed:record.puzzleId});gameMode='training';setGameMode('training',{date:today,puzzleId:record.puzzleId});trainingNumber+=1;$('#roundLabel').textContent=`Trening #${trainingNumber}`;$('#done').hidden=true;clearHint();buildBoard();render();track('game_training_started',{gameId:'latarnie',puzzleId:record.puzzleId,date:today});track('game_opened',{gameId:'latarnie',puzzleId:record.puzzleId,date:today,mode:'training'});}finally{$('#board').removeAttribute('aria-busy');hideGameLoader();}}
