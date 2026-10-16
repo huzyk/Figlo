@@ -3,6 +3,7 @@ import { loadFigloState } from '../storage.js';
 import { BADGES } from '../domain/rewards.js';
 import { getGameMode, getGameDate, getGamePuzzleId } from './game-mode.js';
 import { gameShareCard, shareCard, createManualShareFallback, formatShareTime } from '../services/share-service.js';
+import {verifiedBackendEnabled,getMyVerifiedPercentile} from '../services/verified-game-api.js';
 
 const GAME_META = {
   korony: { name: 'Korony', title: 'Korony ukończone!', href: 'korony.html' },
@@ -223,6 +224,17 @@ function init() {
     }
     wasVisible = visible;
   };
+  if(verifiedBackendEnabled)window.addEventListener('puzli-verified-result',async event=>{
+    if(root.hidden || !event.detail || event.detail.gameId!==gameIdFromPath())return;
+    let panel=root.querySelector('#verifiedCompletionInfo');
+    if(!panel){panel=document.createElement('p');panel.id='verifiedCompletionInfo';panel.className='completion-verified-info';root.querySelector('#completionRewardSummary')?.after(panel);}
+    if(!event.detail.ok){panel.textContent='Wynik lokalny zapisany. Nie udało się jeszcze zatwierdzić wyniku w rankingu.';return;}
+    panel.textContent='Wynik zweryfikowany: +'+event.detail.points+' pkt'+(event.detail.bonus?' · komplet +'+event.detail.bonus+' pkt':'')+'.';
+    try{
+      const result=await getMyVerifiedPercentile(getGamePuzzleId());
+      if(result.available && result.percentile?.better_than_percent!==undefined)panel.textContent+=' Lepszy wynik niż '+result.percentile.better_than_percent+'% graczy ('+result.percentile.sample_size+' porównań).';
+    }catch{}
+  });
   const observer = new MutationObserver(() => queueMicrotask(update));
   observer.observe(root, { attributes: true, attributeFilter: ['hidden'] });
   if (!root.hidden) update();

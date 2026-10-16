@@ -157,6 +157,15 @@
           <button id="clearFriendResults" class="clear-friends" type="button">Wyczyść wyniki znajomych</button>
         </div>
       </section>
+      <section class="engagement-section" id="verifiedRanking" hidden aria-label="Oficjalny ranking PUZLI">
+        <div class="section-head"><div><span class="section-kicker">OFICJALNE WYNIKI</span><h2>TOP PUZLI</h2></div><p>Wyłącznie zweryfikowane wyniki graczy, którzy zgodzili się na publikację.</p></div>
+        <div class="friends-panel">
+          <label for="verifiedPeriod">Okres rankingu</label>
+          <select id="verifiedPeriod"><option value="week">Tydzień</option><option value="month">Miesiąc</option><option value="year">Rok</option><option value="all">Wszech czasów</option></select>
+          <p id="verifiedRankingStatus" role="status" aria-live="polite"></p>
+          <ol class="friends-ranking" id="verifiedRankingRows"></ol>
+        </div>
+      </section>
     </div>
   </main>
 
