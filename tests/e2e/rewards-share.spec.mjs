@@ -33,8 +33,8 @@ test('PUZLI IQ and achievements update after a daily game, without disturbing si
   await expect(page.locator('#shareDailyResult')).toBeDisabled();
   await addGame(page);
   await page.reload();
-  await expect(page.locator('#totalPuzliPoints')).toHaveText('120');
-  await expect(page.locator('#weekPuzliPoints')).toHaveText('120');
+  await expect(page.locator('#totalPuzliPoints')).toHaveText('25');
+  await expect(page.locator('#weekPuzliPoints')).toHaveText('25');
   await expect(page.locator('#badgesCount')).toContainText('1/9');
   await expect(page.locator('#cardStreak')).toHaveText('1 dzień');
   await expect(page.locator('#dailyShareProgress')).toContainText('1/6 gier');
@@ -57,7 +57,7 @@ test('shared weekly score uses fragment and updates only after opening a new lin
     const sent = await sender.evaluate(() => window.__sharedPuzli);
     expect(new URL(sent.url).searchParams.has('wynik')).toBe(false);
     expect(new URL(sent.url).hash).toMatch(/^#rywalizacja\?wynik=/);
-    expect(sent.text).toContain('120 pkt');
+    expect(sent.text).toContain('25 pkt');
 
     const receiver = await receiverContext.newPage();
     const url = new URL(sent.url); url.searchParams.set('date', DATE);
@@ -65,18 +65,18 @@ test('shared weekly score uses fragment and updates only after opening a new lin
     await expect(receiver.locator('#friendsRanking .friend-row')).toHaveCount(2);
     await expect(receiver.locator('#friendsRanking')).toContainText('Kasia');
     await expect(receiver.locator('#friendStatus')).toContainText('Dodano wynik');
-    await expect(receiver.locator('#friendsRanking')).toContainText('120 pkt');
+    await expect(receiver.locator('#friendsRanking')).toContainText('25 pkt');
     expect(receiver.url()).not.toContain('wynik=');
 
     await addGame(sender, 'duet'); await sender.reload();
     await receiver.reload();
-    await expect(receiver.locator('#friendsRanking')).toContainText('120 pkt');
+    await expect(receiver.locator('#friendsRanking')).toContainText('25 pkt');
     await sender.locator('#sharePuzliResult').click();
     const next = new URL((await sender.evaluate(() => window.__sharedPuzli)).url);
     next.searchParams.set('date', DATE);
     await receiver.goto(next.toString());
     await expect(receiver.locator('#friendsRanking .friend-row')).toHaveCount(2);
-    await expect(receiver.locator('#friendsRanking')).toContainText('240 pkt');
+    await expect(receiver.locator('#friendsRanking')).toContainText('50 pkt');
   } finally { await senderContext.close(); await receiverContext.close(); }
 });
 
@@ -183,7 +183,8 @@ test('second daily completion presents the first saved result in both modal and 
   }, DATE);
   await expect(page.locator('#finalTime')).toHaveText('00:30');
   await expect(page.locator('#finalTime').locator('..')).toContainText('Zapisany wynik');
-  await expect(page.locator('#completionRewardSummary')).toContainText('Rozwiązane z podpowiedzią');
+  await expect(page.locator('#completionRewardSummary')).toContainText('użyto podpowiedzi');
+  await expect(page.locator('#completionRewardSummary')).toContainText('za szybkość');
   await page.locator('#completionShare').click();
   const card = await page.evaluate(() => window.__sharedPuzli);
   expect(card.text).toContain('w 0:30');
