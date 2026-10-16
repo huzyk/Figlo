@@ -136,6 +136,55 @@ export function refreshCompletion(root = document.querySelector('#done')) {
   if (gameId === 'korony' && elements.time) elements.time.textContent = elements.time.textContent.replace(/^Czas\s+/i, '');
   return view;
 }
+// Celebrations are visual only; never change scores or prevent interactions.
+// Reduced-motion preference disables particles and badge movement.
+function celebrateCompletion(root) {
+  root.querySelector('.puzli-confetti-layer')?.remove();
+  root.querySelector('.puzli-achievement-toast')?.remove();
+  if (getGameMode() !== 'daily' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const gameId = gameIdFromPath(), date = getGameDate();
+  const state = loadFigloState(date);
+  const record = completionRecord(state, {gameId,date,puzzleId:getGamePuzzleId()});
+  if (!record) return;
+  const progress = progressFor(state), fullSet = progress.total>0 && progress.completed===progress.total;
+  const layer = document.createElement('div');
+  layer.className = 'puzli-confetti-layer';
+  layer.setAttribute('aria-hidden','true');
+  const pieces = fullSet ? 34 : 18;
+  for (let i=0;i<pieces;i++) {
+    const paper = document.createElement('span');
+    paper.className = 'puzli-confetti';
+    paper.style.setProperty('--burst-x', ((i*137.508)%240-120)+'px');
+    paper.style.setProperty('--burst-y', (-30-(i*37)%120)+'px');
+    paper.style.setProperty('--spin', ((i*57)%520-260)+'deg');
+    paper.style.setProperty('--delay', ((i*47)%260)+'ms');
+    paper.style.setProperty('--hue', String((i*43)%360));
+    layer.append(paper);
+  }
+  root.append(layer);
+  setTimeout(()=>layer.remove(), 1900);
+  const award=state.rewards?.lastAward;
+  if (award?.date !== date || award.gameId !== gameId || !award.badges?.length) return;
+  const key = 'puzli-award-seen:' + date + ':' + gameId + ':' + award.badges.join(',');
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key,'1');
+  }catch {}
+  const toast=document.createElement('div');
+  toast.className='puzli-achievement-toast';
+  toast.setAttribute('aria-hidden','true');
+  const symbol=document.createElement('span');
+  symbol.className='puzli-achievement-medal';
+  symbol.textContent='✦';
+  const title=document.createElement('strong');
+  title.textContent=award.badges.length===1 ? 'Nowa odznaka!' : 'Nowe odznaki!';
+  const names=document.createElement('span');
+  names.textContent=award.badges.map(id=>BADGES.find(b=>b.id===id)?.name||id).join(' · ');
+  toast.append(symbol,title,names);
+  root.append(toast);
+  setTimeout(()=>toast.remove(), 2600);
+}
+
 function init() {
   const root = document.querySelector('#done'); if (!root) return;
   let previousFocus = document.activeElement;
@@ -160,6 +209,7 @@ function init() {
     const visible = !root.hidden;
     if (visible) {
       refreshCompletion(root);
+      if (!wasVisible) celebrateCompletion(root);
       // Keep the existing game's focus on replay when it already sits in the dialog.
       if (!root.contains(document.activeElement)) focusableElements()[0]?.focus({ preventScroll: true });
     } else if (wasVisible) {
