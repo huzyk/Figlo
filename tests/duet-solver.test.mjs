@@ -50,3 +50,16 @@ test('human solver accepts already solved puzzle', () => {
   const result = solveLikeHuman(fullPuzzle);
   assert.equal(result.solved, true);
 });
+
+test('Duet hints retain the correct value and do not prescribe outdated colors',async()=>{
+  const {getDuetHint}=await import('../src/duet/hints.js');
+  const puzzle={size:6,givens:[],relations:[]};
+  for(const [given,expected] of [[A,B],[B,A]]){
+    const board=Array(36).fill(EMPTY);
+    board[0]=given;board[2]=given;
+    const hint=getDuetHint(puzzle,board);
+    assert.equal(hint.index,1);
+    assert.equal(hint.value,expected);
+    assert.doesNotMatch(hint.reason,/fioletowy|złoty/i);
+  }
+});

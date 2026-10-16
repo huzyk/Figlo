@@ -1,0 +1,65 @@
+/* Hint icons use the same Duet circle/diamond silhouettes and palette as the board. */
+body.game-duet .duet-hint-action {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  vertical-align:middle;
+  white-space:nowrap;
+  font-weight:750;
+  color:inherit;
+}
+body.game-duet .duet-hint-symbol.symbol {
+  position:relative;
+  display:inline-block;
+  flex:0 0 23px;
+  width:23px;
+  height:23px;
+  max-width:none;
+  max-height:none;
+  left:auto;
+  top:auto;
+  translate:none;
+  margin:0 3px;
+  filter:none;
+  vertical-align:middle;
+  pointer-events:none;
+}
+body.game-duet .duet-hint-symbol.symbol.a {
+  border:5px solid #008e99;
+  border-radius:50%;
+  background:transparent;
+  transform:none;
+  box-shadow:none;
+}
+body.game-duet .duet-hint-symbol.symbol.a::after {
+  content:"";
+  position:absolute;
+  inset:23%;
+  border-radius:50%;
+  background:#008e99;
+  box-shadow:none;
+}
+body.game-duet .duet-hint-symbol.symbol.b {
+  border:0;
+  background:#f17465;
+  border-radius:8%;
+  transform:rotate(45deg);
+  box-shadow:none;
+}
+body.game-duet .duet-hint-symbol.symbol.b::after {
+  content:"";
+  position:absolute;
+  inset:28%;
+  border-radius:8%;
+  background:#f9fbf5;
+  box-shadow:none;
+}
+body.game-duet .duet-hint-mobile-action {
+  display:flex;
+  align-items:center;
+  min-height:35px;
+  gap:4px;
+}
+body.game-duet .duet-hint-mobile-action .duet-hint-action {
+  color:#125e67;
+}

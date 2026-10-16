@@ -133,3 +133,21 @@ test('Duet cells keep equal size after symbols render', async ({ page }) => {
   expect(Math.max(...widths) - Math.min(...widths)).toBeLessThan(1);
   expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(1);
 });
+
+test('Duet hint shows matching symbol rather than an outdated color on mobile and desktop', async ({page},info)=>{
+  await fresh(page);
+  const hint=info.project.name==='mobile-chromium'?'#mobileHint':'#hint';
+  const expected=await page.evaluate(async()=>{
+    const {getDuetHint}=await import('/src/duet/hints.js');
+    const {getDailyGame}=await import('/src/services/daily-service.js');
+    const record=await getDailyGame('duet','2026-08-24');
+    const board=[...document.querySelectorAll('.duet-cell')].map(cell=>cell.dataset.value==='a'?1:cell.dataset.value==='b'?2:0);
+    return getDuetHint(record.puzzle,board).value===1?'a':'b';
+  });
+  await page.locator(hint).click();
+  const visibleHint=info.project.name==='mobile-chromium'?page.locator('#feedback'):page.locator('#hintText');
+  await expect(visibleHint.locator('.duet-hint-symbol.symbol')).toHaveCount(1);
+  await expect(visibleHint.locator('.duet-hint-symbol.symbol.'+expected)).toBeVisible();
+  await expect(visibleHint).toContainText('Wstaw tutaj:');
+  await expect(visibleHint).not.toContainText(/fioletowy|złoty/i);
+});
