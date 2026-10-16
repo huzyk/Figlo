@@ -58,3 +58,18 @@ test('short-budget gentle Crown training falls back promptly to an easy valid bo
  assert.ok(p.difficultyScore<=21);
  assert.equal(p.deductionRules.includes('hypothetical-crossout'),false);
 });
+
+test('every gentle fallback seed generates a valid connected and unique 9x9 puzzle', {timeout:120000},()=>{
+ const layouts=new Set();
+ for(let i=0;i<48;i++){
+  const p=generatePuzzle(`fallback-batch-${i}`,{difficulty:'gentle',maxAttempts:150,minRegionSize:40});
+  assert.equal(p.size,9);
+  assert.equal(validateGeneratedRegions(p.regions),true,`disconnected regions at seed ${i}`);
+  assert.equal(countRegionSolutions(p.regions,2).count,1,`not unique at seed ${i}`);
+  assert.ok(p.difficultyScore<=21,`too difficult at seed ${i}`);
+  assert.equal(p.deductionRules.includes('hypothetical-crossout'),false);
+  assert.equal(Object.hasOwn(p,'givens'),false);
+  layouts.add(JSON.stringify(p.regions));
+ }
+ assert.ok(layouts.size>=8,`not enough puzzle variety: ${layouts.size}`);
+});

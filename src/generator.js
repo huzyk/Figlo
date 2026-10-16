@@ -20,7 +20,8 @@ const GENTLE_MAX_ATTEMPTS=1800;
 const GENTLE_MAX_SCORE=21;
 // Backups are verified 9x9 boards with no placed crowns. Geometric transforms
 // preserve each board's solution uniqueness and low-complexity deduction route.
-const GENTLE_BACKUPS=[[[5,5,5,5,5,5,6,2,2],[0,0,5,5,5,5,6,6,6],[0,5,5,5,3,5,4,6,6],[0,0,0,0,3,5,4,4,6],[0,0,0,3,3,4,4,4,4],[0,0,0,1,3,1,4,4,4],[0,0,0,1,1,1,7,4,4],[0,7,7,7,7,7,7,8,8],[7,7,7,7,7,7,8,8,8]],[[7,7,1,1,1,1,4,4,4],[7,1,1,1,1,1,4,4,4],[1,1,1,1,1,4,4,4],[3,3,3,1,2,4,4,4,4],[0,8,3,3,2,2,4,4,4],[0,8,3,3,2,2,2,2,5],[0,8,3,3,3,2,2,2,5],[0,8,8,3,6,2,6,6,5],[0,8,3,3,6,6,6,6,6]],[[2,2,2,2,2,5,5,5,5],[0,0,0,2,2,2,5,5,5],[0,0,0,2,2,2,1,1,5],[0,0,0,0,4,2,4,1,5],[0,0,6,6,4,4,4,8,8],[0,6,6,6,6,4,4,7,8],[6,6,6,4,4,4,4,7,8],[6,6,4,4,4,4,3,7,7],[6,6,4,4,3,3,3,3,3]]];
+// These templates are checked for connected regions, uniqueness and gentle deductions.
+const GENTLE_BACKUPS=[[[5,5,5,5,5,5,6,2,2],[0,0,5,5,5,5,6,6,6],[0,5,5,5,3,5,4,6,6],[0,0,0,0,3,5,4,4,6],[0,0,0,3,3,4,4,4,4],[0,0,0,1,3,1,4,4,4],[0,0,0,1,1,1,7,4,4],[0,7,7,7,7,7,7,8,8],[7,7,7,7,7,7,8,8,8]],[[2,2,2,2,2,5,5,5,5],[0,0,0,2,2,2,5,5,5],[0,0,0,2,2,2,1,1,5],[0,0,0,0,4,2,4,1,5],[0,0,6,6,4,4,4,8,8],[0,6,6,6,6,4,4,7,8],[6,6,6,4,4,4,4,7,8],[6,6,4,4,4,4,3,7,7],[6,6,4,4,3,3,3,3,3]]];
 function buildGentleFallback(seed,random,attempts){
   const size=9,template=GENTLE_BACKUPS[Math.floor(random()*GENTLE_BACKUPS.length)];
   const transform=Math.floor(random()*8);
@@ -35,7 +36,7 @@ function buildGentleFallback(seed,random,attempts){
   const solved=countRegionSolutions(regions,2);
   const human=validateHumanSolvable(regions,{allowLookahead:false});
   const difficultyScore=scoreDeductions(human.deductions);
-  if(solved.count!==1||!human.solvable||difficultyScore>GENTLE_MAX_SCORE||
+  if(!validateGeneratedRegions(regions)||solved.count!==1||!human.solvable||difficultyScore>GENTLE_MAX_SCORE||
     human.deductions.some(step=>step.rule==='hypothetical-crossout')){
     throw new Error('Nie udało się zweryfikować łatwej planszy Koron.');
   }
