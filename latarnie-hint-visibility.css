@@ -40,3 +40,74 @@ body.game-latarnie .latarnia-cell.has-bulb.hint-target.hint-action-remove::after
 @media (prefers-reduced-motion:reduce) {
   body.game-latarnie .latarnia-cell.has-bulb.hint-target.hint-action-remove {animation:none;}
 }
+
+
+/* Context-rich Latarnie hints. One bright mint reference, one gold action.
+   Existing placed X symbols remain muted; the translucent hint mark is not a move. */
+body.game-latarnie #board .latarnia-wall.hint-source{
+  z-index:4;
+  background:linear-gradient(150deg,#174c51,#0a2734);
+  color:#e6fff7;
+  box-shadow:inset 0 0 0 4px #5ef2dc,0 0 0 2px #062c37,0 0 19px rgba(94,242,220,.85);
+  text-shadow:0 1px 3px rgba(0,0,0,.8);
+}
+body.game-latarnie #board .latarnia-cell.hint-source:not(.hint-target){
+  z-index:3;
+  box-shadow:inset 0 0 0 4px #5ef2dc,0 0 0 2px #083c44,0 0 19px rgba(94,242,220,.8);
+}
+body.game-latarnie #board .latarnia-cell.hint-target:not(.hint-action-remove){
+  z-index:5;
+  outline:3px solid #fff0b8;
+  outline-offset:-4px;
+  box-shadow:inset 0 0 0 5px #da911c,0 0 0 2px #62451c,0 0 25px rgba(255,217,116,.9);
+}
+body.game-latarnie #board .latarnia-cell.hint-target.hint-action-cross:not(.hint-action-remove)::after{
+  content:'×';
+  position:absolute;
+  inset:50% auto auto 50%;
+  transform:translate(-50%,-50%);
+  width:52%;height:52%;
+  min-width:24px;min-height:24px;
+  display:grid;place-items:center;
+  border:2px solid #fff1c8;
+  border-radius:9px;
+  color:white;
+  background:#91510a;
+  font-size:clamp(21px,4.8vw,35px);
+  font-weight:900;
+  text-shadow:none;
+  box-shadow:0 2px 11px rgba(27,19,6,.65);
+}
+body.game-latarnie #board .latarnia-cell.hint-target.hint-action-bulb:not(.hint-action-remove)::after{
+  content:'✦';
+  position:absolute;inset:0;
+  display:grid;place-items:center;
+  color:#fff7de;
+  font-size:clamp(30px,5.2vw,45px);
+  font-weight:900;
+  text-shadow:0 0 5px #603707,0 0 14px #fff4b7,0 2px 6px #653e0d;
+}
+@media(max-width:767px){
+  body.game-latarnie .game-shell #feedback.hint-feedback{
+    height:auto;
+    min-height:0;
+    max-height:clamp(145px,24dvh,188px);
+    padding:10px 12px;
+  }
+  body.game-latarnie .mobile-hint-copy{
+    font-size:13px;
+    line-height:1.34;
+    margin:6px 0 0;
+  }
+  body.game-latarnie .mobile-hint-action{
+    margin-top:8px;
+    padding-top:7px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.game-latarnie #board .latarnia-cell.hint-source,
+  body.game-latarnie #board .latarnia-cell.hint-target,
+  body.game-latarnie #board .latarnia-wall.hint-source{
+    animation:none!important;
+  }
+}
