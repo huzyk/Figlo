@@ -253,3 +253,46 @@ body.game-sudoku .completion{--puzli-win-accent:#99e2b6;--puzli-win-accent-light
   .puzli-badge-unlock::after{animation:none!important;transition:none!important}
   .puzli-victory-sky,.completion.is-celebrating::before{display:none!important}
 }
+
+/* Completion screen consistency: earlier game skin rules painted custom glyphs
+   on top of the real checkmark and hid it with font-size:0. The preview had
+   no skins, so only live game screens exposed the bug. */
+body[class*="game-"] .completion .success-mark{
+  font-size:39px;
+  color:var(--puzli-win-ink);
+  background:linear-gradient(135deg,var(--puzli-win-accent-light),var(--puzli-win-accent));
+  box-shadow:0 0 0 7px var(--puzli-win-tint),0 10px 32px rgba(0,0,0,.25);
+}
+body[class*="game-"] .completion .success-mark::before{
+  content:"";
+  font-size:0;
+  letter-spacing:normal;
+  line-height:normal;
+  text-shadow:none;
+  color:transparent;
+}
+body[class*="game-"] .completion .success-mark::after{content:""}
+
+/* Hidden must beat explicit display:block from older .done styles. */
+.completion .completion-progress[hidden],
+.completion .completion-rewards-link[hidden],
+.completion .completion-reward-summary[hidden],
+.completion .completion-share[hidden]{
+  display:none!important;
+}
+
+/* Older per-game button styles washed out the share action.
+   Use a themed, legible secondary button everywhere. */
+body .completion .completion-card .completion-share{
+  color:var(--puzli-win-accent-light);
+  background:var(--puzli-win-tint);
+  border-color:color-mix(in srgb,var(--puzli-win-accent) 60%,transparent);
+  min-height:50px;
+}
+body .completion .completion-card .completion-share:focus-visible{
+  outline:2px solid var(--puzli-win-accent-light);
+  outline-offset:3px;
+}
+@media(max-width:420px){
+  body[class*="game-"] .completion .success-mark{font-size:35px}
+}
