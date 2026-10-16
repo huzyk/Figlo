@@ -64,7 +64,7 @@ function showHint(){
       cell.classList.toggle('hint-action-cross',isTarget&&actionClass==='hint-action-cross');
       cell.classList.toggle('hint-action-bulb',isTarget&&actionClass==='hint-action-bulb');
       cell.classList.toggle('hint-action-remove',isTarget&&actionClass==='hint-action-remove');
-      if(isTarget)cell.setAttribute('aria-description',action||'Podpowiedź: to pole należy zmienić');
+      if(isTarget)cell.setAttribute('aria-description',actionClass==='hint-action-remove'?'Podpowiedź: usuń tę latarnię':(action||'Podpowiedź: to pole należy zmienić'));
       else if(isSource)cell.setAttribute('aria-description','Źródło podpowiedzi: '+reason);
       else cell.removeAttribute('aria-description');
     }
