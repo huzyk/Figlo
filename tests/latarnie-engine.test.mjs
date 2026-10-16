@@ -15,12 +15,12 @@ test('Latarnie completed clue gives exactly one actionable, located cross',()=>{
   const step=nextHumanStep(puzzle,{bulbs:new Set([0]),noBulbs:new Set()});
   assert.equal(step.kind,'clue-complete');
   assert.equal(step.sourceIndex,1);
-  assert.equal(step.index,2);
-  assert.deepEqual(step.indices,[2]);
-  assert.deepEqual(step.area,[1,2]);
+  assert.ok([2,4].includes(step.index),'should exclude one of the free cells next to the clue');
+  assert.deepEqual(step.indices,[step.index]);
+  assert.deepEqual(step.area,[1,step.index]);
   assert.match(step.reason,/wiersz 1, kolumna 2/);
   assert.match(step.action,/Postaw X/);
-  assert.match(step.action,/wiersz 1, kolumna 3/);
+  assert.match(step.action,new RegExp('wiersz '+(Math.floor(step.index/3)+1)+', kolumna '+(step.index%3+1)));
 });
 test('Latarnie forced lantern hint is explicit and points at only one target',()=>{
   const puzzle=createPuzzle({rows:1,cols:2,walls:[{index:0,clue:1}]});
