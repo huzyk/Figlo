@@ -40,6 +40,13 @@ export async function getMyVerifiedPercentile(puzzleId){
   if(error)throw new Error('Statystyki porównawcze są chwilowo niedostępne.');
   return {available:true,percentile:data};
 }
+export async function getLeaderboardMembership(){
+  const client=await getClient();
+  if(!client)return {available:false,membership:null};
+  const {data,error}=await client.rpc('puzli_my_membership');
+  if(error)throw new Error('Nie udało się odczytać zgody na ranking.');
+  return {available:true,membership:data};
+}
 export async function setLeaderboardVisibility(nickname,optedIn){
   const client=await getClient();
   if(!client)return {available:false};

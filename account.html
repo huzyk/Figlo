@@ -38,6 +38,13 @@
       <h2>Twoje konto</h2><p id="identity"></p>
       <form id="profileForm"><label for="nickname">Pseudonim</label><input id="nickname" minlength="2" maxlength="24" required autocomplete="nickname"><button>Zapisz pseudonim</button></form>
       <p class="small">Wyniki i rozpoczęte gry pozostają na tym urządzeniu. Synchronizacja wyników nie jest jeszcze dostępna. Konto nie potwierdza autentyczności wyników.</p>
+      <section id="verifiedRankSettings" class="verified-rank-settings" hidden>
+        <h3>Oficjalny ranking PUZLI</h3>
+        <p class="small">Twoje wyniki pozostają prywatne, dopóki nie zgodzisz się na publikację pseudonimu i sumy punktów. Możesz wycofać tę zgodę.</p>
+        <label class="verified-checkbox"><input type="checkbox" id="publishLeaderboard"> Pokaż mój pseudonim i punkty w rankingu</label>
+        <button id="saveVerifiedRank" class="secondary" type="button">Zapisz ustawienie rankingu</button>
+        <p id="verifiedRankStatus" class="small" role="status" aria-live="polite"></p>
+      </section>
       <button id="exportData" class="secondary">Pobierz dane konta</button>
       <button id="signOut" class="secondary">Wyloguj na tym urządzeniu</button>
       <button id="signOutAll" class="secondary">Wyloguj wszystkie urządzenia</button>

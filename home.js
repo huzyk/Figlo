@@ -1,5 +1,6 @@
 import {watchDayRollover} from './src/ui/day-rollover.js';
 import { initEngagementUI, renderEngagementUI } from './src/ui/engagement-home.js';
+import { initOfficialLeaderboard } from './src/ui/official-leaderboard.js';
 import{currentDateKey,dateFromKey,getWeekDateKeys}from'./src/daily.js';
 import{getDailyManifest}from'./src/services/daily-service.js';
 import{getDailyProgress}from'./src/services/progress-service.js';
@@ -103,6 +104,7 @@ function wireGameSelection(){
 }
 async function start(){
   renderDate();refreshProgress();wireMobileMenu();wireGameSelection();initEngagementUI(today);
+  void initOfficialLeaderboard(today);
   window.addEventListener('pageshow',event=>{if(event.persisted)refreshProgress();});
   window.addEventListener('storage',event=>{if(event.key==='figlo_user_state_v2')refreshProgress();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshProgress();});

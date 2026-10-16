@@ -96,6 +96,16 @@ $$;
 revoke all on function public.puzli_my_results() from public,anon;
 grant execute on function public.puzli_my_results() to authenticated;
 
+
+create function public.puzli_my_membership()
+returns jsonb language sql stable security definer set search_path = '' as $
+  select case when auth.uid() is null or not public.account_session_active() then null
+    else (select jsonb_build_object('nickname',m.nickname,'opted_in',m.opted_in)
+      from public.puzli_leaderboard_members m where m.user_id=auth.uid()) end;
+$;
+revoke all on function public.puzli_my_membership() from public,anon;
+grant execute on function public.puzli_my_membership() to authenticated;
+
 -- A single score ledger, grouped into four periods. Ranked players have opted in.
 create function public.puzli_leaderboard(p_period text,p_anchor date,p_limit integer default 50)
 returns table(place bigint,nickname text,points bigint)
@@ -146,7 +156,7 @@ begin
  select r.elapsed_ms into own_ms from public.puzli_verified_results r
  where r.user_id=auth.uid() and r.puzzle_id=p_puzzle_id;
  if own_ms is null then return null; end if;
- select count(*)::integer,count(*) filter (where r.elapsed_ms >= own_ms)::integer
+ select count(*)::integer,count(*) filter (where r.elapsed_ms > own_ms)::integer
  into sample_count,slower_count
  from public.puzli_verified_results r
  join public.puzli_leaderboard_members m on m.user_id=r.user_id and m.opted_in

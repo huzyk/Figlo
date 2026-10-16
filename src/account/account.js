@@ -1,5 +1,6 @@
 import { accountConfig as config } from './config.js';
 import { validateConfig, providers, callbackUrl, validNickname } from './policy.js';
+import {verifiedBackendEnabled,getLeaderboardMembership,setLeaderboardVisibility} from '../services/verified-game-api.js';
 
 const $ = id => document.getElementById(id);
 const message = text => { $('status').textContent = text; };
@@ -31,6 +32,14 @@ async function showProfile() {
   $('identity').textContent = user.email || 'Konto połączone';
   const profile = checked(await client.from('profiles').select('nickname').eq('id', user.id).maybeSingle());
   $('nickname').value = profile?.nickname || '';
+  if (verifiedBackendEnabled) {
+    const result=await getLeaderboardMembership();
+    if (result.available){
+      $('verifiedRankSettings').hidden=false;
+      $('publishLeaderboard').checked=Boolean(result.membership?.opted_in);
+      if(result.membership?.nickname) $('nickname').value=result.membership.nickname;
+    }
+  }
   message('Jesteś zalogowany. Sesja jest zapisana tylko w tej karcie przeglądarki.');
 }
 function resetCaptcha() {
@@ -58,6 +67,12 @@ async function init() {
     storage: sessionStorage, storageKey: 'puzli-account-v1', autoRefreshToken: true,
   }});
   $('login').hidden = false;
+  if(verifiedBackendEnabled) $('saveVerifiedRank').addEventListener('click',()=>run(async()=>{
+    const name=$('nickname').value.trim();
+    if(!validNickname(name)){$('verifiedRankStatus').textContent='Najpierw podaj poprawny pseudonim (2–24 znaki).';return;}
+    const result=await setLeaderboardVisibility(name,$('publishLeaderboard').checked);
+    $('verifiedRankStatus').textContent=result.available?'Zapisano ustawienia widoczności w rankingu.':'Ranking nie jest jeszcze aktywny.';
+  }));
   for (const provider of config.providers) {
     const button = document.createElement('button');
     button.type = 'button'; button.textContent = `Kontynuuj z ${providers[provider]}`;
