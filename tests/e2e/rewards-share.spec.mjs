@@ -323,10 +323,10 @@ test('daily score components use compact accessible bars with correct dynamic wi
       now:row.querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow')
     }))
   }));
-  expect(points.total).toContain('+22'); // 10 base + 7 speed (4m reference) + 5 clean.
+  expect(points.total).toContain('+20'); // 10 base + 5 speed at the 4m reference + 5 clean.
   expect(points.rows).toEqual([
     {label:'Ukończenie',text:'10/10',width:'100%',now:'10'},
-    {label:'Szybkość',text:'7/10',width:'70%',now:'7'},
+    {label:'Szybkość',text:'5/10',width:'50%',now:'5'},
     {label:'Bez podpowiedzi',text:'5/5',width:'100%',now:'5'}
   ]);
   await expect(page.locator('.score-set-bonus')).toHaveCount(0);
@@ -334,7 +334,7 @@ test('daily score components use compact accessible bars with correct dynamic wi
     const {loadFigloState}=await import('/src/storage.js');
     return loadFigloState(date).rewards.daily[date].games.korony.points;
   }, DATE);
-  expect(saved).toBe(22);
+  expect(saved).toBe(20);
 });
 
 test('visual preview demonstrates real score breakdown in all six games and fits mobile', async ({page}) => {
