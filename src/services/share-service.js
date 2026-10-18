@@ -40,12 +40,12 @@ export function decodeSharedResult(raw) {
   try {
     const bytes = Uint8Array.from(atob(raw.replace(/-/g, '+').replace(/_/g, '/')), x => x.charCodeAt(0));
     const data = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
-    if (data.v !== 2 || typeof data.id !== 'string' || !/^[a-zA-Z0-9-]{10,80}$/.test(data.id)) return null;
+    if (data.v !== 3 || typeof data.id !== 'string' || !/^[a-zA-Z0-9-]{10,80}$/.test(data.id)) return null;
     if (typeof data.name !== 'string' || cleanShareName(data.name).length < 2 || data.name.length > 24) return null;
     if (!dateFromKey(data.week) || data.week !== getWeekKey(data.week)) return null;
     if (!Number.isSafeInteger(data.points) || data.points < 0 || data.points > 1190) return null;
     if (!Number.isInteger(data.iq) || data.iq < 100 || data.iq > 150) return null;
-    return { v: 2, id: data.id, name: cleanShareName(data.name), week: data.week, points: data.points, iq: data.iq };
+    return { v: 3, id: data.id, name: cleanShareName(data.name), week: data.week, points: data.points, iq: data.iq };
   } catch { return null; }
 }
 export function sharedRankingUrl(payload, baseUrl = location.href) {

@@ -20,13 +20,13 @@ export const BADGES = [
   { id: 'sets-30', name: 'Wytrwały', description: 'Ukończ 30 dziennych zestawów', icon: '♛' },
   { id: 'master', name: 'Mistrz PUZLI', description: 'Osiągnij rangę Mistrz', icon: '♕' }
 ];
-export const LOCAL_SCORING_VERSION = 2;
+export const LOCAL_SCORING_VERSION = 3;
 export function createRewardsState() {
   return { scoringVersion: LOCAL_SCORING_VERSION, daily: {}, hintDate: null, hintCounts: {},
     totalPoints: 0, cleanGames: 0, cleanSets: 0 };
 }
 
-/** Convert old 100/120/80 local rewards to the same 10/speed/clean/20 scale
+/** Convert old 100/120/80 rewards and v2 speed tiers to 10/speed/clean/20 scale
  *  as the future server scoring. Preserve old totals only as historical metadata;
  *  NEVER combine old and new scales in weekly or lifetime points.
  *  Done in memory during load; the next ordinary state save persists the migration.
@@ -60,7 +60,10 @@ export function migrateRewardsScoring(rewards, puzzleResults = {}) {
       let targetSecs;
       try { targetSecs = targetSeconds(gameId); } catch { continue; }
       const result = outcomes.get(date + ':' + gameId);
-      const elapsedMs = Number.isFinite(result?.elapsedMs) ? result.elapsedMs : null;
+      // Prefer the original saved completion. Older ledgers may only retain
+      // their per-game elapsedMs after the detailed completion was pruned.
+      const elapsedMs = Number.isFinite(result?.elapsedMs) ? result.elapsedMs
+        : Number.isFinite(existing.elapsedMs) ? existing.elapsedMs : null;
       const hintsUsed = Number.isFinite(existing.hintsUsed) ? Math.max(0, Math.floor(existing.hintsUsed)) : null;
       const base = 10, speed = speedPoints(elapsedMs, targetSecs), clean = hintsUsed === 0 ? 5 : 0;
       const points = base + speed + clean;
