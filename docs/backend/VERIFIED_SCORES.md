@@ -23,7 +23,7 @@ przeliczamy automatycznie starych wyników z przeglądarki na oficjalny ranking.
 
 ## Punkty i tabela wyników
 
-Za grę: 10 za ukończenie + 0–10 za szybkość + 5 za brak podpowiedzi.
+Za grę: 10 za ukończenie + 0–10 za szybkość (11 progów względem czasu danej gry, punktacja v3) + 5 za brak podpowiedzi.
 Za pełny zweryfikowany dzienny zestaw: +20. Maksymalnie 170 punktów na
 sześciogrowy dzień. Czas jest mierzony na serwerze, z uwzględnieniem
 gry i poziomu trudności. Targety to początkowe założenia; należy je

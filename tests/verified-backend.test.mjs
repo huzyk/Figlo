@@ -9,7 +9,10 @@ import {parseArgs,makeCanonicalRecord,plusDays} from '../scripts/seed-verified-p
 test('competitive scoring ranges from 10 to 25 per game, 170 per day',()=>{
   assert.equal(calculateVerifiedPoints({elapsedMs:15000,targetSecs:240,hintsUsed:0}).total,25);
   assert.equal(calculateVerifiedPoints({elapsedMs:900000,targetSecs:180,hintsUsed:1}).total,10);
-  assert.equal(speedPoints(240000,240),7);
+  assert.equal(speedPoints(240000,240),5);
+  assert.equal(speedPoints(30000,targetSeconds('duet')),9);
+  assert.equal(speedPoints(90000,targetSeconds('duet')),7);
+  assert.equal(speedPoints(60000,targetSeconds('sudoku')),9);
   assert.equal(6*25+20,170);
   assert.throws(()=>calculateVerifiedPoints({elapsedMs:1000,targetSecs:240,hintsUsed:0}));
   assert.throws(()=>calculateVerifiedPoints({elapsedMs:10000,targetSecs:240,hintsUsed:null}));

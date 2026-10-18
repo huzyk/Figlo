@@ -270,7 +270,18 @@ begin
  end if;
  ms := floor(extract(epoch from (clock_timestamp()-a.started_at))*1000)::bigint;
  if ms < 3000 or ms > 86400000 then raise exception 'Invalid attempt duration'; end if;
- speed := greatest(0,least(10,round(10 * (2 - ms::numeric/(p.target_seconds*1000))/1.5)::integer));
+ speed := case
+    when ms::numeric / (p.target_seconds * 1000) <= 0.10 then 10
+    when ms::numeric / (p.target_seconds * 1000) <= 0.20 then 9
+    when ms::numeric / (p.target_seconds * 1000) <= 0.34 then 8
+    when ms::numeric / (p.target_seconds * 1000) <= 0.50 then 7
+    when ms::numeric / (p.target_seconds * 1000) <= 0.70 then 6
+    when ms::numeric / (p.target_seconds * 1000) <= 1.00 then 5
+    when ms::numeric / (p.target_seconds * 1000) <= 1.30 then 4
+    when ms::numeric / (p.target_seconds * 1000) <= 1.60 then 3
+    when ms::numeric / (p.target_seconds * 1000) <= 1.90 then 2
+    when ms::numeric / (p.target_seconds * 1000) <= 2.30 then 1
+    else 0 end;
  clean := case when a.hints_used=0 then 5 else 0 end;
  insert into public.puzli_verified_results
  (user_id,puzzle_id,game_id,puzzle_date,elapsed_ms,hints_used,base_points,speed_points,clean_points)

@@ -1,6 +1,6 @@
-// Official competitive scoring. Unlike local legacy points (100/120),
-// these values are used only after a server-verified daily completion.
-export const VERIFIED_SCORING_VERSION = 1;
+// One shared scoring formula for preview/local progression and future server verification.
+// Local scores are provisional and MUST NOT be treated as server-verified leaderboard entries.
+export const VERIFIED_SCORING_VERSION = 2;
 export const DAILY_SET_BONUS = 20;
 export const GAME_IDS = Object.freeze(['korony','duet','bloki','latarnie','zip','sudoku']);
 export const TARGET_SECONDS = Object.freeze({
@@ -18,8 +18,13 @@ export function targetSeconds(gameId, difficulty='medium') {
 export function speedPoints(elapsedMs, targetSecs) {
   if (!Number.isFinite(elapsedMs) || elapsedMs < 3000 ||
       !Number.isInteger(targetSecs) || targetSecs < 30) return 0;
+  // Ten tiers distinguish sub-minute solves without rewarding impossible times.
+  // Ratio is measured against each game's target, so a 30s Duet and Sudoku
+  // are rewarded fairly even though their reference times differ.
   const ratio = elapsedMs / (targetSecs * 1000);
-  return Math.max(0, Math.min(10, Math.round(10 * (2 - ratio) / 1.5)));
+  const tiers = [0.10, 0.20, 0.34, 0.50, 0.70, 1, 1.30, 1.60, 1.90, 2.30];
+  const tier = tiers.findIndex(limit => ratio <= limit);
+  return tier === -1 ? 0 : 10 - tier;
 }
 export function calculateVerifiedPoints({elapsedMs, targetSecs, hintsUsed}) {
   if (!Number.isInteger(hintsUsed) || hintsUsed < 0) throw new Error('Missing verified hint count');
