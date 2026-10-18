@@ -53,8 +53,8 @@ test('interleaved submissions of the same puzzle preserve the first event and co
   assert.equal(state.games.korony.totalTimeMs, 60000);
   assert.equal(state.games.korony.timedCompletions, 1);
   assert.equal(state.games.korony.bestTimeMs, 60000);
-  assert.equal(state.rewards.totalPoints, 20);
-  assert.equal(state.rewards.daily[newDate].total, 20);
+  assert.equal(state.rewards.totalPoints, 18);
+  assert.equal(state.rewards.daily[newDate].total, 18);
   assert.equal(state.rewards.cleanGames, 0);
   assert.equal(state.puzzleResults[`korony:${newDate}:v1`].eventId, 'first');
   assert.equal(state.puzzleResults[`korony:${newDate}:v1`].hintsUsed, 2);
@@ -172,7 +172,7 @@ test('stale snapshots rebase settings without overwriting latest stats, rewards 
   const state = loadFigloState(newDate);
   assert.equal(state.settings.autoX, true);
   assert.equal(state.user.completedGames, 1);
-  assert.equal(state.rewards.totalPoints, 25);
+  assert.equal(state.rewards.totalPoints, 24);
   assert.deepEqual(state.daily.completedGames, ['korony']);
   assert.deepEqual(state.sessions.korony.crowns, [5]);
 });

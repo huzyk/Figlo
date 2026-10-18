@@ -33,8 +33,8 @@ test('PUZLI IQ and achievements update after a daily game, without disturbing si
   await expect(page.locator('#shareDailyResult')).toBeDisabled();
   await addGame(page);
   await page.reload();
-  await expect(page.locator('#totalPuzliPoints')).toHaveText('25');
-  await expect(page.locator('#weekPuzliPoints')).toHaveText('25');
+  await expect(page.locator('#totalPuzliPoints')).toHaveText('23');
+  await expect(page.locator('#weekPuzliPoints')).toHaveText('23');
   await expect(page.locator('#badgesCount')).toContainText('1/9');
   await expect(page.locator('#cardStreak')).toHaveText('1 dzień');
   await expect(page.locator('#dailyShareProgress')).toContainText('1/6 gier');
@@ -57,7 +57,7 @@ test('shared weekly score uses fragment and updates only after opening a new lin
     const sent = await sender.evaluate(() => window.__sharedPuzli);
     expect(new URL(sent.url).searchParams.has('wynik')).toBe(false);
     expect(new URL(sent.url).hash).toMatch(/^#rywalizacja\?wynik=/);
-    expect(sent.text).toContain('25 pkt');
+    expect(sent.text).toContain('23 pkt');
 
     const receiver = await receiverContext.newPage();
     const url = new URL(sent.url); url.searchParams.set('date', DATE);
@@ -65,18 +65,18 @@ test('shared weekly score uses fragment and updates only after opening a new lin
     await expect(receiver.locator('#friendsRanking .friend-row')).toHaveCount(2);
     await expect(receiver.locator('#friendsRanking')).toContainText('Kasia');
     await expect(receiver.locator('#friendStatus')).toContainText('Dodano wynik');
-    await expect(receiver.locator('#friendsRanking')).toContainText('25 pkt');
+    await expect(receiver.locator('#friendsRanking')).toContainText('23 pkt');
     expect(receiver.url()).not.toContain('wynik=');
 
     await addGame(sender, 'duet'); await sender.reload();
     await receiver.reload();
-    await expect(receiver.locator('#friendsRanking')).toContainText('25 pkt');
+    await expect(receiver.locator('#friendsRanking')).toContainText('23 pkt');
     await sender.locator('#sharePuzliResult').click();
     const next = new URL((await sender.evaluate(() => window.__sharedPuzli)).url);
     next.searchParams.set('date', DATE);
     await receiver.goto(next.toString());
     await expect(receiver.locator('#friendsRanking .friend-row')).toHaveCount(2);
-    await expect(receiver.locator('#friendsRanking')).toContainText('50 pkt');
+    await expect(receiver.locator('#friendsRanking')).toContainText('46 pkt');
   } finally { await senderContext.close(); await receiverContext.close(); }
 });
 
@@ -186,9 +186,9 @@ test('second daily completion presents the first saved result in both modal and 
   await expect(page.locator('#completionRewardSummary')).toContainText('Podpowiedź wykorzystana');
   await expect(page.locator('#completionRewardSummary')).toContainText('Szybkość');
   await expect(page.locator('.score-row')).toHaveCount(3);
-  await expect(page.locator('.score-total')).toHaveText('+20 / 25 pkt');
+  await expect(page.locator('.score-total')).toHaveText('+19 / 25 pkt');
   await expect(page.locator('.score-base .score-row-value')).toHaveText('10/10');
-  await expect(page.locator('.score-speed .score-row-value')).toHaveText('10/10');
+  await expect(page.locator('.score-speed .score-row-value')).toHaveText('9/10');
   await expect(page.locator('.score-clean .score-row-value')).toHaveText('0/5');
   await expect(page.locator('.score-clean [role="progressbar"]')).toHaveAttribute('aria-valuenow','0');
   await page.locator('#completionShare').click();
@@ -323,10 +323,10 @@ test('daily score components use compact accessible bars with correct dynamic wi
       now:row.querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow')
     }))
   }));
-  expect(points.total).toContain('+22'); // 10 base + 7 speed (4m reference) + 5 clean.
+  expect(points.total).toContain('+20'); // 10 base + 5 speed at the 4m reference + 5 clean.
   expect(points.rows).toEqual([
     {label:'Ukończenie',text:'10/10',width:'100%',now:'10'},
-    {label:'Szybkość',text:'7/10',width:'70%',now:'7'},
+    {label:'Szybkość',text:'5/10',width:'50%',now:'5'},
     {label:'Bez podpowiedzi',text:'5/5',width:'100%',now:'5'}
   ]);
   await expect(page.locator('.score-set-bonus')).toHaveCount(0);
@@ -334,7 +334,7 @@ test('daily score components use compact accessible bars with correct dynamic wi
     const {loadFigloState}=await import('/src/storage.js');
     return loadFigloState(date).rewards.daily[date].games.korony.points;
   }, DATE);
-  expect(saved).toBe(22);
+  expect(saved).toBe(20);
 });
 
 test('visual preview demonstrates real score breakdown in all six games and fits mobile', async ({page}) => {

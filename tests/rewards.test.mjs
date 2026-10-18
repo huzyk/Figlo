@@ -28,15 +28,15 @@ test('one game counts as an active day, not as a full set; bonus applies once', 
   let result = completeDailyGame('korony',{today:date,timeMs:40000});
   assert.equal(result.state.user.activeStreak, 1);
   assert.equal(result.state.user.streak, 0);
-  assert.equal(result.state.rewards.totalPoints, 25);
+  assert.equal(result.state.rewards.totalPoints, 24);
   for (const game of games.slice(1)) result = completeDailyGame(game,{today:date,timeMs:50000});
   assert.equal(result.state.user.streak, 1);
   assert.equal(result.state.user.completedDays, 1);
   assert.equal(result.state.rewards.daily[date].bonus, 20);
-  assert.equal(result.state.rewards.totalPoints, 170);
+  assert.equal(result.state.rewards.totalPoints, 162);
   assert.equal(result.state.rewards.cleanSets, 1);
   completeDailyGame('zip',{today:date,timeMs:1000});
-  assert.equal(loadFigloState(date).rewards.totalPoints, 170);
+  assert.equal(loadFigloState(date).rewards.totalPoints, 162);
 });
 test('tracked hint removes only clean-play bonus and is kept across repeated hints', () => {
   reset();
@@ -179,7 +179,7 @@ test('speed bonus varies with elapsed time and matches future server formula', (
   const veryFast = calculateVerifiedPoints({ elapsedMs: 40000, targetSecs: secs, hintsUsed: 0 });
   const medium = calculateVerifiedPoints({ elapsedMs: 240000, targetSecs: secs, hintsUsed: 0 });
   const slow = calculateVerifiedPoints({ elapsedMs: 600000, targetSecs: secs, hintsUsed: 0 });
-  assert.deepEqual(veryFast, { base: 10, speed: 10, clean: 5, total: 25 });
+  assert.deepEqual(veryFast, { base: 10, speed: 9, clean: 5, total: 24 });
   assert.ok(medium.speed < veryFast.speed);
   assert.equal(slow.speed, 0);
   assert.equal(speedPoints(null, secs), 0);
@@ -210,7 +210,7 @@ test('old 800-point browser ledger migrates once; keep badges and historic times
   }
   localStorage.setItem('figlo_user_state_v2',JSON.stringify(old));
   const migrated=loadFigloState(date);
-  assert.equal(migrated.rewards.scoringVersion,2);
+  assert.equal(migrated.rewards.scoringVersion,3);
   assert.equal(migrated.rewards.legacyTotalPoints,800);
   assert.equal(migrated.rewards.daily[date].bonus,20);
   assert.ok(migrated.rewards.totalPoints<=170);
@@ -239,16 +239,63 @@ test('migration never invents a speed or clean bonus for missing historic eviden
 test('new scoring detects a legacy game from another browser tab without corrupting recent scores',()=>{
   const modern={scoringVersion:2,totalPoints:25,cleanGames:1,cleanSets:0,
     daily:{'2026-10-15':{games:{
-      korony:{points:25,base:10,speed:10,clean:5,hintsUsed:0,scoringVersion:1},
+      korony:{points:25,base:10,speed:10,clean:5,hintsUsed:0,elapsedMs:20000,scoringVersion:1},
       duet:{points:120,hintsUsed:0}
     },bonus:0,total:145}}};
   migrateRewardsScoring(modern,{
     'duet:2026-10-15:v1':{gameId:'duet',date:'2026-10-15',mode:'daily',elapsedMs:240000}
   });
   assert.equal(modern.daily['2026-10-15'].games.korony.points,25);
-  assert.equal(modern.daily['2026-10-15'].games.duet.points,21);
-  assert.equal(modern.daily['2026-10-15'].total,46);
-  assert.equal(modern.totalPoints,46);
-  assert.equal(modern.daily['2026-10-15'].games.duet.speed,6);
-  assert.equal(modern.scoringVersion,2);
+  assert.equal(modern.daily['2026-10-15'].games.duet.points,19);
+  assert.equal(modern.daily['2026-10-15'].total,44);
+  assert.equal(modern.totalPoints,44);
+  assert.equal(modern.daily['2026-10-15'].games.duet.speed,4);
+  assert.equal(modern.scoringVersion,3);
+});
+
+
+test('speed calibration distinguishes 30 from 90 seconds, on every game', () => {
+  const sample = {};
+  for(const game of games) {
+    const target = targetSeconds(game);
+    const scores = [3000,15000,30000,60000,90000,120000,180000,300000,600000,1200000]
+      .map(ms => speedPoints(ms,target));
+    assert.ok(scores.every(n => Number.isInteger(n) && n >= 0 && n <= 10),game);
+    assert.ok(scores.every((n,i) => !i || n <= scores[i-1]),game+' monotonic');
+    sample[game] = [speedPoints(30000,target),speedPoints(90000,target)];
+    assert.ok(sample[game][0] > sample[game][1],game+' 30s should beat 90s');
+  }
+  assert.deepEqual(sample.duet,[9,7]);
+  assert.deepEqual(sample.sudoku,[10,8]);
+  assert.equal(speedPoints(2999,targetSeconds('duet')),0);
+  assert.equal(speedPoints(3000,targetSeconds('duet')),10);
+  assert.equal(speedPoints(30000,targetSeconds('duet', 'hard')),9);
+  assert.equal(speedPoints(30000,targetSeconds('duet', 'gentle')),9);
+});
+
+test('v2 point records migrate to v3 from their original elapsedMs, without double-counting', () => {
+  const old = {scoringVersion:2,totalPoints:50,cleanGames:2,cleanSets:0,
+    daily:{'2026-10-15':{games:{
+      duet:{points:25,base:10,speed:10,clean:5,elapsedMs:30000,hintsUsed:0,scoringVersion:1},
+      sudoku:{points:25,base:10,speed:10,clean:5,elapsedMs:120000,hintsUsed:0,scoringVersion:1}
+    },bonus:0,total:50}}};
+  migrateRewardsScoring(old,{});
+  assert.equal(old.scoringVersion,3);
+  assert.equal(old.daily['2026-10-15'].games.duet.speed,9);
+  assert.equal(old.daily['2026-10-15'].games.sudoku.speed,7);
+  assert.equal(old.daily['2026-10-15'].total,46);
+  assert.equal(old.totalPoints,46);
+  assert.equal(old.daily['2026-10-15'].games.sudoku.scoringVersion,2);
+  const after=structuredClone(old);
+  migrateRewardsScoring(old,{});
+  assert.deepEqual(old,after);
+});
+
+test('v3 migration never assumes a fast solve when elapsed time is missing',()=>{
+  const old = {scoringVersion:2,totalPoints:25,daily:{'2026-10-15':{
+    games:{duet:{points:25,base:10,speed:10,clean:5,elapsedMs:null,hintsUsed:0,scoringVersion:1}},
+    bonus:0,total:25}}};
+  migrateRewardsScoring(old,{});
+  assert.equal(old.daily['2026-10-15'].games.duet.speed,0);
+  assert.equal(old.daily['2026-10-15'].total,15);
 });
