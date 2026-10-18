@@ -441,3 +441,68 @@ body .completion .completion-card .completion-share:focus-visible{
 @media(prefers-reduced-motion:reduce){
   .completion.is-celebrating .score-fill{animation:none!important;transform:none!important}
 }
+
+
+/* Victory score accessibility (v5): light Duet/Sudoku cards need dark scoring ink. */
+body.game-duet .completion{
+  --puzli-score-ink:#174e53;
+  --puzli-score-panel:#e7f4ee;
+  --puzli-score-border:#a2cfc2;
+  --puzli-score-track:#c4ded4;
+  --puzli-score-fill:#127f7b;
+  --puzli-score-share:#dcf0e9;
+}
+body.game-sudoku .completion{
+  --puzli-score-ink:#244d39;
+  --puzli-score-panel:#eaf3e9;
+  --puzli-score-border:#b7d1bb;
+  --puzli-score-track:#cbdcca;
+  --puzli-score-fill:#317854;
+  --puzli-score-share:#dfecdf;
+}
+:is(body.game-duet,body.game-sudoku) .completion .completion-reward-summary{
+  background:var(--puzli-score-panel);
+  border-color:var(--puzli-score-border);
+  color:var(--puzli-score-ink);
+}
+:is(body.game-duet,body.game-sudoku) .completion .score-kicker,
+:is(body.game-duet,body.game-sudoku) .completion .completion-reward-summary .score-total,
+:is(body.game-duet,body.game-sudoku) .completion .completion-reward-summary .score-row-value,
+:is(body.game-duet,body.game-sudoku) .completion .score-peak,
+:is(body.game-duet,body.game-sudoku) .completion .score-set-bonus,
+:is(body.game-duet,body.game-sudoku) .completion .completion-reward-summary .score-set-bonus strong{
+  color:var(--puzli-score-ink);
+}
+:is(body.game-duet,body.game-sudoku) .completion .score-kicker{opacity:1}
+:is(body.game-duet,body.game-sudoku) .completion .score-peak{
+  background:var(--puzli-score-share);
+  border-color:var(--puzli-score-border);
+}
+:is(body.game-duet,body.game-sudoku) .completion .score-track{
+  background:var(--puzli-score-track);
+}
+:is(body.game-duet,body.game-sudoku) .completion .score-fill{
+  background:var(--puzli-score-fill);
+  box-shadow:none;
+}
+:is(body.game-duet,body.game-sudoku) .completion .score-base .score-fill,
+:is(body.game-duet,body.game-sudoku) .completion .score-clean .score-fill{opacity:1}
+:is(body.game-duet,body.game-sudoku) .completion .score-set-bonus{
+  border-top-color:var(--puzli-score-border);
+}
+:is(body.game-duet,body.game-sudoku) .completion .completion-rewards-link{
+  color:var(--puzli-score-ink);
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
+:is(body.game-duet,body.game-sudoku) .completion .completion-card .completion-share{
+  color:var(--puzli-score-ink);
+  background:var(--puzli-score-share);
+  border-color:var(--puzli-score-border);
+}
+:is(body.game-duet,body.game-sudoku) .completion .completion-card .completion-share:focus-visible{
+  outline-color:var(--puzli-score-ink);
+}
+:is(body.game-duet,body.game-sudoku) .completion .puzli-badge-unlock-copy small{
+  color:var(--puzli-score-ink);
+}
