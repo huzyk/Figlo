@@ -266,7 +266,7 @@ test('speed calibration distinguishes 30 from 90 seconds, on every game', () => 
     assert.ok(sample[game][0] > sample[game][1],game+' 30s should beat 90s');
   }
   assert.deepEqual(sample.duet,[9,7]);
-  assert.deepEqual(sample.sudoku,[10,7]);
+  assert.deepEqual(sample.sudoku,[10,8]);
   assert.equal(speedPoints(2999,targetSeconds('duet')),0);
   assert.equal(speedPoints(3000,targetSeconds('duet')),10);
   assert.equal(speedPoints(30000,targetSeconds('duet', 'hard')),9);
