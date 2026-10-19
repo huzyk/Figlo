@@ -74,3 +74,52 @@ test('Board stays square and fits narrow phone', async ({page}) => {
   const card = await page.locator('#board .memory-card').first().boundingBox();
   expect(Math.abs(card.width - card.height)).toBeLessThan(1);
 });
+
+test('daily themes follow Warsaw date and every pack renders valid cards', async ({page}) => {
+  await page.clock.setFixedTime(new Date('2026-10-22T11:00:00Z'));
+  await page.goto('/memory.html');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await expect(page.locator('#packName')).toHaveText('Ziemia i kosmos');
+  const names = await page.locator('.memory-card').evaluateAll(cards =>
+    cards.map(card => card.getAttribute('aria-label')));
+  expect(names).toHaveLength(16);
+  expect(new Set(names.map(label => label.split(': ')[1])).size).toBe(8);
+  const url = new URL(page.url());
+  expect(url.searchParams.has('try')).toBe(false);
+});
+
+test('training previews remaining packs without changing daily or user scores', async ({page}) => {
+  await page.clock.setFixedTime(new Date('2026-10-19T12:00:00Z'));
+  await fresh(page);
+  await expect(page.locator('#packName')).toHaveText('Odkrycia');
+  const packs = ['Ziemia i kosmos','Umysł i logika','Natura jako wzór','Odkrycia'];
+  for (const name of packs) {
+    await page.locator('#newButton').click();
+    await expect(page.locator('#packName')).toHaveText(name);
+    await expect(page.locator('#board .memory-card')).toHaveCount(16);
+    await expect(page.locator('#board .is-faceup')).toHaveCount(16);
+    const pairs = await findPairs(page);
+    expect(pairs).toHaveLength(8);
+    await page.reload();
+    await expect(page.locator('#packName')).toHaveText(name);
+  }
+  expect(await page.evaluate(() => localStorage.getItem('figlo_user_state_v2'))).toBeNull();
+});
+
+test('legacy ongoing study is preserved when adding a symbol pack to stored state', async ({page}) => {
+  await page.clock.setFixedTime(new Date('2026-10-19T12:00:00Z'));
+  await page.goto('/memory.html');
+  await page.evaluate(() => {
+    const key = 'puzli:memory:prototype:v1:2026-10-19';
+    localStorage.setItem(key, JSON.stringify({
+      version:1,day:'2026-10-19',mode:'daily',
+      seed:'daily:2026-10-19',stage:'study',studyMs:9000,
+      playMs:0,reveals:0,matched:[]
+    }));
+  });
+  await page.reload();
+  await expect(page.locator('#packName')).toHaveText('Odkrycia');
+  await expect(page.locator('#studyTime')).toHaveText(/00:0[9-9]|00:1[0-9]/);
+  await expect(page.locator('#board .is-faceup')).toHaveCount(16);
+});
