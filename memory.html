@@ -8,7 +8,7 @@
   <title>Memory — prototyp PUZLI</title>
   <meta name="description" content="Prototyp gry Memory: zapamiętaj symbole nauki i odkrywaj pary.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="memory.css">
+  <link rel="stylesheet" href="memory.css?v=20261019-packs4">
 </head>
 <body>
   <main class="memory-app">
@@ -19,7 +19,7 @@
     </header>
 
     <section class="hero">
-      <div class="eyebrow" id="stageLabel">01 / ZAPAMIĘTUJ</div>
+      <div class="eyebrow"><span id="stageLabel">01 / ZAPAMIĘTUJ</span><span class="pack-name" id="packName">Odkrycia</span></div>
       <h1 id="stageTitle">Masz to w pamięci?</h1>
       <p id="stageText">Przyjrzyj się symbolom. Kiedy uznasz, że je pamiętasz, zakryj karty i znajdź wszystkie pary.</p>
     </section>
@@ -58,6 +58,6 @@
     </div>
   </section>
 
-  <script type="module" src="src/memory/game.js"></script>
+  <script type="module" src="src/memory/game.js?v=20261019-packs4"></script>
 </body>
 </html>
