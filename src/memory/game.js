@@ -1,40 +1,6 @@
-import {SYMBOLS, dateKey, makeDeck, isPair, formatTime} from './core.js';
+import {dateKey, makeDeck, isPair, formatTime, packForDate, packById, nextPackId} from './core.js';
+import {ART} from './symbols.js';
 
-// Distinct science / nature glyphs. Authored as vectors; no external icon fonts or requests.
-const ART = {
-  atom: {
-    label: 'atom', color: '#8064d8',
-    art: '<ellipse cx="32" cy="32" rx="26" ry="10"/><ellipse cx="32" cy="32" rx="26" ry="10" transform="rotate(60 32 32)"/><ellipse cx="32" cy="32" rx="26" ry="10" transform="rotate(120 32 32)"/><circle cx="32" cy="32" r="4.5" fill="currentColor" stroke="none"/>'
-  },
-  dna: {
-    label: 'DNA', color: '#389a9e',
-    art: '<path d="M19 7 C51 17 51 25 19 32 S-13 48 45 57"/><path d="M45 7 C13 17 13 25 45 32 S77 48 19 57"/><path d="M23 13h18M31 20h2M17 32h30M31 44h2M23 51h18" stroke-width="2.5"/>'
-  },
-  brain: {
-    label: 'mózg', color: '#d35b92',
-    art: '<path d="M31 14C22 6 12 14 13 23C6 27 7 39 15 41C12 50 21 57 30 51L31 14Z"/><path d="M33 14C42 6 52 14 51 23C58 27 57 39 49 41C52 50 43 57 34 51L33 14Z"/><path d="M19 23c9 0 9 8 6 11M15 41c5-4 10-3 12 3M45 23c-9 0-9 8-6 11M49 41c-5-4-10-3-12 3"/><path d="M32 13v41" stroke-width="2"/>'
-  },
-  volcano: {
-    label: 'wulkan', color: '#ce654d',
-    art: '<path d="M6 54h52L42 28l-8 10-10-10L6 54Z" fill="currentColor" fill-opacity=".16"/><path d="M6 54h52L42 28l-8 10-10-10L6 54Z"/><path d="M23 27c7 5 15 5 20 0M32 22l-3-7m8 7 4-9m-10-5-1-4m-10 10-5-6"/><path d="M32 40v14" stroke-width="2"/>'
-  },
-  saturn: {
-    label: 'Saturn', color: '#9c7e40',
-    art: '<circle cx="32" cy="32" r="15" fill="currentColor" fill-opacity=".14"/><circle cx="32" cy="32" r="15"/><ellipse cx="32" cy="32" rx="29" ry="10" transform="rotate(-24 32 32)"/><path d="M20 26c7 3 15 3 23-1" stroke-width="2"/><path d="M24 40c6 2 13 2 18-1" stroke-width="2"/>'
-  },
-  crystal: {
-    label: 'kryształ', color: '#527ab6',
-    art: '<path d="M21 9h22l13 17-24 30L8 26 21 9Z" fill="currentColor" fill-opacity=".10"/><path d="M21 9h22l13 17-24 30L8 26 21 9Z"/><path d="M8 26h48M21 9l-5 17 16 30 16-30-5-17M16 26h32"/>'
-  },
-  snowflake: {
-    label: 'płatek śniegu', color: '#3a98c9',
-    art: '<path d="M32 5v54M5 32h54M13 13l38 38M51 13 13 51"/><path d="m25 12 7 7 7-7M25 52l7-7 7 7M12 25l7 7-7 7M52 25l-7 7 7 7M16 11v10h10M48 11v10H38M16 53V43h10M48 53V43H38" stroke-width="2.5"/>'
-  },
-  magnet: {
-    label: 'magnes', color: '#d27752',
-    art: '<path d="M16 9h12v27a4 4 0 0 0 8 0V9h12v27a16 16 0 0 1-32 0V9Z" fill="currentColor" fill-opacity=".10"/><path d="M16 9h12v27a4 4 0 0 0 8 0V9h12v27a16 16 0 0 1-32 0V9Z"/><path d="M16 19h12M36 19h12" stroke-width="4"/>'
-  }
-};
 const backIcon = '<svg aria-hidden="true" viewBox="0 0 32 32"><path d="M16 1v30M1 16h30M5 5l22 22M27 5 5 27"/><circle cx="16" cy="16" r="5" fill="#efe8ff" stroke="none"/></svg>';
 
 const el = id => document.getElementById(id);
@@ -42,10 +8,11 @@ const today = dateKey();
 let mode = new URL(location.href).searchParams.has('try') ? 'training' : 'daily';
 const storageKey = () => 'puzli:memory:prototype:v1:' + (mode === 'daily' ? today : 'training');
 
-function fresh(modeName) {
+function fresh(modeName, packId = packForDate(today).id) {
   return {
     version: 1, day: today, mode: modeName,
     seed: modeName === 'daily' ? 'daily:' + today : 'training:' + Date.now() + ':' + Math.random(),
+    packId,
     stage: 'study', studyMs: 0, playMs: 0, reveals: 0, matched: []
   };
 }
@@ -60,18 +27,18 @@ function load() {
         Number.isInteger(value.reveals)) {
       const valid = new Set(value.matched);
       if ([...valid].every(i => Number.isInteger(i) && i >= 0 && i < 16)) {
-        const deck = makeDeck(value.seed);
+        const deck = makeDeck(value.seed, packById(value.packId).symbols);
         if ([...valid].every(i => {
           const matching = deck.findIndex((s, j) => j !== i && s === deck[i]);
           return valid.has(matching);
-        })) return {...value, matched: [...valid]};
+        })) return {...value, packId: value.packId || 'discoveries', matched: [...valid]};
       }
     }
   } catch { /* Storage is optional in the prototype. */ }
   return fresh(mode);
 }
 let session = load();
-let deck = makeDeck(session.seed);
+let deck = makeDeck(session.seed, packById(session.packId).symbols);
 let selected = [];
 let blocked = false;
 let running = false;
@@ -135,6 +102,7 @@ function tick() {
   el('playTime').textContent = formatTime(elapsed('play'));
 }
 function render() {
+  el('packName').textContent = packById(session.packId).name;
   el('pairsCount').textContent = session.matched.length / 2 + ' / 8';
   if (session.stage === 'study') {
     el('stageLabel').textContent = '01 / ZAPAMIĘTUJ';
@@ -152,7 +120,7 @@ function render() {
       ? 'Zestaw ukończony.' : 'Znajdź osiem par. Liczy się Twoja pamięć.';
     el('readyButton').hidden = true;
   }
-  el('newButton').textContent = mode === 'daily' ? 'Nowa plansza treningowa' : 'Wylosuj nową planszę';
+  el('newButton').textContent = mode === 'daily' ? 'Zobacz następny zestaw (Trening)' : 'Następny zestaw i nowa plansza';
   renderCards();
   tick();
   if (session.stage === 'done') showFinish();
@@ -218,8 +186,8 @@ function training() {
   const url = new URL(location.href);
   url.searchParams.set('try','1');
   history.replaceState(null,'',url);
-  session = fresh('training');
-  deck = makeDeck(session.seed);
+  session = fresh('training', nextPackId(session.packId));
+  deck = makeDeck(session.seed, packById(session.packId).symbols);
   selected = [];
   blocked = false;
   persist();
