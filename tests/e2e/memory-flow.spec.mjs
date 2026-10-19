@@ -109,7 +109,7 @@ test('training previews remaining packs without changing daily or user scores', 
 
 test('legacy ongoing study is preserved when adding a symbol pack to stored state', async ({page}) => {
   await page.clock.setFixedTime(new Date('2026-10-19T12:00:00Z'));
-  await page.goto('/memory.html');
+  await page.goto('/index.html'); // avoid Memory pagehide overwriting simulated legacy storage
   await page.evaluate(() => {
     const key = 'puzli:memory:prototype:v1:2026-10-19';
     localStorage.setItem(key, JSON.stringify({
@@ -118,7 +118,7 @@ test('legacy ongoing study is preserved when adding a symbol pack to stored stat
       playMs:0,reveals:0,matched:[]
     }));
   });
-  await page.reload();
+  await page.goto('/memory.html');
   await expect(page.locator('#packName')).toHaveText('Odkrycia');
   await expect(page.locator('#studyTime')).toHaveText(/00:0[9-9]|00:1[0-9]/);
   await expect(page.locator('#board .is-faceup')).toHaveCount(16);
