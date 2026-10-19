@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d101d">
+  <meta name="robots" content="noindex">
+  <title>Memory — prototyp PUZLI</title>
+  <meta name="description" content="Prototyp gry Memory: zapamiętaj symbole nauki i odkrywaj pary.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="memory.css">
+</head>
+<body>
+  <main class="memory-app">
+    <header class="topbar">
+      <a href="index.html#gry" class="back" aria-label="Wróć do PUZLI">←</a>
+      <div class="brand"><span class="brand-mark">PUZLI</span><span class="brand-divider"></span><span>MEMORY</span></div>
+      <span class="prototype">PROTOTYP</span>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow" id="stageLabel">01 / ZAPAMIĘTUJ</div>
+      <h1 id="stageTitle">Masz to w pamięci?</h1>
+      <p id="stageText">Przyjrzyj się symbolom. Kiedy uznasz, że je pamiętasz, zakryj karty i znajdź wszystkie pary.</p>
+    </section>
+
+    <section class="stats" aria-label="Postęp">
+      <div><small>PARY</small><strong id="pairsCount">0 / 8</strong></div>
+      <div><small>ZAPAMIĘTYWANIE</small><strong id="studyTime">00:00</strong></div>
+      <div><small>ROZGRYWKA</small><strong id="playTime">00:00</strong></div>
+    </section>
+
+    <section class="board-area">
+      <div class="board" id="board" aria-label="Plansza Memory z szesnastoma kartami"></div>
+      <p class="board-caption" id="boardCaption" role="status" aria-live="polite">Nie śpiesz się. To Ty decydujesz, kiedy jesteś gotowy.</p>
+    </section>
+
+    <section class="actions">
+      <button type="button" class="primary" id="readyButton">Zapamiętane. Gram! <span aria-hidden="true">→</span></button>
+      <button type="button" class="secondary" id="newButton">Nowa plansza treningowa</button>
+    </section>
+    <p class="footnote">Wersja testowa. Wyniki nie wpływają na PUZLI IQ ani rankingi.</p>
+  </main>
+
+  <section class="finish" id="finish" hidden role="dialog" aria-modal="true" aria-labelledby="finishTitle">
+    <div class="finish-panel">
+      <div class="finish-spark" aria-hidden="true">✦</div>
+      <p class="finish-eyebrow">UMYSŁ W AKCJI</p>
+      <h2 id="finishTitle">Wszystkie pary odkryte!</h2>
+      <p class="finish-copy" id="finishCopy">Świetne skupienie. Oto Twoja dzisiejsza rozgrywka.</p>
+      <div class="finish-numbers">
+        <div><strong id="finishStudy">—</strong><small>Zapamiętywanie</small></div>
+        <div><strong id="finishPlay">—</strong><small>Rozgrywka</small></div>
+        <div><strong id="finishReveals">—</strong><small>Odkrycia</small></div>
+      </div>
+      <button type="button" class="primary" id="againButton">Nowa plansza treningowa <span aria-hidden="true">→</span></button>
+      <a class="finish-back" href="index.html#gry">Wróć do PUZLI</a>
+    </div>
+  </section>
+
+  <script type="module" src="src/memory/game.js"></script>
+</body>
+</html>
