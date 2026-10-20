@@ -58,3 +58,18 @@ test('Memory Daily completion persists without altering historical Latarnie prog
   assert.deepEqual(loadFigloState('2026-10-20').daily.completedGames,['memory']);
   assert.equal(loadFigloState('2026-10-20').daily.requiredGames.length,6);
 });
+
+test('memory completion proof accepts only eight true unique pairs',async()=>{
+  const deck=(await getDailyGame('memory','2026-10-20')).solution;
+  const bySymbol=new Map();
+  deck.forEach((symbol,index)=>{
+    const positions=bySymbol.get(symbol)||[];
+    positions.push(index);
+    bySymbol.set(symbol,positions);
+  });
+  const ordered=[...bySymbol.values()].flat();
+  assert.equal(validateSolvedProof('memory',ordered,deck),true);
+  assert.equal(validateSolvedProof('memory',[...ordered.slice(0,14),ordered[0],ordered[15]],deck),false);
+  assert.equal(validateSolvedProof('memory',[ordered[0],ordered[2],...ordered.slice(2)],deck),false);
+  assert.equal(validateSolvedProof('memory',ordered.map(String),deck),false);
+});
