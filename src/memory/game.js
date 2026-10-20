@@ -27,7 +27,7 @@ function fresh(modeName,packId=packForDate(gameDate).id){
   return {version:2,date:gameDate,mode:modeName,packId,
     seed:modeName==='training'?randomSeed():'daily:'+gameDate,
     stage:'study',studyMs:0,playMs:0,reveals:0,hintsUsed:0,matched:[],
-    startedAt:null};
+    startedAt:new Date().toISOString()};
 }
 function load(){
   let value;
@@ -62,7 +62,7 @@ if(mode==='challenge'){
     el('board').setAttribute('aria-disabled','true');
   }
 }
-if(mode==='daily'&&getDailyProgress(today).completedGames.includes('memory')){
+if(mode==='daily'&&(today<MEMORY_LAUNCH_DATE||getDailyProgress(today).completedGames.includes('memory'))){
   mode='training';
   const url=new URL(location.href);url.searchParams.delete('try');url.searchParams.set('mode','training');
   history.replaceState(null,'',url);
