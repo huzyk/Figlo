@@ -3,6 +3,8 @@ import {test, expect} from '@playwright/test';
 test('unconfigured accounts fail closed and guest games stay available', async ({page}) => {
   const outgoing=[];
   page.on('request',request => { if(!request.url().startsWith('http://127.0.0.1:4173')) outgoing.push(request.url()); });
+  // Force the disabled variant: production config is now Google-only beta.
+  await page.route('**/src/account/config.js',route => route.fulfill({contentType:'text/javascript',body:`export const accountConfig={enabled:false};`}));
   await page.goto('/account.html?code=secret&next=https://evil.example/#access_token=secret');
   await expect(page.getByRole('status')).toContainText('Konta są jeszcze przygotowywane');
   await expect(page.locator('#login')).toBeHidden();
