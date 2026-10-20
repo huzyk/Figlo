@@ -4,7 +4,7 @@ import { track } from './analytics-service.js';
 
 const NICK_KEY = 'puzli_share_nickname_v1';
 const PUBLIC_ID_KEY = 'puzli_share_public_id_v1';
-export const GAME_NAMES = { korony: 'Korony', duet: 'Duet', bloki: 'Bloki', latarnie: 'Latarnie', zip: 'Zip', sudoku: 'Sudoku' };
+export const GAME_NAMES = { korony: 'Korony', duet: 'Duet', bloki: 'Bloki', latarnie: 'Latarnie', memory: 'Memory', zip: 'Zip', sudoku: 'Sudoku' };
 let sessionPublicId;
 let sessionNickname;
 
