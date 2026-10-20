@@ -126,3 +126,27 @@ h1 { margin: 5px 0 7px; font-size: clamp(23px, 5.8vw, 31px); letter-spacing: -.0
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important }
 }
+
+/* Official Daily/Training controls and compact, accessible result screen. */
+.load-error{max-width:455px;margin:10px auto;padding:12px;border:1px solid #ba6372;border-radius:12px;background:#3b2434;color:#ffdae0;font-size:13px}
+.finish-panel .primary{text-decoration:none}
+.finish-panel .completion-progress{margin:8px 0;color:#d7d2f6;font-size:13px}
+.finish-panel .completion-eyebrow{display:block;color:#c7adfd;margin:7px 0;font-size:11px;font-weight:800}
+.finish-panel .completion-reward-summary{margin:12px 0;text-align:left}
+.finish-panel .completion-share{display:block;width:100%;min-height:38px;padding:8px;background:#34304f;color:#f4e9ff;border:1px solid #635c91;border-radius:11px}
+.finish-panel .completion-rewards-link{display:inline-block;margin-top:13px;color:#c2b1ff;font-size:12px}
+.finish-panel .score-rows,.finish-panel .score-header{color:#f5ecff}
+.finish-panel .score-kicker,.finish-panel .score-row-label{color:#c7bde4}
+.finish-panel .score-track{background:#51446b}
+.finish-panel .score-fill{background:#b5a0ff}
+.finish-panel .memory-insight{font-size:12px;color:#f1dbad;margin:10px 0;line-height:1.45}
+.finish-panel #replay{display:block;width:100%;margin-top:9px;color:#c5b9e7}
+.finish-panel #backToSet{margin-top:14px}
+@media (max-height:680px) and (max-width:767px){
+  .hero{margin:8px 0;min-height:0}
+  .stats{margin-bottom:8px}
+  .board{width:min(100%, calc(100dvh - 301px)); min-width:0}
+  .board-caption{min-height:26px;margin:6px 0}
+  .actions{gap:2px}
+  .footnote{font-size:9px;margin:5px 0}
+}
