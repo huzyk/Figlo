@@ -2,10 +2,10 @@
 // Local scores are provisional and MUST NOT be treated as server-verified leaderboard entries.
 export const VERIFIED_SCORING_VERSION = 2;
 export const DAILY_SET_BONUS = 20;
-export const GAME_IDS = Object.freeze(['korony','duet','bloki','latarnie','zip','sudoku']);
+export const GAME_IDS = Object.freeze(['korony','duet','bloki','latarnie','memory','zip','sudoku']);
 export const TARGET_SECONDS = Object.freeze({
   korony: 240, duet: 210, bloki: 270,
-  latarnie: 270, zip: 210, sudoku: 300,
+  latarnie: 270, memory: 100, zip: 210, sudoku: 300,
 });
 export const PERIODS = Object.freeze(['week','month','year','all']);
 
@@ -47,6 +47,16 @@ export function periodStart(dateKey,period) {
 export function validateSolvedProof(gameId,submitted,canonical) {
   if (!GAME_IDS.includes(gameId) || !Array.isArray(submitted) || !Array.isArray(canonical)) return false;
   if (submitted.length!==canonical.length || submitted.length>100) return false;
+  // Memory proof is a full reveal sequence, two indices for each true pair.
+  // The canonical deck comes from the daily seed, not the client payload.
+  if (gameId==='memory') {
+    if (submitted.length!==16 || canonical.length!==16 ||
+        canonical.some(value=>typeof value!=='string') ||
+        new Set(submitted).size!==16 ||
+        submitted.some(index=>!Number.isInteger(index)||index<0||index>=16)) return false;
+    for(let i=0;i<16;i+=2) if(canonical[submitted[i]]!==canonical[submitted[i+1]]) return false;
+    return true;
+  }
   if (gameId==='bloki') {
     const format = value => {
       if(!value || typeof value!=='object' || typeof value.clueId!=='string' || !value.rect) return null;

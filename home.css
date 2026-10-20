@@ -100,6 +100,8 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--blue);outline-offse
 .game-duet{--accent:#176E83}
 .game-bloki{--accent:#836142}
 .game-latarnie{--accent:#5C7955}
+.game-memory{--accent:#7860b8}
+.game-memory .game-art svg{filter:drop-shadow(0 2px 5px rgba(110,81,167,.1))}
 .game-zip{--accent:#2856B5}
 .game-sudoku{--accent:#246E69}
 

@@ -7,7 +7,7 @@ const EVENTS = new Set([
   'share_started', 'share_native_completed', 'share_copied', 'share_cancelled',
   'share_manual_fallback', 'shared_result_opened'
 ]);
-const GAMES = new Set(['korony', 'duet', 'bloki', 'latarnie', 'zip', 'sudoku']);
+const GAMES = new Set(['korony', 'duet', 'bloki', 'latarnie', 'memory', 'zip', 'sudoku']);
 const MODES = new Set(['daily', 'training', 'challenge']);
 
 export function toGA4Event(event) {
