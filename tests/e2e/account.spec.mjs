@@ -35,7 +35,7 @@ test('account form uses verified identity, escapes nickname and scopes signout',
   await expect(page.getByRole('button',{name:'Kontynuuj z Google'})).toBeVisible();
   await page.getByRole('button',{name:'Kontynuuj z Google'}).click();
   expect(await page.evaluate(()=>window.oauthRequest.options.redirectTo)).toBe('http://127.0.0.1:4173/account.html');
-  await page.getByLabel('Adres e-mail').fill('a@example.test');
+  await page.locator('#email').fill('a@example.test');
   await page.getByRole('button',{name:'Wyślij kod logowania'}).click();
   await expect(page.getByLabel('Kod z wiadomości')).toBeVisible();
   expect(await page.evaluate(()=>window.otpRequest.options.captchaToken)).toBe('captcha-test');
@@ -43,7 +43,7 @@ test('account form uses verified identity, escapes nickname and scopes signout',
   await page.getByRole('button',{name:'Potwierdź kod'}).click();
   await expect(page.locator('#profile')).toBeVisible();
   await expect(page.locator('#profile img')).toHaveCount(0);
-  await page.getByLabel('Pseudonim').fill('Gracz');
+  await page.locator('#nickname').fill('Gracz');
   await page.getByRole('button',{name:'Zapisz pseudonim'}).click();
   await expect(page.getByRole('status')).toHaveText('Pseudonim zapisany.');
   expect(await page.evaluate(()=>window.savedProfile)).toEqual({id:'user-a',nickname:'Gracz'});
@@ -61,7 +61,7 @@ test('Google-only beta does not expose nonconfigured OTP or load the Turnstile w
   await page.route('**/src/account/supabase.js',route=>route.fulfill({contentType:'text/javascript',body:`export function createClient(){return {auth:{getSession:async()=>({data:{session:null}}),signInWithOAuth:async()=>({data:{}})}}}` }));
   await page.goto('/account.html');
   await expect(page.getByRole('button',{name:'Kontynuuj z Google'})).toBeVisible();
-  await expect(page.getByLabel('Adres e-mail')).toBeHidden();
+  await expect(page.locator('#email')).toBeHidden();
   await expect(page.getByRole('button',{name:'Kontynuuj z Facebook'})).toHaveCount(0);
   expect(outgoing).toEqual([]);
 });
