@@ -9,13 +9,26 @@ import{track}from'./src/services/analytics-service.js';
 const $=selector=>document.querySelector(selector);
 const today=currentDateKey(),todayDate=dateFromKey(today)||new Date(),identity=getIdentity();
 let progress=getDailyProgress(today),stats=getUserStats(today),manifest=null;
-const gameNames={korony:'Korony',duet:'Duet',bloki:'Bloki',latarnie:'Latarnie',zip:'Zip',sudoku:'Sudoku'};
-const gameLinks={korony:'korony.html',duet:'duet.html',bloki:'bloki.html',latarnie:'latarnie.html',zip:'zip.html',sudoku:'sudoku.html'};
+const gameNames={korony:'Korony',duet:'Duet',bloki:'Bloki',latarnie:'Latarnie',memory:'Memory',zip:'Zip',sudoku:'Sudoku'};
+const gameLinks={korony:'korony.html',duet:'duet.html',bloki:'bloki.html',latarnie:'latarnie.html',memory:'memory.html',zip:'zip.html',sudoku:'sudoku.html'};
 function formatDuration(ms){if(!Number.isFinite(ms)||ms<=0)return'—';const s=Math.floor(ms/1000);return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
 function streakLabel(value){return value===1?'1 dzień':`${value} dni`;}
 function gameCountLabel(value){if(value===1)return'1 gra dostępna dzisiaj.';if(value>=2&&value<=4)return`${value} gry dostępne dzisiaj.`;return`${value} gier dostępnych dzisiaj.`;}
 function waitingLabel(value){if(value===1)return'Jedna gra czeka';if(value>=2&&value<=4)return`${value} gry czekają`;return`${value} gier czeka`;}
 function syncAvailableCards(){
+  // One visual slot, two identities: preserve historic sets and their links
+  // without changing the six-card homepage or overwriting old scores.
+  const legacy=progress.requiredGames.includes('latarnie');
+  const card=document.getElementById(legacy?'memoryCard':'latarnieCard');
+  if(card){
+    card.id=legacy?'latarnieCard':'memoryCard';
+    card.classList.toggle('game-latarnie',legacy);
+    card.classList.toggle('game-memory',!legacy);
+    card.querySelector('h3').textContent=legacy?'Latarnie':'Memory';
+    card.querySelector('.game-card-body p').textContent=legacy?'Oświetl każde pole.':'Zapamiętaj symbole. Odnajdź pary.';
+    card.querySelector('.play').id=legacy?'latarnieStatus':'memoryStatus';
+    card.href=legacy?'latarnie.html':'memory.html';
+  }
   for(const gameId of Object.keys(gameNames)){
     const card=document.getElementById(gameId==='korony'?'crownsCard':gameId+'Card');
     if(card)card.hidden=!progress.requiredGames.includes(gameId);
@@ -51,7 +64,7 @@ function renderDailyProgress(){
   }
   for(const [id,card,status] of [
     ['korony','#crownsCard','#crownsStatus'],['duet','#duetCard','#duetStatus'],
-    ['bloki','#blokiCard','#blokiStatus'],['latarnie','#latarnieCard','#latarnieStatus'],
+    ['bloki','#blokiCard','#blokiStatus'],['latarnie','#latarnieCard','#latarnieStatus'],['memory','#memoryCard','#memoryStatus'],
     ['zip','#zipCard','#zipStatus'],['sudoku','#sudokuCard','#sudokuStatus']
   ])markGame(id,card,status);
   const next=progress.requiredGames.find(id=>!progress.completedGames.includes(id));
@@ -88,7 +101,7 @@ function refreshProgress(){
   renderDailyProgress();renderStats();renderWeek();renderGamesSummary();renderEngagementUI(today);
 }
 function wireGameSelection(){
-  const ids={crownsCard:'korony',duetCard:'duet',blokiCard:'bloki',latarnieCard:'latarnie',zipCard:'zip',sudokuCard:'sudoku'};
+  const ids={crownsCard:'korony',duetCard:'duet',blokiCard:'bloki',latarnieCard:'latarnie',memoryCard:'memory',zipCard:'zip',sudokuCard:'sudoku'};
   const root=document.querySelector('.games');
   root?.addEventListener('click',event=>{
     const card=event.target.closest('a.game-card');
