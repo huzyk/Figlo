@@ -80,7 +80,7 @@ test('password signup uses Supabase captcha, PKCE redirect and persists nickname
   await page.route('https://challenges.cloudflare.com/**', route => route.fulfill({contentType:'text/javascript',body:`window.turnstile={render:(el,opts)=>{setTimeout(()=>opts.callback('captcha-signup'),0);return 1;},reset:()=>{}};`}));
   await page.goto('/account.html');
   await page.getByRole('button',{name:'Załóż konto'}).click();
-  await page.getByLabel('Pseudonim').fill('Testerka');
+  await page.locator('#signupNickname').fill('Testerka');
   await page.locator('#signupEmail').fill('testerka@example.org');
   await page.locator('#signupPassword').fill('long-unique-password');
   await page.locator('#signupPasswordRepeat').fill('long-unique-password');
