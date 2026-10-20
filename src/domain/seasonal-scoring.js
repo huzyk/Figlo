@@ -2,10 +2,10 @@
 // Local scores are provisional and MUST NOT be treated as server-verified leaderboard entries.
 export const VERIFIED_SCORING_VERSION = 2;
 export const DAILY_SET_BONUS = 20;
-export const GAME_IDS = Object.freeze(['korony','duet','bloki','latarnie','zip','sudoku']);
+export const GAME_IDS = Object.freeze(['korony','duet','bloki','latarnie','memory','zip','sudoku']);
 export const TARGET_SECONDS = Object.freeze({
   korony: 240, duet: 210, bloki: 270,
-  latarnie: 270, zip: 210, sudoku: 300,
+  latarnie: 270, memory: 100, zip: 210, sudoku: 300,
 });
 export const PERIODS = Object.freeze(['week','month','year','all']);
 
