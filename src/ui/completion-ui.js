@@ -11,6 +11,7 @@ const GAME_META = {
   duet: { name: 'Duet', title: 'Duet ukończony!', href: 'duet.html' },
   bloki: { name: 'Bloki', title: 'Bloki ukończone!', href: 'bloki.html' },
   latarnie: { name: 'Latarnie', title: 'Latarnie ukończone!', href: 'latarnie.html' },
+  memory: { name: 'Memory', title: 'Memory ukończone!', href: 'memory.html' },
   zip: { name: 'Zip', title: 'Zip ukończony!', href: 'zip.html' },
   sudoku: { name: 'Sudoku', title: 'Sudoku ukończone!', href: 'sudoku.html' }
 };
