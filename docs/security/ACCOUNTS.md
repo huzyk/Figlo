@@ -1,8 +1,8 @@
 # Konta PUZLI — projekt i uruchomienie
 
-Status (20.10.2026): publiczny Project URL, publishable key i Turnstile site key zostały zapisane w `src/account/config.js`; `providers: ['google']`, `emailOtpEnabled: false`.
-Konta pozostają WYŁĄCZONE (`enabled: false`) do czasu potwierdzenia i testów migracji SQL, produkcyjnego Google OAuth, usuwania kont, polityki prywatności, RLS i monitoringu.
-Email OTP wymaga osobno własnego SMTP i zweryfikowanych szablonów; Meta/Facebook nie jest jeszcze podłączona.
+Status (20.10.2026): włączony jest ograniczony etap testowania Google OAuth na publicznym GitHub Pages (`enabled: true`, `providers: ['google']`, `emailOtpEnabled: false`).
+Właściciel uruchomił migrację bazy, potwierdził uprawnienia SQL / RLS oraz wdrożył `delete-account` (żądanie anonimowe odpowiedziało 401). Działającego OAuth po powrocie z Google, dostępu A/B i usuwania konta z uprawnioną sesją **jeszcze nie zweryfikowano**; należy wykonać ręczny smoke-test dwóch kont i ograniczenia dostępu. Publiczny adres oznacza, że osoba trzecia także może założyć konto.
+Email OTP wymaga osobno własnego SMTP i zweryfikowanych szablonów; Meta/Facebook nie jest jeszcze podłączona. Zanim nastąpi szersza premiera, wymagana jest pełna informacja prywatności i monitoring.
 
 ## Produkt
 
