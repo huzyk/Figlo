@@ -69,36 +69,40 @@ async function init() {
     }));
     $('providers').append(button);
   }
-  const script = document.createElement('script');
-  script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-  script.onload = () => {
-    widget = window.turnstile.render('#captcha', { sitekey: config.turnstileSiteKey,
-      callback: token => { captchaToken = token; $('sendCode').disabled = busy; },
-      'expired-callback': () => { captchaToken = undefined; $('sendCode').disabled = true; },
-      'error-callback': () => { captchaToken = undefined; $('sendCode').disabled = true; message('Nie udało się sprawdzić zabezpieczenia. Odśwież stronę.'); },
+  // Google OAuth is configured independently; never offer e-mail OTP before SMTP is ready.
+  if (config.emailOtpEnabled === true) {
+    $('emailLogin').hidden = false;
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.onload = () => {
+      widget = window.turnstile.render('#captcha', { sitekey: config.turnstileSiteKey,
+        callback: token => { captchaToken = token; $('sendCode').disabled = busy; },
+        'expired-callback': () => { captchaToken = undefined; $('sendCode').disabled = true; },
+        'error-callback': () => { captchaToken = undefined; $('sendCode').disabled = true; message('Nie udało się sprawdzić zabezpieczenia. Odśwież stronę.'); },
+      });
+    };
+    script.onerror = () => message('Nie udało się wczytać zabezpieczenia logowania e-mailem. Odśwież stronę.');
+    document.head.append(script);
+    $('emailForm').addEventListener('submit', event => {
+      event.preventDefault();
+      if (!captchaToken) return;
+      run(async () => {
+        email = $('email').value.trim();
+        try { checked(await client.auth.signInWithOtp({email, options: {shouldCreateUser: true, captchaToken}})); }
+        finally { resetCaptcha(); }
+        $('emailForm').hidden = true; $('codeForm').hidden = false;
+        message('Jeśli wiadomość może zostać dostarczona, otrzymasz kod. Sprawdź skrzynkę i folder spam.');
+        $('code').focus();
+      });
     });
-  };
-  script.onerror = () => message('Nie udało się wczytać zabezpieczenia logowania e-mailem. Odśwież stronę.');
-  document.head.append(script);
-  $('emailForm').addEventListener('submit', event => {
-    event.preventDefault();
-    if (!captchaToken) return;
-    run(async () => {
-      email = $('email').value.trim();
-      try { checked(await client.auth.signInWithOtp({email, options: {shouldCreateUser: true, captchaToken}})); }
-      finally { resetCaptcha(); }
-      $('emailForm').hidden = true; $('codeForm').hidden = false;
-      message('Jeśli wiadomość może zostać dostarczona, otrzymasz kod. Sprawdź skrzynkę i folder spam.');
-      $('code').focus();
+    $('codeForm').addEventListener('submit', event => { event.preventDefault(); run(async () => {
+      checked(await client.auth.verifyOtp({email, token: $('code').value.trim(), type: 'email'}));
+      $('code').value = ''; await showProfile();
+    }); });
+    $('changeEmail').addEventListener('click', () => {
+      $('codeForm').hidden = true; $('emailForm').hidden = false; $('code').value = ''; resetCaptcha();
     });
-  });
-  $('codeForm').addEventListener('submit', event => { event.preventDefault(); run(async () => {
-    checked(await client.auth.verifyOtp({email, token: $('code').value.trim(), type: 'email'}));
-    $('code').value = ''; await showProfile();
-  }); });
-  $('changeEmail').addEventListener('click', () => {
-    $('codeForm').hidden = true; $('emailForm').hidden = false; $('code').value = ''; resetCaptcha();
-  });
+  }
   $('profileForm').addEventListener('submit', event => { event.preventDefault(); run(async () => {
     const nickname = $('nickname').value.trim();
     if (!validNickname(nickname)) { message('Wpisz 2–24 znaki: litery, cyfry, spację, myślnik lub podkreślenie.'); return; }
