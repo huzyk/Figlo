@@ -182,10 +182,10 @@ async function init() {
       widget = window.turnstile.render('#captcha', { sitekey: config.turnstileSiteKey,
         callback: token => { captchaToken = token; $('sendCode').disabled = busy; },
         'expired-callback': () => { captchaToken = undefined; $('sendCode').disabled = true; },
-        'error-callback': () => { captchaToken = undefined; $('sendCode').disabled = true; message('Nie udało się sprawdzić zabezpieczenia. Odśwież stronę.'); },
+        'error-callback': () => { captchaToken = undefined; $('sendCode').disabled = true; if (!$('login').hidden) message('Nie udało się sprawdzić zabezpieczenia. Odśwież stronę.'); },
       });
     };
-    script.onerror = () => message('Nie udało się wczytać zabezpieczenia logowania e-mailem. Odśwież stronę.');
+    script.onerror = () => { if (!$('login').hidden) message('Nie udało się wczytać zabezpieczenia logowania e-mailem. Odśwież stronę.'); };
     document.head.append(script);
   }
   if (config.emailOtpEnabled === true) {
