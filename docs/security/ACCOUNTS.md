@@ -1,7 +1,8 @@
 # Konta PUZLI — projekt i uruchomienie
 
-Status: kod integracji przygotowany; konfiguracja domyślnie wyłączona. Bez projektu Supabase,
-konfiguracji dostawców, SMTP, CAPTCHA i monitoringu nie jest to aktywne logowanie produkcyjne.
+Status (20.10.2026): publiczny Project URL, publishable key i Turnstile site key zostały zapisane w `src/account/config.js`; `providers: ['google']`, `emailOtpEnabled: false`.
+Konta pozostają WYŁĄCZONE (`enabled: false`) do czasu potwierdzenia i testów migracji SQL, produkcyjnego Google OAuth, usuwania kont, polityki prywatności, RLS i monitoringu.
+Email OTP wymaga osobno własnego SMTP i zweryfikowanych szablonów; Meta/Facebook nie jest jeszcze podłączona.
 
 ## Produkt
 
@@ -77,8 +78,9 @@ Usunięcie wymaga `amr` z oauth/otp/email signup sprzed maks. 5 min; odświeżen
 10. Uzupełnić informację o administratorze danych/kontakcie, celach, podstawach, odbiorcach,
     retencji, transferach i prawach zgodnie z faktycznym modelem działalności. Ustalić retencję
     logów (proponowane 30 dni) i kopii (np. 30 dni); nie są automatycznie wdrożone przez ten kod.
-11. Dopiero po testach wpisać url, **sb_publishable_…**, site key i faktycznie skonfigurowanych
-    providers w `src/account/config.js`, ustawić enabled=true. Nie wysyłać sekretów na czacie.
+11. URL, publishable key, Turnstile site key i lista Google są już zapisane w publicznej konfiguracji.
+    Po testach z właścicielem ustawić `enabled: true`; `emailOtpEnabled` pozostaje false,
+    dopóki SMTP i OTP nie przejdą testów. Nie wysyłać sekretów na czacie.
 
 ## Wykrywanie i alarmy
 
