@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateConfig, callbackUrl, validNickname} from '../src/account/policy.js';
+import {validateConfig, callbackUrl, validNickname, validPassword} from '../src/account/policy.js';
 import {recentAuthentication} from '../supabase/functions/delete-account/policy.js';
 import {evaluateSignals} from '../supabase/functions/security-monitor/rules.js';
 
@@ -35,4 +35,8 @@ test('monitor detects configured thresholds and rejects absent telemetry', () =>
   assert.deepEqual(evaluateSignals({events:1000,signups:50,identity_changes:5}),['auth_volume','signup_spike','identity_changes']);
   assert.throws(() => evaluateSignals(null));
   assert.throws(() => evaluateSignals({events:0}));
+});
+test('password length validation never trims or stores passwords', () => {
+  assert.equal(validPassword('this-is-a-long-password'), true);
+  for (const password of ['short', '', 'x'.repeat(129), undefined, null]) assert.equal(validPassword(password), false);
 });

@@ -15,3 +15,6 @@ export function callbackUrl(locationHref) {
 export function validNickname(value) {
   return typeof value === 'string' && /^[\p{L}\p{N}_ -]{2,24}$/u.test(value);
 }
+export function validPassword(value) {
+  return typeof value === 'string' && value.length >= 12 && value.length <= 128;
+}
