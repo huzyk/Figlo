@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#FAFBFE">
-  <meta name="description" content="Sześć darmowych gier logicznych każdego dnia. Korony, Duet, Bloki, Latarnie, Zip i Sudoku. Bez logowania, bez pośpiechu.">
+  <meta name="description" content="Sześć darmowych gier logicznych każdego dnia. Korony, Duet, Bloki, Memory, Zip i Sudoku. Bez logowania, bez pośpiechu.">
   <title>PUZLI — codzienne gry logiczne</title>
   <link rel="stylesheet" href="home.css?v=20261014-clean4">
   <link rel="stylesheet" href="analytics.css">
@@ -42,7 +42,7 @@
         <div class="hero-copy">
           <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> CODZIENNY ZESTAW</div>
           <h1 id="heroHeading">Dzień dobry.<br><span>Rozruszaj głowę.</span></h1>
-          <p>Sześć krótkich gier logicznych. Każdego dnia nowe plansze, a po każdej — mała satysfakcja.</p>
+          <p>Sześć codziennych wyzwań dla umysłu. Logika, pamięć i przyjemność odkrywania.</p>
           <div class="hero-actions daily-cta">
             <a class="btn white" href="korony.html">Zagraj w Korony</a>
             <a class="hero-secondary" href="#gry">Zobacz wszystkie gry <span aria-hidden="true">↓</span></a>
@@ -85,11 +85,27 @@
         <div class="game-card-body"><h3>Bloki</h3><p>Podziel planszę na prostokąty.</p></div>
         <span class="play" id="blokiStatus">Graj</span>
       </a>
-      <a class="game-card game-latarnie active" id="latarnieCard" href="latarnie.html">
+      <a class="game-card game-memory active" id="memoryCard" href="memory.html">
         <div class="game-card-top"><span class="game-number">04</span><span class="game-state" aria-hidden="true"></span></div>
-        <div class="game-art" aria-hidden="true"><svg viewBox="0 0 120 96" aria-hidden="true"><g stroke="#CDD8E7" stroke-width="1"><path d="M24 12V84 M24 12H96"/><path d="M36 12V84 M24 24H96"/><path d="M48 12V84 M24 36H96"/><path d="M60 12V84 M24 48H96"/><path d="M72 12V84 M24 60H96"/><path d="M84 12V84 M24 72H96"/><path d="M96 12V84 M24 84H96"/></g><g fill="#E9F5D8"><path d="M36 24h36v12H36z"/><path d="M48 36h12v36H48z"/></g><g fill="#426754"><circle cx="42" cy="30" r="6"/><circle cx="78" cy="54" r="6"/><circle cx="54" cy="66" r="6"/></g><g stroke="#E0A04D" stroke-width="2" stroke-linecap="round"><path d="M42 19v-4M31 30h-4M53 30h4M78 43v-4M89 54h4M66 54h-4M54 55v-4M54 78v-3"/></g></svg></div>
-        <div class="game-card-body"><h3>Latarnie</h3><p>Oświetl każde pole.</p></div>
-        <span class="play" id="latarnieStatus">Graj</span>
+        <div class="game-art" aria-hidden="true">
+          <svg viewBox="0 0 120 96" aria-hidden="true">
+            <rect x="14" y="6" width="92" height="84" rx="13" fill="#201e3e"/>
+            <g fill="#f6f1ff" stroke="#a49ad2" stroke-width="1.5">
+              <rect x="22" y="15" width="34" height="30" rx="6"/>
+              <rect x="64" y="15" width="34" height="30" rx="6"/>
+              <rect x="22" y="51" width="34" height="30" rx="6"/>
+              <rect x="64" y="51" width="34" height="30" rx="6"/>
+            </g>
+            <g fill="none" stroke="#7559bd" stroke-width="2.5" stroke-linecap="round">
+              <ellipse cx="39" cy="30" rx="11" ry="4"/><ellipse cx="39" cy="30" rx="11" ry="4" transform="rotate(60 39 30)"/><ellipse cx="39" cy="30" rx="11" ry="4" transform="rotate(120 39 30)"/>
+              <circle cx="81" cy="30" r="9"/><ellipse cx="81" cy="30" rx="15" ry="5" transform="rotate(-25 81 30)"/>
+              <path d="M34 58c19 6 19 12 0 17m11-17c-19 6-19 12 0 17M36 61h8m-8 11h8"/>
+              <path d="m81 57 11 12-11 9-11-9 11-12Z"/>
+            </g>
+          </svg>
+        </div>
+        <div class="game-card-body"><h3>Memory</h3><p>Zapamiętaj symbole. Odnajdź pary.</p></div>
+        <span class="play" id="memoryStatus">Graj</span>
       </a>
       <a class="game-card game-zip active" id="zipCard" href="zip.html">
         <div class="game-card-top"><span class="game-number">05</span><span class="game-state" aria-hidden="true"></span></div>
@@ -169,7 +185,7 @@
     </div>
   </footer>
   <script type="module" src="src/services/analytics-bootstrap.js"></script>
-  <script type="module" src="home.js?v=score-v2"></script>
+  <script type="module" src="home.js?v=20261020-memory-daily"></script>
 </body>
 </html>
 
