@@ -16,7 +16,7 @@ function defaultState(today = currentDateKey()) {
     puzzleResults: {},
     user: { streak: 0, bestStreak: 0, completedDays: 0, completedGames: 0, lastCompletedDate: null, completedDates: [], activeDates: [], activeStreak: 0, bestActiveStreak: 0, lastActiveDate: null },
     daily: { date: today, requiredGames: requiredGamesForDate(today), completedGames: [] },
-    games: { korony: defaultGameStats(), duet: defaultGameStats(), bloki: defaultGameStats(), latarnie: defaultGameStats(), zip: defaultGameStats(), sudoku: defaultGameStats() },
+    games: { korony: defaultGameStats(), duet: defaultGameStats(), bloki: defaultGameStats(), latarnie: defaultGameStats(), memory: defaultGameStats(), zip: defaultGameStats(), sudoku: defaultGameStats() },
     settings: { autoX: false },
     rewards: createRewardsState(),
     sessions: { korony: defaultCrownSession(), duet: defaultDuetSession() }
@@ -67,6 +67,7 @@ function normalizeState(raw, today) {
       duet: { ...fallback.games.duet, ...(raw.games?.duet || {}) },
       bloki: { ...fallback.games.bloki, ...(raw.games?.bloki || {}) },
       latarnie: { ...fallback.games.latarnie, ...(raw.games?.latarnie || {}) },
+      memory: { ...fallback.games.memory, ...(raw.games?.memory || {}) },
       zip: { ...fallback.games.zip, ...(raw.games?.zip || {}) },
       sudoku: { ...fallback.games.sudoku, ...(raw.games?.sudoku || {}) }
     },
@@ -93,7 +94,7 @@ function normalizeState(raw, today) {
   if (!Array.isArray(state.sessions.duet.history)) state.sessions.duet.history = [];
   state.sessions.duet.elapsedMs = safeNumber(state.sessions.duet.elapsedMs);
   state.sessions.duet.runningSince = Number.isFinite(Number(state.sessions.duet.runningSince)) ? Number(state.sessions.duet.runningSince) : null;
-  for (const gameId of ['korony', 'duet', 'bloki', 'latarnie', 'zip', 'sudoku']) {
+  for (const gameId of ['korony', 'duet', 'bloki', 'latarnie', 'memory', 'zip', 'sudoku']) {
     state.games[gameId].completedCount = safeNumber(state.games[gameId].completedCount);
     state.games[gameId].totalTimeMs = safeNumber(state.games[gameId].totalTimeMs);
     state.games[gameId].timedCompletions = safeNumber(state.games[gameId].timedCompletions);
