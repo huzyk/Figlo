@@ -13,7 +13,7 @@ test('unconfigured accounts fail closed and guest games stay available', async (
 });
 
 test('account form uses verified identity, escapes nickname and scopes signout', async ({page}) => {
-  await page.route('**/src/account/config.js',route => route.fulfill({contentType:'text/javascript',body:`export const accountConfig={enabled:true,url:'https://example.supabase.co',publishableKey:'sb_publishable_test',providers:['google','facebook','apple','azure'],turnstileSiteKey:'test'};`}));
+  await page.route('**/src/account/config.js',route => route.fulfill({contentType:'text/javascript',body:`export const accountConfig={enabled:true,url:'https://example.supabase.co',publishableKey:'sb_publishable_test',providers:['google','facebook','apple','azure'],emailOtpEnabled:true,turnstileSiteKey:'test'};`}));
   await page.route('**/src/account/supabase.js',route => route.fulfill({contentType:'text/javascript',body:`
     let signedIn=false;
     export function createClient(url,key,options){
@@ -49,4 +49,17 @@ test('account form uses verified identity, escapes nickname and scopes signout',
   await page.getByRole('button',{name:'Wyloguj wszystkie urządzenia'}).click();
   await expect(page.locator('#profile')).toBeHidden();
   expect(await page.evaluate(()=>window.signoutScope)).toBe('global');
+});
+
+
+test('Google-only beta does not expose nonconfigured OTP or load the Turnstile widget', async ({page}) => {
+  const outgoing = [];
+  page.on('request', request => { if (request.url().includes('challenges.cloudflare.com')) outgoing.push(request.url()); });
+  await page.route('**/src/account/config.js',route=>route.fulfill({contentType:'text/javascript',body:`export const accountConfig={enabled:true,url:'https://example.supabase.co',publishableKey:'sb_publishable_test',providers:['google'],emailOtpEnabled:false,turnstileSiteKey:'test'};`}));
+  await page.route('**/src/account/supabase.js',route=>route.fulfill({contentType:'text/javascript',body:`export function createClient(){return {auth:{getSession:async()=>({data:{session:null}}),signInWithOAuth:async()=>({data:{}})}}}` }));
+  await page.goto('/account.html');
+  await expect(page.getByRole('button',{name:'Kontynuuj z Google'})).toBeVisible();
+  await expect(page.getByLabel('Adres e-mail')).toBeHidden();
+  await expect(page.getByRole('button',{name:'Kontynuuj z Facebook'})).toHaveCount(0);
+  expect(outgoing).toEqual([]);
 });
