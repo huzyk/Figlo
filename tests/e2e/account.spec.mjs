@@ -153,6 +153,12 @@ test('recovery callback accepts a verified PKCE session and lets the user change
   `}));
   await page.goto('/account.html?code=recovery-test');
   await expect(page.locator('#resetPassword')).toBeVisible();
+  // CAPTCHA may finish loading late after the recovery view is already active.
+  await page.evaluate(() => {
+    const turnstileScript = document.querySelector('script[src*="challenges.cloudflare.com"]');
+    turnstileScript?.dispatchEvent(new Event('error'));
+  });
+  await expect(page.getByRole('status')).toContainText('Link potwierdzony');
   expect(page.url()).toBe('http://127.0.0.1:4173/account.html');
   await page.locator('#newPassword').fill('long-new-password');
   await page.locator('#newPasswordRepeat').fill('long-new-password');
