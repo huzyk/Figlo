@@ -6,6 +6,7 @@ export const accountConfig = Object.freeze({
   url: 'https://ngilfxzwlfkjpqylocxw.supabase.co',
   publishableKey: 'sb_publishable_JZ1XL1hCOU70BXZ4q6HZFQ_ypX0CpnS',
   providers: ['google'], // Facebook not yet configured
-  emailOtpEnabled: false, // Enable only after dedicated SMTP and OTP templates are verified
+  emailOtpEnabled: false, // OTP stays disabled until dedicated SMTP and templates are ready
+  passwordAuthEnabled: true, // SMTP required for emails to addresses outside the Supabase team
   turnstileSiteKey: '0x4AAAAAAFdn13n2nJqdnyhd',
 });
