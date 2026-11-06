@@ -12,6 +12,17 @@ import pymupdf as fitz
 APP_NAME = "PolisaZdalna"
 STAMP_TEXT = "POLISA ZDALNA"
 
+INSURED_LABELS = [
+    "Podpis ubezpieczającego",
+    "Podpis/pieczęć ubezpieczającego",
+    "Podpis wnioskującego o zmianę",
+]
+REP_LABELS = [
+    "Pieczęć i podpis przedstawiciela PZU SA",
+    "Pieczęć i podpis przedstawiciela",
+    "podpis przedstawiciela PZU SA",
+]
+
 
 def app_data_dir() -> Path:
     base = os.environ.get("LOCALAPPDATA") or os.environ.get("APPDATA") or str(Path.home())
@@ -45,7 +56,7 @@ def drawing_boxes(page):
     boxes = []
     for d in page.get_drawings():
         r = fitz.Rect(d["rect"])
-        if r.width >= 70 and 25 <= r.height <= 150:
+        if r.width >= 70 and 8 <= r.height <= 180:
             boxes.append(r)
     return boxes
 
@@ -68,7 +79,7 @@ def box_above_label(label, boxes):
 def locate_fields(page):
     boxes = drawing_boxes(page)
     insured = []
-    for lab in search_any(page, ["Podpis ubezpieczającego"]):
+    for lab in search_any(page, INSURED_LABELS):
         b = box_above_label(lab, boxes)
         if b is not None and not any(abs(b.x0-q.x0) < 2 and abs(b.y0-q.y0) < 2 for q in insured):
             insured.append(b)
@@ -117,25 +128,32 @@ def unique_output(outdir, input_path):
     return p
 
 
+def find_signature_page(doc):
+    for page_index in range(doc.page_count - 1, -1, -1):
+        page = doc[page_index]
+        insured, rep = locate_fields(page)
+        if len(insured) == 2 and rep is not None:
+            return page_index
+    return None
+
+
 def process_pdf(input_pdf, facsimile, outdir):
     src = fitz.open(str(input_pdf))
     if src.page_count < 1:
         src.close()
         raise ValueError("PDF nie zawiera stron.")
 
+    signature_page = find_signature_page(src)
+    if signature_page is None:
+        src.close()
+        raise ValueError("Nie znaleziono strony z kompletem pól podpisowych.")
+
     out = fitz.open()
-    out.insert_pdf(src, from_page=src.page_count - 1, to_page=src.page_count - 1)
+    out.insert_pdf(src, from_page=signature_page, to_page=signature_page)
     src.close()
     page = out[0]
 
     insured, rep = locate_fields(page)
-    if len(insured) != 2:
-        out.close()
-        raise ValueError(f"Nie znaleziono dokładnie 2 pól 'Podpis ubezpieczającego' (znaleziono: {len(insured)}).")
-    if rep is None:
-        out.close()
-        raise ValueError("Nie znaleziono pola 'Pieczęć i podpis przedstawiciela PZU SA'.")
-
     for r in insured:
         place_centered_text(page, r, STAMP_TEXT)
     place_facsimile(page, rep, facsimile)
@@ -253,7 +271,7 @@ class App(tk.Tk):
 
         self.note = ttk.Label(
             self.outer,
-            text="Tylko ostatnia strona. Gdy program nie rozpozna pól, nie nanosi niczego i zgłasza błąd.",
+            text="Program wybiera ostatnią stronę zawierającą komplet pól podpisowych. Gdy nie rozpozna pól, niczego nie nanosi i zgłasza błąd.",
             foreground="#6B7280", background="#F4F6F8", font=("Segoe UI", 8),
             wraplength=800, justify="left"
         )
